@@ -2,8 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Terminal"
              x:Class="Terminal.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Light">
 
     <Application.DataTemplates>
         <local:ViewLocator/>
@@ -11,5 +10,38 @@
 
     <Application.Styles>
         <FluentTheme />
+    </Application.Styles>
+    
+    <Application.Styles>
+        <!-- Заголовок страницы -->
+        <Style Selector="TextBlock.page-title">
+            <Setter Property="FontSize" Value="55"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        
+        <!-- Текст в кнопках -->
+        <Style Selector="TextBlock.text-button">
+            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        
+        <!-- Кнопки выбора действия -->
+        <Style Selector="Button.selector-button">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="MaxHeight" Value="280"/>
+            <Setter Property="MaxWidth" Value="280"/>
+        </Style>
     </Application.Styles>
 </Application>

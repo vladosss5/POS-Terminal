@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Terminal.ViewModels;
+using Terminal.ViewModels.Pages;
+using Terminal.Views.Pages;
 
 namespace Terminal.Extensions;
 
@@ -15,5 +17,8 @@ public static class ServiceCollectionExtensions
     public static void AddCommonServices(this IServiceCollection collection)
     {
         collection.AddTransient<MainViewModel>();
+
+        collection.AddTransient<MainMenuPageView>();
+        collection.AddTransient<MainMenuPageViewModel>();
     }
 }

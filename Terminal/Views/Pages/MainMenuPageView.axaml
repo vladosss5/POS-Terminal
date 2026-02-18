@@ -1,0 +1,61 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="720" d:DesignHeight="1500"
+             x:Class="Terminal.Views.Pages.MainMenuPageView"
+             x:DataType="pages:MainMenuPageViewModel">
+    
+    <Grid RowDefinitions="Auto, *">
+        <TextBlock Grid.Row="0" Text="{Binding Title}" Classes="page-title"/>
+        <ScrollViewer Grid.Row="1">
+            <UniformGrid Columns="2" 
+                HorizontalAlignment="Center"
+                VerticalAlignment="Stretch"
+                Margin="20">
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Заправка по карте" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Возврат на карту" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Возврат на счёт" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Инфо по карте" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Закрыть смену" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Инкассация" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Меню оператора" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Пром. отчёт" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Заправка по карте" Classes="text-button" />
+                </Button>
+                
+                <Button Classes="selector-button">
+                    <TextBlock Text="Настройка" Classes="text-button" />
+                </Button>
+                
+            </UniformGrid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -14,6 +14,9 @@ namespace Terminal;
 
 public partial class App : Application
 {
+    /// <summary>
+    /// Св-во для получения зарегестрированных сервисов.
+    /// </summary>
     public static IServiceProvider? Services { get; private set; }
     
     public override void Initialize()

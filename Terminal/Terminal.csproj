@@ -22,4 +22,9 @@
         <PackageReference Include="CommunityToolkit.Mvvm"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Terminal.Application\Terminal.Application.csproj" />
+      <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
+    </ItemGroup>
 </Project>

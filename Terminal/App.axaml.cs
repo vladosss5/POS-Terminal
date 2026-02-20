@@ -1,7 +1,5 @@
 using System;
-using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
@@ -12,7 +10,7 @@ using Terminal.Views;
 
 namespace Terminal;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     /// <summary>
     /// Св-во для получения зарегестрированных сервисов.

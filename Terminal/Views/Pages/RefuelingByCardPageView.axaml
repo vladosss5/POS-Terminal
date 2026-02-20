@@ -3,19 +3,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:converters="clr-namespace:Terminal.Converters"
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="800"
              x:Class="Terminal.Views.Pages.RefuelingByCardPageView"
              x:DataType="pages:RefuelingByCardPageViewModel"
              x:Name="UserControl">
     
+    <UserControl.Resources>
+        <converters:EnumFriendlyNameConverter x:Key="EnumToStringConverter"/>
+    </UserControl.Resources>
+    
     <Grid RowDefinitions="Auto, *">
         
         <!-- Шапка -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, *">
-            <TextBlock Grid.Column="0" Text="{Binding Steps[1].StepName}"/>
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding NameCurrentPage}" 
+                       Classes="page-title"/>
             
-            <Button Grid.Column="1" Content="Назад" Command="{Binding StepBack}">
-                
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="80"
+                    Background="Transparent" CornerRadius="20">
+                <Image Source="../../Assets/arrow-left.png"/>
             </Button>
         </Grid>
         
@@ -24,29 +34,168 @@
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch">
             <Panel>
+                <!-- Тип оплаты -->
                 <ItemsControl ItemsSource="{Binding PaymentTypes}"
-                              IsVisible="{Binding Steps[0].IsActive}">
+                              IsVisible="False">
+                              <!-- IsVisible="{Binding Steps[0].IsActive}"> -->
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" 
+                                         HorizontalAlignment="Stretch" 
+                                         VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Content="{Binding}" 
-                                    Command="{Binding ElementName=UserControl, Path=SetPaymentTypeCommand}"
+                            <Button Command="{Binding ElementName=UserControl, Path=SetPaymentTypeCommand}"
                                     CommandParameter="{Binding}"
-                                    Width="100"/>
+                                    Classes="selector-button">
+                                <TextBlock Text="{Binding Converter={StaticResource EnumToStringConverter}}"
+                                           Classes="text-button"/>
+                            </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 
+                <!-- Тип топлива -->
                 <ItemsControl ItemsSource="{Binding FuelTypes}"
                               IsVisible="{Binding Steps[1].IsActive}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" 
+                                         HorizontalAlignment="Stretch" 
+                                         VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Content="{Binding}" 
-                                    Command="{Binding ElementName=UserControl, Path=SetFuelTypesCommand}"
+                            <Button Command="{Binding ElementName=UserControl, Path=SetFuelTypesCommand}"
                                     CommandParameter="{Binding}"
-                                    Width="100"/>
+                                    Classes="selector-button">
+                                <TextBlock Text="{Binding Converter={StaticResource EnumToStringConverter}}"
+                                           Classes="text-button"/>
+                            </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                
+                <!-- Количество -->
+                <Grid RowDefinitions="Auto, Auto, *"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch"
+                      IsVisible="True">
+                      <!-- IsVisible="{Binding Steps[2].IsActive}"> -->
+                    <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
+                        <TextBlock Text="{Binding AmountPreview}"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Stretch"
+                                   FontSize="60"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+                      
+                    <TextBlock Grid.Row="1" Text="{Binding}" 
+                               Background="Aqua" 
+                               VerticalAlignment="Top" 
+                               HorizontalAlignment="Center"/>
+                    
+                    <Grid Grid.Row="2" 
+                          RowDefinitions="*, *, *, *, *" 
+                          ColumnDefinitions="*, *, *, *">
+                    
+                        <Button Grid.Row="4" Grid.Column="0" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="00">
+                            <TextBlock Text="00" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="4" Grid.Column="1" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="0">
+                            <TextBlock Text="0" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="4" Grid.Column="2" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter=",">
+                            <TextBlock Text="," Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="3" Grid.Column="0" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="1">
+                            <TextBlock Text="1" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="3" Grid.Column="1" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="2">
+                            <TextBlock Text="2" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="3" Grid.Column="2" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="3">
+                            <TextBlock Text="3" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="2" Grid.Column="0" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="4">
+                            <TextBlock Text="4" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="2" Grid.Column="1" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="5">
+                            <TextBlock Text="5" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="2" Grid.Column="2" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="6">
+                            <TextBlock Text="6" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="1" Grid.Column="0" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="7">
+                            <TextBlock Text="7" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="1" Grid.Column="1" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="8">
+                            <TextBlock Text="8" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="1" Grid.Column="2" Classes="number-button"
+                                Command="{Binding AddCharInAmountPreview}"
+                                CommandParameter="9">
+                            <TextBlock Text="9" Classes="text-button" />
+                        </Button>
+                        
+                        <Button Grid.Row="1" Grid.Column="3" Classes="number-button" 
+                                Command="{Binding SetCount}"
+                                CommandParameter="{Binding Amount}">
+                            <Image Source="../../Assets/fuel.png"/>
+                        </Button>
+                        
+                        <Button Grid.Row="2" Grid.Column="3" Classes="number-button"
+                                Command="{Binding DeleteLastChar}">
+                            <Image Source="../../Assets/backspace.png"/>
+                        </Button>
+                        
+                        <Button Grid.Row="3" Grid.RowSpan="2" Grid.Column="3"
+                                Command="{Binding SetCount}"
+                                CommandParameter="{Binding Amount}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                CornerRadius="20"
+                                Margin="5">
+                            <Image Source="../../Assets/enter.png"/>
+                        </Button>
+                    </Grid>
+                </Grid>
             </Panel>
         </Border>
     </Grid>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Converters;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 using Terminal.Views.Pages;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
     /// <param name="collection">Дополняемая коллекция сервисов.</param>
     public static void AddCommonServices(this IServiceCollection collection)
     {
+        // View и ViewModel
         collection.AddTransient<MainViewModel>();
 
         collection.AddTransient<MainMenuPageView>();
@@ -25,7 +27,11 @@ public static class ServiceCollectionExtensions
 
         collection.AddTransient<RefuelingByCardPageViewModel>();
         collection.AddTransient<RefuelingByCardPageView>();
-
+        
+        // Конвертеры
+        collection.AddSingleton<EnumFriendlyNameConverter>();
+        
+        // Сервисы логики
         collection.AddScoped<IRefuelingProcessBuilder, RefuelingProcessBuilder>();
     }
 }

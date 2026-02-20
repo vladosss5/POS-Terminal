@@ -6,7 +6,7 @@ public class Refill
 {
     public PaymentTypes PaymentType { get; set; }
     
-    public string FuelType { get; set; }
+    public FuelTypes FuelType { get; set; }
     
     public decimal CountFuel { get; set; }
     

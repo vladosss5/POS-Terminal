@@ -22,11 +22,15 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     [ObservableProperty] private PaymentTypes? _selectedCardType;
     
-    [ObservableProperty] private string _selectedFuelType;
+    [ObservableProperty] private FuelTypes? _selectedFuelType;
     
     [ObservableProperty] private decimal _amount;
+
+    [ObservableProperty] private string _amountPreview = "0";
     
     [ObservableProperty] private ObservableCollection<Refill> _completedProcesses;
+
+    [ObservableProperty] private string _nameCurrentPage;
     
     public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
     public IEnumerable<FuelTypes> FuelTypes => Enum.GetValues<FuelTypes>();
@@ -53,7 +57,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[0].CompleteStepCommand.Execute(null);
     }
 
-    public void SetFuelType(string type)
+    public void SetFuelType(FuelTypes type)
     {
         _builder.SetFuelType(type);
 
@@ -72,9 +76,34 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     public void StepBack()
     {
+        if (!IsProcessStarted || CurrentStepIndex <= 0)
+            return;
+
+        Steps[CurrentStepIndex].IsActive = false;
         
+        CurrentStepIndex--;
+        NameCurrentPage = Steps[CurrentStepIndex].StepName;
+        
+        var prevStep = Steps[CurrentStepIndex];
+        prevStep.IsActive = true;
+        prevStep.IsCompleted = false;
     }
-    
+
+    public void AddCharInAmountPreview(string item)
+    {
+        if (AmountPreview == "0")
+            AmountPreview = string.Empty;
+
+        if (AmountPreview.Length > 10)
+            return;
+        
+        AmountPreview += item;
+    }
+
+    public void DeleteLastChar()
+    {
+        AmountPreview = AmountPreview[..^1];
+    }
 
     private void InitializeSteps()
     {
@@ -84,6 +113,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             new("Тип топлива", OnStepCompleted),
             new("Количество", OnStepCompleted)
         };
+
+        NameCurrentPage = Steps[0].StepName;
     }
 
     private void OnStepCompleted()
@@ -91,6 +122,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         if (CurrentStepIndex < Steps.Count - 1)
         {
             CurrentStepIndex++;
+            NameCurrentPage = Steps[CurrentStepIndex].StepName;
             Steps[CurrentStepIndex].IsActive = true;
         }
         else

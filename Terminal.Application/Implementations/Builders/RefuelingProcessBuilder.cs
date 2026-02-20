@@ -15,7 +15,7 @@ public class RefuelingProcessBuilder : IRefuelingProcessBuilder
         return this;
     }
 
-    public IRefuelingProcessBuilder SetFuelType(string fuelType)
+    public IRefuelingProcessBuilder SetFuelType(FuelTypes fuelType)
     {
         _refill.FuelType = fuelType;
         

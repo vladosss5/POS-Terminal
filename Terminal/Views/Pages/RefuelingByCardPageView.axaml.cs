@@ -23,6 +23,6 @@ public partial class RefuelingByCardPageView : UserControl
 
     public void SetFuelTypesCommand(FuelTypes type)
     {
-        (DataContext as RefuelingByCardPageViewModel).SetFuelType(type.ToString());
+        (DataContext as RefuelingByCardPageViewModel).SetFuelType(type);
     }
 }

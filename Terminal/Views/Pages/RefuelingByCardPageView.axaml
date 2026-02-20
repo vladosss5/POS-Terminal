@@ -1,0 +1,53 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.RefuelingByCardPageView"
+             x:DataType="pages:RefuelingByCardPageViewModel"
+             x:Name="UserControl">
+    
+    <Grid RowDefinitions="Auto, *">
+        
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, *">
+            <TextBlock Grid.Column="0" Text="{Binding Steps[1].StepName}"/>
+            
+            <Button Grid.Column="1" Content="Назад" Command="{Binding StepBack}">
+                
+            </Button>
+        </Grid>
+        
+        <!-- Тело страницы -->
+        <Border Grid.Row="1" Background="WhiteSmoke"
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch">
+            <Panel>
+                <ItemsControl ItemsSource="{Binding PaymentTypes}"
+                              IsVisible="{Binding Steps[0].IsActive}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding}" 
+                                    Command="{Binding ElementName=UserControl, Path=SetPaymentTypeCommand}"
+                                    CommandParameter="{Binding}"
+                                    Width="100"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <ItemsControl ItemsSource="{Binding FuelTypes}"
+                              IsVisible="{Binding Steps[1].IsActive}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding}" 
+                                    Command="{Binding ElementName=UserControl, Path=SetFuelTypesCommand}"
+                                    CommandParameter="{Binding}"
+                                    Width="100"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Panel>
+        </Border>
+    </Grid>
+</UserControl>

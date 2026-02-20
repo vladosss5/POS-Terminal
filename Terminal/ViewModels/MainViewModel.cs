@@ -16,8 +16,10 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public MainViewModel(MainMenuPageViewModel mainMenuPageViewModel)
+    public MainViewModel(
+        MainMenuPageViewModel mainMenuPageViewModel,
+        RefuelingByCardPageViewModel refuelingByCardPageViewModel)
     {
-        _currentPage = mainMenuPageViewModel;
+        _currentPage = refuelingByCardPageViewModel;
     }
 }

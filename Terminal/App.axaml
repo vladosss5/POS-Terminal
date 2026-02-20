@@ -54,8 +54,8 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="Margin" Value="5"/>
-            <Setter Property="MaxHeight" Value="100"/>
-            <Setter Property="MaxWidth" Value="280"/>
+            <!-- <Setter Property="MaxHeight" Value="100"/> -->
+            <!-- <Setter Property="MaxWidth" Value="280"/> -->
         </Style>
     </Application.Styles>
 </Application>

@@ -13,6 +13,12 @@ namespace Terminal.ViewModels.Pages;
 public partial class RefuelingByCardPageViewModel : PageViewModelBase
 {
     private readonly IRefuelingProcessBuilder _builder;
+
+    private string[] _amountMessages = new []
+    {
+        "Указывается кол-во в ₽",
+        "Указывается кол-во в литрах"
+    };
     
     [ObservableProperty] private ObservableCollection<StepViewModelBase> _steps;
 
@@ -27,6 +33,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     [ObservableProperty] private decimal _amount;
 
     [ObservableProperty] private string _amountPreview = "0";
+
+    [ObservableProperty] private bool _isAmountMoney = true;
+
+    [ObservableProperty] private string _amountWhat;
     
     [ObservableProperty] private ObservableCollection<Refill> _completedProcesses;
 
@@ -46,6 +56,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         IsProcessStarted = true;
         CurrentStepIndex = 0;
         Steps[0].IsActive = true;
+        
+        _amountWhat = IsAmountMoney ? _amountMessages[0] : _amountMessages[1];
     }
 
 
@@ -103,6 +115,20 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     public void DeleteLastChar()
     {
         AmountPreview = AmountPreview[..^1];
+    }
+
+    public void SwitchAmount()
+    {
+        if (IsAmountMoney)
+        {
+            IsAmountMoney = false;
+            AmountWhat = _amountMessages[1];
+        }
+        else
+        {
+            IsAmountMoney = true;
+            AmountWhat = _amountMessages[0];
+        }
     }
 
     private void InitializeSteps()

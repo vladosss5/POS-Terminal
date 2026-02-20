@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
@@ -77,11 +78,17 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[1].CompleteStepCommand.Execute(null);
     }
     
-    public void SetCount(decimal count)
+    public async void SetCount(decimal count)
     {
         _builder.SetAmount(count);
 
         Amount = count;
+
+        if (true)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Ещё не реализовано").ShowAsync();
+            return;
+        }
         Steps[2].CompleteStepCommand.Execute(null);
     }
 

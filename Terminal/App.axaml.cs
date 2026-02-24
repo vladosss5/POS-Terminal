@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Terminal.Data.Context;
 using Terminal.Extensions;
 using Terminal.ViewModels;
+using Terminal.ViewModels.NavigationService;
+using Terminal.ViewModels.Pages;
 using Terminal.Views;
 
 namespace Terminal;
@@ -34,8 +36,6 @@ public partial class App : Avalonia.Application
         var services = collection.BuildServiceProvider();
         Services = services;
 
-        var mainViewModel = services.GetRequiredService<MainViewModel>();
-    
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
@@ -49,8 +49,16 @@ public partial class App : Avalonia.Application
                     await context.Database.MigrateAsync();
                 }
             }
-        
-            desktop.MainWindow = new MainWindow
+        }
+    
+        var navigationService = Services.GetRequiredService<INavigationService>();
+        navigationService.NavigateTo<MainMenuPageViewModel>();
+
+        var mainViewModel = services.GetRequiredService<MainViewModel>();
+    
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp)
+        {
+            desktopApp.MainWindow = new MainWindow
             {
                 DataContext = mainViewModel
             };

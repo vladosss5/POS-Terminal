@@ -15,7 +15,8 @@
                 VerticalAlignment="Stretch"
                 Margin="20">
                 
-                <Button Classes="selector-button">
+                <Button Command="{Binding OpenRefuelingByCardCommand}"
+                        Classes="selector-button">
                     <TextBlock Text="Заправка по карте" Classes="text-button" />
                 </Button>
                 

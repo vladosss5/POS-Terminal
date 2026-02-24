@@ -6,6 +6,7 @@ using Terminal.Application.Interfaces.Builders;
 using Terminal.Converters;
 using Terminal.Data.Context;
 using Terminal.ViewModels;
+using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
 using Terminal.Views.Pages;
 
@@ -36,6 +37,7 @@ public static class ServiceCollectionExtensions
         
         // Сервисы логики
         collection.AddScoped<IRefuelingProcessBuilder, RefuelingProcessBuilder>();
+        collection.AddSingleton<INavigationService, NavigationService>();
     }
 
     public static void AddDataContext(this IServiceCollection collection)

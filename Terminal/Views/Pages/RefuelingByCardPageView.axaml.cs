@@ -13,8 +13,6 @@ public partial class RefuelingByCardPageView : UserControl
     public RefuelingByCardPageView()
     {
         InitializeComponent();
-        if (App.Services != null)
-            DataContext = App.Services.GetRequiredService<RefuelingByCardPageViewModel>();
     }
 
     public void SetPaymentTypeCommand(PaymentTypes type)

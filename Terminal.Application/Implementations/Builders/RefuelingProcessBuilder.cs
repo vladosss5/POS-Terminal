@@ -1,4 +1,5 @@
 ﻿using Terminal.Application.Interfaces.Builders;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
@@ -15,7 +16,7 @@ public class RefuelingProcessBuilder : IRefuelingProcessBuilder
         return this;
     }
 
-    public IRefuelingProcessBuilder SetFuelType(FuelTypes fuelType)
+    public IRefuelingProcessBuilder SetFuelType(Product fuelType)
     {
         _refill.FuelType = fuelType;
         

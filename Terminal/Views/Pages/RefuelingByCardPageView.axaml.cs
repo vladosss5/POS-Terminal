@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.ViewModels.Pages;
 
@@ -21,7 +22,7 @@ public partial class RefuelingByCardPageView : UserControl
         (DataContext as RefuelingByCardPageViewModel).SetPaymentType(type);
     }
 
-    public void SetFuelTypesCommand(FuelTypes type)
+    public void SetFuelTypesCommand(Product type)
     {
         (DataContext as RefuelingByCardPageViewModel).SetFuelType(type);
     }

@@ -57,7 +57,7 @@
                 </ItemsControl>
                 
                 <!-- Тип топлива -->
-                <ItemsControl ItemsSource="{Binding FuelTypes}"
+                <ItemsControl ItemsSource="{Binding Products}"
                               IsVisible="{Binding Steps[1].IsActive}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -71,7 +71,7 @@
                             <Button Command="{Binding ElementName=UserControl, Path=SetFuelTypesCommand}"
                                     CommandParameter="{Binding}"
                                     Classes="selector-button">
-                                <TextBlock Text="{Binding Converter={StaticResource EnumToStringConverter}}"
+                                <TextBlock Text="{Binding Name}"
                                            Classes="text-button"/>
                             </Button>
                         </DataTemplate>

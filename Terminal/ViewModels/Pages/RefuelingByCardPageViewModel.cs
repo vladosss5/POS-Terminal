@@ -1,18 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Data.Context;
 using Terminal.ViewModels.Steps;
 
 namespace Terminal.ViewModels.Pages;
 
 public partial class RefuelingByCardPageViewModel : PageViewModelBase
 {
+    private readonly IDbContextFactory<DataContext> _dbFactory;
     private readonly IRefuelingProcessBuilder _builder;
 
     private string[] _amountMessages = new []
@@ -29,7 +35,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     [ObservableProperty] private PaymentTypes? _selectedCardType;
     
-    [ObservableProperty] private FuelTypes? _selectedFuelType;
+    [ObservableProperty] private Product? _selectedFuelType;
     
     [ObservableProperty] private decimal _amount;
 
@@ -44,15 +50,19 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     [ObservableProperty] private string _nameCurrentPage;
     
     public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
-    public IEnumerable<FuelTypes> FuelTypes => Enum.GetValues<FuelTypes>();
+    
+    public List<Product> Products { get; set; }
 
-
-    public RefuelingByCardPageViewModel(IRefuelingProcessBuilder builder)
+    public RefuelingByCardPageViewModel(
+        IRefuelingProcessBuilder builder, 
+        IDbContextFactory<DataContext> dbFactory)
     {
         _builder = builder;
+        _dbFactory = dbFactory;
         CompletedProcesses = new();
 
         InitializeSteps();
+        _ = LoadDataAsync();
         
         IsProcessStarted = true;
         CurrentStepIndex = 0;
@@ -70,7 +80,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[0].CompleteStepCommand.Execute(null);
     }
 
-    public void SetFuelType(FuelTypes type)
+    public void SetFuelType(Product type)
     {
         _builder.SetFuelType(type);
 
@@ -136,6 +146,18 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             IsAmountMoney = true;
             AmountWhat = _amountMessages[0];
         }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        
+        var products = await db.Products
+            .AsNoTracking()
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+
+        Products = products;
     }
 
     private void InitializeSteps()

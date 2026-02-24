@@ -105,17 +105,21 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     public void StepBack()
     {
-        if (!IsProcessStarted || CurrentStepIndex <= 0)
-            return;
-
-        Steps[CurrentStepIndex].IsActive = false;
+        if (CurrentStepIndex > 0)
+        {
+            Steps[CurrentStepIndex].IsActive = false;
         
-        CurrentStepIndex--;
-        NameCurrentPage = Steps[CurrentStepIndex].StepName;
+            CurrentStepIndex--;
+            NameCurrentPage = Steps[CurrentStepIndex].StepName;
         
-        var prevStep = Steps[CurrentStepIndex];
-        prevStep.IsActive = true;
-        prevStep.IsCompleted = false;
+            var prevStep = Steps[CurrentStepIndex];
+            prevStep.IsActive = true;
+            prevStep.IsCompleted = false;
+        }
+        else
+        {
+            Navigation.GoBack();
+        }
     }
 
     public void AddCharInAmountPreview(string item)

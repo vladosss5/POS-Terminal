@@ -24,20 +24,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     [RelayCommand]
     private void OpenRefuelingByCard()
     {
-        try
-        {
-            if (!IsNavigationInitialized)
-            {
-                Debug.WriteLine("Navigation not initialized in MainMenuPageViewModel");
-                return;
-            }
-            
-            Navigation.NavigateTo<RefuelingByCardPageViewModel>();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Navigation error: {ex.Message}");
-        }
+        Navigation.NavigateTo<RefuelingByCardPageViewModel>();
     }
     
     /// <summary>

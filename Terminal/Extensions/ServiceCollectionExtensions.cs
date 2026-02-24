@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.IO;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Converters;
+using Terminal.Data.Context;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 using Terminal.Views.Pages;
@@ -33,5 +36,21 @@ public static class ServiceCollectionExtensions
         
         // Сервисы логики
         collection.AddScoped<IRefuelingProcessBuilder, RefuelingProcessBuilder>();
+    }
+
+    public static void AddDataContext(this IServiceCollection collection)
+    {
+        var dbPath = DataContext.GetDefaultDbPath();
+        
+        string? dir = Path.GetDirectoryName(dbPath);
+        if (dir != null)
+        {
+            Directory.CreateDirectory(dir);
+        }
+        
+        collection.AddDbContextFactory<DataContext>(options =>
+        {
+            options.UseSqlite($"Data Source={dbPath}");
+        });
     }
 }

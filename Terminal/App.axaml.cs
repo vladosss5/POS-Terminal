@@ -3,7 +3,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Terminal.Data.Context;
 using Terminal.Extensions;
 using Terminal.ViewModels;
 using Terminal.Views;
@@ -22,19 +24,32 @@ public partial class App : Avalonia.Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         var collection = new ServiceCollection();
+    
         collection.AddCommonServices();
-        
+        collection.AddDataContext();
+    
         var services = collection.BuildServiceProvider();
         Services = services;
 
         var mainViewModel = services.GetRequiredService<MainViewModel>();
-        
+    
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
+        
+            using (var scope = Services.CreateScope())
+            {
+                var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DataContext>>();
+
+                await using (var context = await factory.CreateDbContextAsync())
+                {
+                    await context.Database.MigrateAsync();
+                }
+            }
+        
             desktop.MainWindow = new MainWindow
             {
                 DataContext = mainViewModel
@@ -47,6 +62,7 @@ public partial class App : Avalonia.Application
                 DataContext = mainViewModel
             };
         }
+    
 
         base.OnFrameworkInitializationCompleted();
     }

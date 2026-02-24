@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Core", "Terminal.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Application", "Terminal.Application\Terminal.Application.csproj", "{C933FC14-E493-48C7-86F8-4CE0BF3C3A4D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Data", "Terminal.Data\Terminal.Data.csproj", "{38259EDE-3552-49B9-93B6-510AB95EF738}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{C933FC14-E493-48C7-86F8-4CE0BF3C3A4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C933FC14-E493-48C7-86F8-4CE0BF3C3A4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C933FC14-E493-48C7-86F8-4CE0BF3C3A4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38259EDE-3552-49B9-93B6-510AB95EF738}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38259EDE-3552-49B9-93B6-510AB95EF738}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38259EDE-3552-49B9-93B6-510AB95EF738}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38259EDE-3552-49B9-93B6-510AB95EF738}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

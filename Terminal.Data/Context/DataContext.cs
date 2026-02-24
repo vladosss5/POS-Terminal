@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Terminal.Core.DbEntities;
+using Terminal.Data;
+
+namespace Terminal.Data.Context;
+
+public partial class DataContext : DbContext
+{
+    public DataContext()
+    {
+    }
+
+    public DataContext(DbContextOptions<DataContext> options)
+        : base(options)
+    {
+    }
+    
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var dbPath = GetDefaultDbPath();
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+        }
+    }
+
+    public virtual DbSet<Product> Products { get; set; }
+    
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Property(e => e.Id).HasColumnType("text(32)");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    
+    public static string GetDefaultDbPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dbFolder = Path.Combine(appData, "Terminal");
+        Directory.CreateDirectory(dbFolder);
+        return Path.Combine(dbFolder, "terminal.db");
+    }
+}

@@ -27,5 +27,6 @@
     <ItemGroup>
       <ProjectReference Include="..\Terminal.Application\Terminal.Application.csproj" />
       <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
+      <ProjectReference Include="..\Terminal.Data\Terminal.Data.csproj" />
     </ItemGroup>
 </Project>

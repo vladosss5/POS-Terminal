@@ -7,11 +7,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using MsBox.Avalonia;
+using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
-using Terminal.Interfaces.Builders;
 using Terminal.ViewModels.Steps;
 
 namespace Terminal.ViewModels.Pages;
@@ -156,9 +156,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         
-        var products = await db.Products
-            .AsNoTracking()
+        var products = await db.ResourceCode
+            .Where(x => x.IsShow == 1)
             .OrderBy(p => p.ResourceName)
+            .AsNoTracking()
             .ToListAsync();
 
         Products = products;

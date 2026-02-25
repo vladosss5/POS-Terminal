@@ -25,9 +25,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Terminal.Application\Terminal.Application.csproj" />
       <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
       <ProjectReference Include="..\Terminal.Data\Terminal.Data.csproj" />
-      <ProjectReference Include="..\Terminal.Interfaces\Terminal.Interfaces.csproj" />
-      <ProjectReference Include="..\Terminal.Implementations\Terminal.Implementations.csproj" />
     </ItemGroup>
 </Project>

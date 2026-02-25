@@ -1,10 +1,13 @@
 ﻿using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Terminal.Application.Implementations.Builders;
+using Terminal.Application.Implementations.Services;
+using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.Services;
+using Terminal.Application.UseCases;
 using Terminal.Converters;
 using Terminal.Data.Context;
-using Terminal.Interfaces.Builders;
-using Terminal.Implementations.Builders;
 using Terminal.ViewModels;
 using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
@@ -38,6 +41,11 @@ public static class ServiceCollectionExtensions
         // Сервисы логики
         collection.AddScoped<IRefuelingProcessBuilder, RefuelingProcessBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
+        collection.AddScoped<IFileReader, FileReader>();
+        collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        
+        // UseCases
+        collection.AddScoped<ExecuteSqlScriptsHandler>();
     }
 
     public static void AddDataContext(this IServiceCollection collection)

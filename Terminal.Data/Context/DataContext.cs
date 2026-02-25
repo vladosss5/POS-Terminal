@@ -26,7 +26,7 @@ public partial class DataContext : DbContext
         }
     }
 
-    public virtual DbSet<ResourceCode> Products { get; set; }
+    public virtual DbSet<ResourceCode> ResourceCode { get; set; }
     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

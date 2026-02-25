@@ -1,9 +1,9 @@
-﻿using Terminal.Core.DbEntities;
+﻿using Terminal.Application.Interfaces.Builders;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Interfaces.Builders;
 
-namespace Terminal.Implementations.Builders;
+namespace Terminal.Application.Implementations.Builders;
 
 public class RefuelingProcessBuilder : IRefuelingProcessBuilder
 {

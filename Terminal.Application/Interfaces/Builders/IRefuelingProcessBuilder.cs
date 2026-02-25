@@ -2,7 +2,7 @@
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
-namespace Terminal.Interfaces.Builders;
+namespace Terminal.Application.Interfaces.Builders;
 
 public interface IRefuelingProcessBuilder
 {

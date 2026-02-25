@@ -17,6 +17,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <AndroidAsset Include="..\SQL\1_pos.terminal.sql" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
     </ItemGroup>
 </Project>

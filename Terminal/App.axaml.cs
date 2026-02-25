@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.UseCases;
 using Terminal.Data.Context;
 using Terminal.Extensions;
@@ -19,10 +20,12 @@ namespace Terminal;
 
 public partial class App : Avalonia.Application
 {
+    private static ILogger<App> _logger { get; set; }
+    
     /// <summary>
     /// Св-во для получения зарегестрированных сервисов.
     /// </summary>
-    public static IServiceProvider? Services { get; private set; }
+    private static IServiceProvider? Services { get; set; }
     
     public override void Initialize()
     {
@@ -33,17 +36,22 @@ public partial class App : Avalonia.Application
     {
         var collection = new ServiceCollection();
     
+        collection.AddLogger();
         collection.AddCommonServices();
         collection.AddDataContext();
-    
+        
         var services = collection.BuildServiceProvider();
         Services = services;
+        
+        _logger = Services.GetRequiredService<ILogger<App>>();
+        
+        _logger.LogInformation("Сервисы инициализированы");
+        
+        await InitializeDatabaseAsync();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime)
         {
             DisableAvaloniaDataAnnotationValidation();
-
-            await InitializeDatabaseAsync();
         }
     
         var navigationService = Services.GetRequiredService<INavigationService>();
@@ -94,12 +102,15 @@ public partial class App : Avalonia.Application
         try
         {
             bool dataBaseIsClear;
-            
             var factory = Services.GetRequiredService<IDbContextFactory<DataContext>>();
             await using (var context = await factory.CreateDbContextAsync())
             {
+                _logger.LogInformation("Start migration");
                 await context.Database.MigrateAsync();
+                _logger.LogInformation($"End migration");
+                
                 dataBaseIsClear = !await context.ResourceCode.AnyAsync();
+                _logger.LogInformation($"The SQL will have to be executed = {dataBaseIsClear}");
             }
 
             if (dataBaseIsClear)
@@ -112,22 +123,22 @@ public partial class App : Avalonia.Application
                     var result = await scriptHandler.ExecuteFileAsync(scriptPath);
                     if (result.Success)
                     {
-                        Console.WriteLine($"[DB] Скрипт {result.FileName} выполнен успешно, затронуто строк: {result.RowsAffected}");
+                        _logger.LogInformation($"[DB] Скрипт {result.FileName} выполнен успешно, затронуто строк: {result.RowsAffected}");
                     }
                     else
                     {
-                        Console.WriteLine($"[DB] Ошибка выполнения скрипта {result.FileName}: {result.ErrorMessage}");
+                        _logger.LogInformation($"[DB] Ошибка выполнения скрипта {result.FileName}: {result.ErrorMessage}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[DB] Файл скрипта не найден: {scriptPath}");
+                    _logger.LogError($"[DB] Файл скрипта не найден: {scriptPath}");
                 }   
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
+            _logger.LogError($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
         }
     }
     

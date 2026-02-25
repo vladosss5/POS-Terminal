@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Builders;
@@ -61,6 +63,29 @@ public static class ServiceCollectionExtensions
         collection.AddDbContextFactory<DataContext>(options =>
         {
             options.UseSqlite($"Data Source={dbPath}");
+            
+#if DEBUG
+            options
+                .EnableSensitiveDataLogging()     // показывает параметры запросов (осторожно в прод!)
+                .EnableDetailedErrors()
+                .LogTo(Console.WriteLine, LogLevel.Information);  // или LogLevel.Debug
+#endif
+        });
+    }
+
+    public static void AddLogger(this IServiceCollection collection)
+    {
+        collection.AddLogging(builder =>
+        {
+            builder
+                .AddConsole()
+                .AddDebug();
+
+#if DEBUG
+            builder.SetMinimumLevel(LogLevel.Debug);
+#else
+        builder.SetMinimumLevel(LogLevel.Information);
+#endif
         });
     }
 }

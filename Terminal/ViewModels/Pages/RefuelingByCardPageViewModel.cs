@@ -35,7 +35,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     [ObservableProperty] private PaymentTypes? _selectedCardType;
     
-    [ObservableProperty] private Product? _selectedFuelType;
+    [ObservableProperty] private ResourceCode? _selectedFuelType;
     
     [ObservableProperty] private decimal _amount;
 
@@ -51,7 +51,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
     
-    public List<Product> Products { get; set; }
+    public List<ResourceCode> Products { get; set; }
 
     public RefuelingByCardPageViewModel(
         IRefuelingProcessBuilder builder, 
@@ -80,7 +80,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[0].CompleteStepCommand.Execute(null);
     }
 
-    public void SetFuelType(Product type)
+    public void SetFuelType(ResourceCode type)
     {
         _builder.SetFuelType(type);
 
@@ -158,7 +158,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         
         var products = await db.Products
             .AsNoTracking()
-            .OrderBy(p => p.Name)
+            .OrderBy(p => p.ResourceName)
             .ToListAsync();
 
         Products = products;

@@ -7,7 +7,7 @@ namespace Terminal.Application.Interfaces.Builders;
 public interface IRefuelingProcessBuilder
 {
     public IRefuelingProcessBuilder SetPaymentType(PaymentTypes paymentTypes);
-    public IRefuelingProcessBuilder SetFuelType(Product fuelType);
+    public IRefuelingProcessBuilder SetFuelType(ResourceCode fuelType);
     public IRefuelingProcessBuilder SetAmount(decimal amount);
     public Refill Build();
 }

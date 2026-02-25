@@ -20,7 +20,7 @@ public partial class RefuelingByCardPageView : UserControl
         (DataContext as RefuelingByCardPageViewModel).SetPaymentType(type);
     }
 
-    public void SetFuelTypesCommand(Product type)
+    public void SetFuelTypesCommand(ResourceCode type)
     {
         (DataContext as RefuelingByCardPageViewModel).SetFuelType(type);
     }

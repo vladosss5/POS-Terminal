@@ -26,14 +26,21 @@ public partial class DataContext : DbContext
         }
     }
 
-    public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<ResourceCode> Products { get; set; }
     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Product>(entity =>
+        modelBuilder.Entity<ResourceCode>(entity =>
         {
-            entity.Property(e => e.Id).HasColumnType("text(32)");
+            entity.ToTable("resource_code");
+            
+            entity.HasKey(e => e.FuelCodeKey);
+            
+            entity.Property(e => e.FuelCodeKey).ValueGeneratedOnAdd();
+            entity.Property(e => e.IsShow).HasColumnType("tinyint");
+            entity.Property(e => e.Density).HasColumnType("NUMERIC(20,4)");
+            entity.Property(e => e.Temperature).HasColumnType("NUMERIC(20,4)");
         });
 
         OnModelCreatingPartial(modelBuilder);

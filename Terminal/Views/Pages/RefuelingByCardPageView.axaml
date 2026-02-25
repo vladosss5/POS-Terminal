@@ -71,7 +71,7 @@
                             <Button Command="{Binding ElementName=UserControl, Path=SetFuelTypesCommand}"
                                     CommandParameter="{Binding}"
                                     Classes="selector-button">
-                                <TextBlock Text="{Binding Name}"
+                                <TextBlock Text="{Binding ResourceName}"
                                            Classes="text-button"/>
                             </Button>
                         </DataTemplate>

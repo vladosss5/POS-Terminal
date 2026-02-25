@@ -11,6 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="SQL\1_pos.terminal.sql" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Avalonia"/>
         <PackageReference Include="Avalonia.Themes.Fluent"/>
         <PackageReference Include="Avalonia.Fonts.Inter"/>

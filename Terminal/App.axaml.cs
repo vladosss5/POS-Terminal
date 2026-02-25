@@ -3,11 +3,13 @@ using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Application.UseCases;
 using Terminal.Data.Context;
 using Terminal.Extensions;
@@ -115,25 +117,18 @@ public partial class App : Avalonia.Application
 
             if (dataBaseIsClear)
             {
-                var scriptHandler = Services.GetRequiredService<ExecuteSqlScriptsHandler>();
-                string scriptPath = GetSqlScriptPath();
-
-                if (File.Exists(scriptPath))
+                string sqlScript = await ReadSqlScriptFromResourceAsync();
+                if (!string.IsNullOrEmpty(sqlScript))
                 {
-                    var result = await scriptHandler.ExecuteFileAsync(scriptPath);
-                    if (result.Success)
-                    {
-                        _logger.LogInformation($"[DB] Скрипт {result.FileName} выполнен успешно, затронуто строк: {result.RowsAffected}");
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"[DB] Ошибка выполнения скрипта {result.FileName}: {result.ErrorMessage}");
-                    }
+                    _logger.LogInformation($"[DB] начато выполнение скриптов");
+                    var sqlExecutor = Services.GetRequiredService<ISqlExecutor>();
+                    var rowsAffected = await sqlExecutor.ExecuteNonQueryAsync(sqlScript);
+                    _logger.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
                 }
                 else
                 {
-                    _logger.LogError($"[DB] Файл скрипта не найден: {scriptPath}");
-                }   
+                    _logger.LogError("[DB] Не удалось найти скрипт во встроенных ресурсах");
+                }
             }
         }
         catch (Exception ex)
@@ -142,11 +137,21 @@ public partial class App : Avalonia.Application
         }
     }
     
-    private static string GetSqlScriptPath()
+    private async Task<string> ReadSqlScriptFromResourceAsync()
     {
-        string baseDir = AppContext.BaseDirectory;
-        string projectRoot = Path.GetFullPath(Path.Combine(baseDir, @"..\..\..\.."));
-        
-        return Path.Combine(projectRoot, "SQL", "1_pos.terminal.sql");
+        var assembly = typeof(App).Assembly;
+        var resourceNames = assembly.GetManifestResourceNames();
+    
+        var sqlResource = resourceNames.FirstOrDefault(r => r.EndsWith("1_pos.terminal.sql"));
+    
+        if (sqlResource == null)
+        {
+            _logger.LogError($"[DB] Скрипт не найден. Доступные ресурсы: {string.Join(", ", resourceNames)}");
+            return null;
+        }
+
+        await using var stream = assembly.GetManifestResourceStream(sqlResource);
+        using var reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync();
     }
 }

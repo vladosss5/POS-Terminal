@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Terminal.Core.DbEntities;
 using Terminal.Data;
 
@@ -53,6 +54,8 @@ public partial class DataContext : DbContext
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var dbFolder = Path.Combine(appData, "Terminal");
         Directory.CreateDirectory(dbFolder);
-        return Path.Combine(dbFolder, "terminal.db");
+        var fullPath = Path.Combine(dbFolder, "terminal.db");
+
+        return fullPath;
     }
 }

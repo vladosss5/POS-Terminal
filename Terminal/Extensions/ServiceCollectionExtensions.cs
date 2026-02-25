@@ -1,10 +1,10 @@
 ﻿using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Terminal.Application.Implementations.Builders;
-using Terminal.Application.Interfaces.Builders;
 using Terminal.Converters;
 using Terminal.Data.Context;
+using Terminal.Interfaces.Builders;
+using Terminal.Implementations.Builders;
 using Terminal.ViewModels;
 using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;

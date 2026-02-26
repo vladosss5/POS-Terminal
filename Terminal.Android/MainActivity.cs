@@ -1,7 +1,12 @@
 ﻿using Android.App;
 using Android.Content.PM;
+using Android.OS;
 using Avalonia;
 using Avalonia.Android;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Terminal.Android.Extensions;
+using Terminal.Extensions;
 
 namespace Terminal.Android;
 
@@ -13,8 +18,22 @@ namespace Terminal.Android;
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
+    protected override void OnCreate(Bundle savedInstanceState)
     {
+        var services = new ServiceCollection();
+        
+        services.AddLogger();
+        services.AddCommonServices();
+        services.AddAndroidServices();
+        services.AddDataContext();
+        
+        App.Services = services.BuildServiceProvider();
+        
+        base.OnCreate(savedInstanceState);
+    }
+    
+    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
+    { 
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
     }

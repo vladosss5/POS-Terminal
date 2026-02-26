@@ -27,7 +27,7 @@ public partial class App : Avalonia.Application
     /// <summary>
     /// Св-во для получения зарегестрированных сервисов.
     /// </summary>
-    private static IServiceProvider? Services { get; set; }
+    public static IServiceProvider? Services { get; set; }
     
     public override void Initialize()
     {
@@ -36,33 +36,21 @@ public partial class App : Avalonia.Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        var collection = new ServiceCollection();
-    
-        collection.AddLogger();
-        collection.AddCommonServices();
-        collection.AddDataContext();
-        
-        var services = collection.BuildServiceProvider();
-        Services = services;
-        
         _logger = Services.GetRequiredService<ILogger<App>>();
         
-        _logger.LogInformation("Сервисы инициализированы");
-        
+        _logger.LogInformation("Начало инита БД");
         await InitializeDatabaseAsync();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime)
-        {
-            DisableAvaloniaDataAnnotationValidation();
-        }
-    
+        // Указание на первую открываемую страницу.
         var navigationService = Services.GetRequiredService<INavigationService>();
         navigationService.NavigateTo<MainMenuPageViewModel>();
 
-        var mainViewModel = services.GetRequiredService<MainViewModel>();
-    
+        var mainViewModel = Services.GetRequiredService<MainViewModel>();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp)
         {
+            DisableAvaloniaDataAnnotationValidation();
+            
             desktopApp.MainWindow = new MainWindow
             {
                 DataContext = mainViewModel
@@ -75,7 +63,7 @@ public partial class App : Avalonia.Application
                 DataContext = mainViewModel
             };
         }
-    
+
 
         base.OnFrameworkInitializationCompleted();
     }
@@ -137,7 +125,10 @@ public partial class App : Avalonia.Application
         }
     }
     
-    private async Task<string> ReadSqlScriptFromResourceAsync()
+    /// <summary>
+    /// Получение SQl из рессурсов проекта.
+    /// </summary>
+    private async Task<string?> ReadSqlScriptFromResourceAsync()
     {
         var assembly = typeof(App).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();
@@ -151,7 +142,7 @@ public partial class App : Avalonia.Application
         }
 
         await using var stream = assembly.GetManifestResourceStream(sqlResource);
-        using var reader = new StreamReader(stream);
+        using var reader = new StreamReader(stream!);
         return await reader.ReadToEndAsync();
     }
 }

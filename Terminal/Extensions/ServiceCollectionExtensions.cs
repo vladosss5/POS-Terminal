@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,7 +24,7 @@ namespace Terminal.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Регистрация сервисов, view и VM в DI.
+    /// Регистрация платформонезависимых сервисов, view и VM в DI.
     /// </summary>
     /// <param name="collection">Дополняемая коллекция сервисов.</param>
     public static void AddCommonServices(this IServiceCollection collection)
@@ -45,6 +46,10 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        
+// #if !ANDROID
+//         collection.AddScoped<IFileExplorer, FileExplorer>();
+// #endif
         
         // UseCases
         collection.AddScoped<ExecuteSqlScriptsHandler>();

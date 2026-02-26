@@ -99,7 +99,7 @@ public partial class App : Avalonia.Application
                 await context.Database.MigrateAsync();
                 _logger.LogInformation($"End migration");
                 
-                dataBaseIsClear = !await context.ResourceCode.AnyAsync();
+                dataBaseIsClear = !await context.ResourceCodes.AnyAsync();
                 _logger.LogInformation($"The SQL will have to be executed = {dataBaseIsClear}");
             }
 

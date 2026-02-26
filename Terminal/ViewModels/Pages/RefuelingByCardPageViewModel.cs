@@ -156,7 +156,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         
-        var products = await db.ResourceCode
+        var products = await db.ResourceCodes
             .Where(x => x.IsShow == 1)
             .OrderBy(p => p.ResourceName)
             .AsNoTracking()

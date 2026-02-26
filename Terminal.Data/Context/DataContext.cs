@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Core.DbEntities;
 using Terminal.Data;
+using Terminal.Data.Mappings;
 
 namespace Terminal.Data.Context;
 
@@ -76,6 +77,8 @@ public partial class DataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(DataContext).Assembly);
+        
         OnModelCreatingPartial(modelBuilder);
     }
 

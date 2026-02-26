@@ -1,47 +1,47 @@
-﻿namespace Terminal.Core.DbEntities;
+﻿using System;
+using System.Collections.Generic;
 
-/// <summary>
-/// Модель товара (топлива).
-/// </summary>
+namespace Terminal.Core.DbEntities;
+
 public partial class ResourceCode
 {
     /// <summary>
-    /// Код топлива (PK).
+    /// Первичный ключ кода ресурса (топлива)
     /// </summary>
     public int FuelCodeKey { get; set; }
-    
-    /// <summary>
-    /// Код коллекции.
-    /// </summary>
-    public int CollectionKey { get; set; }
-    
-    /// <summary>
-    /// Код ресурса.
-    /// </summary>
-    public int ResourceKey { get; set; }
-    
-    /// <summary>
-    /// Название ресурса.
-    /// </summary>
-    public string? ResourceName { get; set; }
-    
-    /// <summary>
-    /// Стоимость ресурса.
-    /// </summary>
-    public decimal? ResourcePrice { get; set; }
 
     /// <summary>
-    /// Продажи зимой.
+    /// Ключ коллекции ресурсов
     /// </summary>
-    public byte IsShow { get; set; }
-    
+    public int? CollectionKey { get; set; }
+
     /// <summary>
-    /// Плотность.
+    /// Ключ ресурса
     /// </summary>
-    public decimal? Density { get; set; }
-    
+    public int? ResourceKey { get; set; }
+
     /// <summary>
-    /// Температура.
+    /// Наименование ресурса
     /// </summary>
-    public decimal? Temperature { get; set; }
+    public string? ResourceName { get; set; }
+
+    /// <summary>
+    /// Цена ресурса
+    /// </summary>
+    public int? ResourcePrice { get; set; }
+
+    /// <summary>
+    /// Признак отображения в интерфейсе
+    /// </summary>
+    public byte? IsShow { get; set; }
+
+    /// <summary>
+    /// Плотность топлива
+    /// </summary>
+    public double? Density { get; set; }
+
+    /// <summary>
+    /// Температура
+    /// </summary>
+    public int? Temperature { get; set; }
 }

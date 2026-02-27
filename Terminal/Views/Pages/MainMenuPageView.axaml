@@ -15,7 +15,8 @@
                 VerticalAlignment="Stretch"
                 Margin="20">
                 
-                <Button Classes="selector-button">
+                <Button Command="{Binding OpenRefuelingByCard}"
+                        Classes="selector-button">
                     <TextBlock Text="Заправка по карте" Classes="text-button" />
                 </Button>
                 
@@ -55,6 +56,10 @@
                     <TextBlock Text="Настройка" Classes="text-button" />
                 </Button>
                 
+                <Button Command="{Binding CopyDataBaseDirectoryToDownloads}"
+                        Classes="selector-button">
+                    <TextBlock Text="Копировать БД" Classes="text-button" />
+                </Button>
             </UniformGrid>
         </ScrollViewer>
     </Grid>

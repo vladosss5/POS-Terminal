@@ -11,7 +11,5 @@ public partial class MainMenuPageView : UserControl
     public MainMenuPageView()
     {
         InitializeComponent();
-        if (App.Services != null)
-            DataContext = App.Services.GetRequiredService<MainMenuPageViewModel>();
     }
 }

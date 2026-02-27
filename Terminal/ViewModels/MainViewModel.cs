@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.ViewModels;
@@ -8,6 +9,8 @@ namespace Terminal.ViewModels;
 /// </summary>
 public partial class MainViewModel : ViewModelBase
 {
+    private readonly INavigationService _navigationService;
+    
     /// <summary>
     /// Отображаемая страница на еткущий момент.
     /// </summary>
@@ -16,8 +19,12 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public MainViewModel(MainMenuPageViewModel mainMenuPageViewModel)
+    public MainViewModel(INavigationService navigationService)
     {
-        _currentPage = mainMenuPageViewModel;
+        _navigationService = navigationService;
+        
+        _currentPage = _navigationService.CurrentPage;
+        
+        _navigationService.PageChanged += (s, page) => CurrentPage = page;
     }
 }

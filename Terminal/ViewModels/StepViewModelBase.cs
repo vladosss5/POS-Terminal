@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Terminal.ViewModels.Steps;
+namespace Terminal.ViewModels;
 
 /// <summary>
 /// Модель шага процесса.
@@ -12,7 +13,7 @@ public partial class StepViewModelBase : ViewModelBase
     /// <summary>
     /// Отметить шаг выполненным.
     /// </summary>
-    private readonly Action _onStepCompleted;
+    private readonly Func<Task> _onStepCompleted;
 
     /// <summary>
     /// Наименование шага.
@@ -34,7 +35,8 @@ public partial class StepViewModelBase : ViewModelBase
     /// </summary>
     /// <param name="stepName">Наименование шага.</param>
     /// <param name="onStepCompleted">Метод помечания шага выполненным.</param>
-    public StepViewModelBase(string stepName, Action onStepCompleted)
+    public StepViewModelBase(string stepName, 
+        Func<Task> onStepCompleted)
     {
         _stepName = stepName;
         _onStepCompleted = onStepCompleted;
@@ -44,7 +46,7 @@ public partial class StepViewModelBase : ViewModelBase
     /// Базовый метод отом что метод выполнился.
     /// </summary>
     [RelayCommand]
-    private void CompleteStep()
+    private async Task CompleteStep()
     {
         if (!IsActive) return;
         

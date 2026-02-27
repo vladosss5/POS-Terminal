@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
 using Terminal.ViewModels.NavigationService;
 
@@ -47,6 +48,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     {
         _logger.LogInformation("Вызвано копирование");
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
+
+        await MessageBoxManager.GetMessageBoxStandard("Успех", "Каталог скопирован!").ShowAsync();
     }
     
     /// <summary>

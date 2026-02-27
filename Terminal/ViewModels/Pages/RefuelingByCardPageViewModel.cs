@@ -10,9 +10,7 @@ using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.Data.Context;
-using Terminal.ViewModels.Steps;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -24,8 +22,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
     
-    /// <inheritdoc cref="IRefuelingProcessBuilder"/>
-    private readonly IRefuelingProcessBuilder _builder;
+    /// <inheritdoc cref="ISellingBuilder"/>
+    private readonly ISellingBuilder _builder;
     
     /// <summary>
     /// Логгер.
@@ -86,11 +84,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Сообщение-указатель на единицу измерения для пользователя.
     /// </summary>
     [ObservableProperty] private string _amountWhat;
-    
-    /// <summary>
-    /// Выполненные шаги.
-    /// </summary>
-    [ObservableProperty] private ObservableCollection<Refill> _completedProcesses;
 
     /// <summary>
     /// Наименование текущей страницы (шага).
@@ -111,7 +104,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public RefuelingByCardPageViewModel(
-        IRefuelingProcessBuilder builder, 
+        ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
         ILogger<RefuelingByCardPageViewModel> logger) 
         : base(logger)
@@ -119,10 +112,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
-        CompletedProcesses = new();
 
         InitializeSteps();
-        LoadDataAsync();
+        _ = LoadDataAsync();
         
         IsProcessStarted = true;
         CurrentStepIndex = 0;
@@ -150,7 +142,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="type">Топливо.</param>
     public void SetFuelType(ResourceCode type)
     {
-        _builder.SetFuelType(type);
+        _builder.SetResourceCode(type.FuelCodeKey);
 
         SelectedFuelType = type;
         Steps[1].CompleteStepCommand.Execute(null);
@@ -166,11 +158,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
 
         Amount = count;
 
-        if (true)
-        {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Ещё не реализовано").ShowAsync(); // TODO: Реализовать логику.
-            return;
-        }
         Steps[2].CompleteStepCommand.Execute(null);
     }
     
@@ -253,7 +240,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Инициализирвать шаги покупки.
+    /// Инициализировать шаги покупки.
     /// </summary>
     private void InitializeSteps()
     {
@@ -268,9 +255,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Пометиь шаг выполненным.
+    /// Пометить шаг выполненным.
     /// </summary>
-    private void OnStepCompleted()
+    private async Task OnStepCompleted()
     {
         if (CurrentStepIndex < Steps.Count - 1)
         {
@@ -280,22 +267,29 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
         else
         {
-            CompleteRefuelingProcess();
+            await CompleteRefuelingProcess();
         }
     }
     
     /// <summary>
     /// Завершить процесс заправки по карте.
     /// </summary>
-    private void CompleteRefuelingProcess()
+    private async Task CompleteRefuelingProcess()
     {
         try
         {
-            var process = _builder.Build();
+            var selling = _builder.Build();
             
-            CompletedProcesses.Add(process);
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            await db.AddAsync(selling);
+            await db.SaveChangesAsync();
+
+            await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
             
             ResetProcess();
+            
+            Navigation.GoBack();    
         }
         catch (Exception ex)
         {
@@ -319,5 +313,14 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             step.IsActive = false;
             step.IsCompleted = false;
         }
+    }
+
+    private async Task ShowMessage(string title, string text)
+    {
+        _logger.LogInformation($"{title}: {text}");
+        
+        await MessageBoxManager
+            .GetMessageBoxStandard(title, text)
+            .ShowAsync();
     }
 }

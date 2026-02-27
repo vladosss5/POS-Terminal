@@ -3,6 +3,9 @@ using Terminal.Core.Enums;
 
 namespace Terminal.Core.DbEntities;
 
+/// <summary>
+/// Модель продажи.
+/// </summary>
 public class Selling
 {
     /// <summary>

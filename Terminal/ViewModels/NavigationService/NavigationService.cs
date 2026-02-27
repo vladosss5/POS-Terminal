@@ -4,15 +4,30 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Terminal.ViewModels.NavigationService;
 
+/// <summary>
+/// Реализация сервиса навигации.
+/// </summary>
 public class NavigationService : INavigationService
 {
+    ///<inheritdoc cref="IServiceProvider"/>
     private readonly IServiceProvider _serviceProvider;
+    
+    /// <summary>
+    /// Стек истории открытия страниц.
+    /// </summary>
     private readonly Stack<PageViewModelBase> _history = new();
     
+    /// <summary>
+    /// Текущая открытая страница.
+    /// </summary>
     private PageViewModelBase? _currentPage;
     
+    ///<inheritdoc/>
     public event EventHandler<PageViewModelBase>? PageChanged;
     
+    /// <summary>
+    /// Публичное св-во для управления текущей страницей.
+    /// </summary>
     public PageViewModelBase CurrentPage 
     { 
         get => _currentPage!;
@@ -23,19 +38,29 @@ public class NavigationService : INavigationService
         }
     }
     
+    /// <summary>
+    /// Проверка: есть ли в истории открытия страниц предшественник.
+    /// </summary>
     public bool CanGoBack => _history.Count > 0;
     
+    
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public NavigationService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
     
+    ///<inheritdoc/>
     public void NavigateTo<T>() where T : PageViewModelBase
     {
         var page = _serviceProvider.GetRequiredService<T>();
         NavigateToPage(page);
     }
     
+    
+    ///<inheritdoc/>
     public void NavigateTo<T>(Action<T> configure) where T : PageViewModelBase
     {
         var page = _serviceProvider.GetRequiredService<T>();
@@ -43,6 +68,23 @@ public class NavigationService : INavigationService
         NavigateToPage(page);
     }
     
+    ///<inheritdoc/>
+    public void GoBack()
+    {
+        if (_history.Count > 0)
+        {
+            _currentPage?.OnDeactivated();
+            
+            var previousPage = _history.Pop();
+            previousPage.OnActivated(this);
+            CurrentPage = previousPage;
+        }
+    }
+    
+    /// <summary>
+    /// Переключение страницы.
+    /// </summary>
+    /// <param name="page">Страница которую нужно отобразить.</param>
     private void NavigateToPage(PageViewModelBase page)
     {
         page.OnActivated(this);
@@ -54,17 +96,5 @@ public class NavigationService : INavigationService
         }
 
         CurrentPage = page;
-    }
-    
-    public void GoBack()
-    {
-        if (_history.Count > 0)
-        {
-            _currentPage?.OnDeactivated();
-            
-            var previousPage = _history.Pop();
-            previousPage.OnActivated(this);
-            CurrentPage = previousPage;
-        }
     }
 }

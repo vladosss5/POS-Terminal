@@ -13,7 +13,10 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public partial class MainMenuPageViewModel : PageViewModelBase
 {
+    ///<inheritdoc cref="ILogger"/>
     private readonly ILogger<MainMenuPageViewModel> _logger;
+    
+    ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
     
     /// <summary>
@@ -21,7 +24,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     public MainMenuPageViewModel(
         IFileExplorer fileExplorer, 
-        ILogger<MainMenuPageViewModel> logger)
+        ILogger<MainMenuPageViewModel> logger) 
+        : base(logger)
     {
         _fileExplorer = fileExplorer;
         _logger = logger;
@@ -29,14 +33,16 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
     
     /// <summary>
-    /// Команда открытия страницы заправки по карте
+    /// Команда открытия страницы заправки по карте.
     /// </summary>
     public void OpenRefuelingByCard()
     {
         Navigation.NavigateTo<RefuelingByCardPageViewModel>();
     }
 
-    
+    /// <summary>
+    /// Скопировать директорию с БД в директорию загрузок.
+    /// </summary>
     public async Task CopyDataBaseDirectoryToDownloads()
     {
         _logger.LogInformation("Вызвано копирование");
@@ -44,11 +50,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
     
     /// <summary>
-    /// Этот метод вызывается при активации страницы
+    /// Этот метод вызывается при активации страницы.
     /// </summary>
     public override void OnActivated(INavigationService navigationService)
     {
         base.OnActivated(navigationService);
-        Debug.WriteLine("MainMenuPageViewModel activated");
+        _logger.LogInformation("MainMenuPageViewModel activated");
     }
 }

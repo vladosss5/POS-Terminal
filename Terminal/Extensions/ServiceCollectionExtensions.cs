@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,6 @@ using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Application.UseCases;
 using Terminal.Converters;
 using Terminal.Data.Context;
 using Terminal.ViewModels;
@@ -46,24 +44,19 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
-        
-// #if !ANDROID
-//         collection.AddScoped<IFileExplorer, FileExplorer>();
-// #endif
-        
-        // UseCases
-        collection.AddScoped<ExecuteSqlScriptsHandler>();
     }
-
+    
+    /// <summary>
+    /// Регистрация контекста БД.
+    /// </summary>
     public static void AddDataContext(this IServiceCollection collection)
     {
         var dbPath = DataContext.GetDefaultDbPath();
         
         string? dir = Path.GetDirectoryName(dbPath);
+        
         if (dir != null)
-        {
             Directory.CreateDirectory(dir);
-        }
         
         collection.AddDbContextFactory<DataContext>(options =>
         {
@@ -71,13 +64,16 @@ public static class ServiceCollectionExtensions
             
 #if DEBUG
             options
-                .EnableSensitiveDataLogging()     // показывает параметры запросов (осторожно в прод!)
+                .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
-                .LogTo(Console.WriteLine, LogLevel.Information);  // или LogLevel.Debug
+                .LogTo(Console.WriteLine, LogLevel.Information);
 #endif
         });
     }
 
+    /// <summary>
+    /// Регистрация логгера.
+    /// </summary>
     public static void AddLogger(this IServiceCollection collection)
     {
         collection.AddLogging(builder =>

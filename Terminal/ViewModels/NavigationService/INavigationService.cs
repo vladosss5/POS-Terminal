@@ -2,6 +2,9 @@
 
 namespace Terminal.ViewModels.NavigationService;
 
+/// <summary>
+/// Сервис навигации между страницами, окнами.
+/// </summary>
 public interface INavigationService
 {
     /// <summary>

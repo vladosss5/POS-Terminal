@@ -4,7 +4,6 @@ using Android.OS;
 using Avalonia;
 using Avalonia.Android;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Terminal.Android.Extensions;
 using Terminal.Extensions;
 

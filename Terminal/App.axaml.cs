@@ -3,16 +3,13 @@ using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Application.UseCases;
 using Terminal.Data.Context;
-using Terminal.Extensions;
 using Terminal.ViewModels;
 using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
@@ -22,6 +19,9 @@ namespace Terminal;
 
 public partial class App : Avalonia.Application
 {
+    /// <summary>
+    /// Логгер.
+    /// </summary>
     private static ILogger<App> _logger { get; set; }
     
     /// <summary>
@@ -29,16 +29,22 @@ public partial class App : Avalonia.Application
     /// </summary>
     public static IServiceProvider? Services { get; set; }
     
+    
+    /// <summary>
+    /// Отрисовать окна и страницы.
+    /// </summary>
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
     }
 
+    /// <summary>
+    /// Иницализация процессов после инита фреймфорка.
+    /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
         _logger = Services.GetRequiredService<ILogger<App>>();
         
-        _logger.LogInformation("Начало инита БД");
         await InitializeDatabaseAsync();
 
         // Указание на первую открываемую страницу.
@@ -92,23 +98,23 @@ public partial class App : Avalonia.Application
         try
         {
             bool dataBaseIsClear;
-            var factory = Services.GetRequiredService<IDbContextFactory<DataContext>>();
+            var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
             await using (var context = await factory.CreateDbContextAsync())
             {
-                _logger.LogInformation("Start migration");
+                _logger.LogInformation("[DB] Start migration");
                 await context.Database.MigrateAsync();
-                _logger.LogInformation($"End migration");
+                _logger.LogInformation($"[DB] End migration");
                 
                 dataBaseIsClear = !await context.ResourceCodes.AnyAsync();
-                _logger.LogInformation($"The SQL will have to be executed = {dataBaseIsClear}");
+                _logger.LogInformation($"[DB] The SQL will have to be executed = {dataBaseIsClear}");
             }
 
             if (dataBaseIsClear)
             {
-                string sqlScript = await ReadSqlScriptFromResourceAsync();
+                string? sqlScript = await ReadSqlScriptFromResourceAsync();
                 if (!string.IsNullOrEmpty(sqlScript))
                 {
-                    _logger.LogInformation($"[DB] начато выполнение скриптов");
+                    _logger.LogInformation($"[DB] Начато выполнение скриптов");
                     var sqlExecutor = Services.GetRequiredService<ISqlExecutor>();
                     var rowsAffected = await sqlExecutor.ExecuteNonQueryAsync(sqlScript);
                     _logger.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
@@ -133,7 +139,7 @@ public partial class App : Avalonia.Application
         var assembly = typeof(App).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();
     
-        var sqlResource = resourceNames.FirstOrDefault(r => r.EndsWith("1_pos.terminal.sql"));
+        var sqlResource = resourceNames.FirstOrDefault(r => r.EndsWith("1_pos.terminal.sql")); // TODO: Переделать на выполнение множества скриптов.
     
         if (sqlResource == null)
         {

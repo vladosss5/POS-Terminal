@@ -2,11 +2,13 @@
 
 namespace Terminal.Application.Implementations.Services;
 
+/// <inheritdoc cref="IFileReader"/>
 public class FileReader : IFileReader
 {
-    public Task<string> ReadAllTextAsync(string path)
-        => File.ReadAllTextAsync(path);
+    /// <inheritdoc/>
+    public Task<string> ReadAllTextAsync(string path) => File.ReadAllTextAsync(path);
 
+    /// <inheritdoc/>
     public Task<IEnumerable<string>> GetFilesAsync(string directoryPath, string searchPattern)
     {
         var files = Directory.EnumerateFiles(directoryPath, searchPattern, SearchOption.TopDirectoryOnly);
@@ -14,5 +16,6 @@ public class FileReader : IFileReader
         return Task.FromResult(files);
     }
 
+    /// <inheritdoc/>
     public bool FileExists(string path) => File.Exists(path);
 }

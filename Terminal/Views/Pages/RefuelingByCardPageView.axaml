@@ -57,7 +57,7 @@
                 </ItemsControl>
                 
                 <!-- Тип топлива -->
-                <ItemsControl ItemsSource="{Binding Products}"
+                <ItemsControl ItemsSource="{Binding Resources}"
                               IsVisible="{Binding Steps[1].IsActive}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

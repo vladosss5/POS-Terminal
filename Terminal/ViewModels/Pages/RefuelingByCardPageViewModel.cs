@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
@@ -16,53 +16,113 @@ using Terminal.ViewModels.Steps;
 
 namespace Terminal.ViewModels.Pages;
 
+/// <summary>
+/// Страница процесса заправки по карте.
+/// </summary>
 public partial class RefuelingByCardPageViewModel : PageViewModelBase
 {
+    /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
+    
+    /// <inheritdoc cref="IRefuelingProcessBuilder"/>
     private readonly IRefuelingProcessBuilder _builder;
+    
+    /// <summary>
+    /// Логгер.
+    /// </summary>
+    private readonly ILogger<RefuelingByCardPageViewModel> _logger;
 
+    /// <summary>
+    /// Сообщения о типах кол-ва.
+    /// </summary>
     private string[] _amountMessages = new []
     {
         "Указывается кол-во в ₽",
         "Указывается кол-во в литрах"
     };
     
+    /// <summary>
+    /// Коллекция шагов заправки.
+    /// </summary>
     [ObservableProperty] private ObservableCollection<StepViewModelBase> _steps;
 
+    /// <summary>
+    /// Индекс текущего шага.
+    /// </summary>
     [ObservableProperty] private int _currentStepIndex;
     
+    /// <summary>
+    /// Процесс начат?
+    /// </summary>
     [ObservableProperty] private bool _isProcessStarted;
     
+    /// <summary>
+    /// Типы оплаты.
+    /// </summary>
     [ObservableProperty] private PaymentTypes? _selectedCardType;
     
+    /// <summary>
+    /// Выбранный тип топлива (товар).
+    /// </summary>
     [ObservableProperty] private ResourceCode? _selectedFuelType;
     
+    /// <summary>
+    /// Кол-во без указания ед.изм.
+    /// </summary>
     [ObservableProperty] private decimal _amount;
 
+    /// <summary>
+    /// Превьювер кол-ва.
+    /// </summary>
     [ObservableProperty] private string _amountPreview = "0";
 
+    /// <summary>
+    /// Кол-во указано в деньгах?
+    /// Если нет, то в литрах.
+    /// </summary>
     [ObservableProperty] private bool _isAmountMoney = true;
 
+    /// <summary>
+    /// Сообщение-указатель на единицу измерения для пользователя.
+    /// </summary>
     [ObservableProperty] private string _amountWhat;
     
+    /// <summary>
+    /// Выполненные шаги.
+    /// </summary>
     [ObservableProperty] private ObservableCollection<Refill> _completedProcesses;
 
+    /// <summary>
+    /// Наименование текущей страницы (шага).
+    /// </summary>
     [ObservableProperty] private string _nameCurrentPage;
     
+    /// <summary>
+    /// Св-во для хранения типов оплаты.
+    /// </summary>
     public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
-    
-    public List<ResourceCode> Products { get; set; }
 
+    /// <summary>
+    /// Св-во для хранения товаров (типов топлива).
+    /// </summary>
+    [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
+
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public RefuelingByCardPageViewModel(
         IRefuelingProcessBuilder builder, 
-        IDbContextFactory<DataContext> dbFactory)
+        IDbContextFactory<DataContext> dbFactory, 
+        ILogger<RefuelingByCardPageViewModel> logger) 
+        : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
+        _logger = logger;
         CompletedProcesses = new();
 
         InitializeSteps();
-        _ = LoadDataAsync();
+        LoadDataAsync();
         
         IsProcessStarted = true;
         CurrentStepIndex = 0;
@@ -72,6 +132,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
 
+    /// <summary>
+    /// Указать тип оплаты.
+    /// </summary>
+    /// <param name="type">Тип оплаты.</param>
     public void SetPaymentType(PaymentTypes type)
     {
         _builder.SetPaymentType(type);
@@ -80,6 +144,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[0].CompleteStepCommand.Execute(null);
     }
 
+    /// <summary>
+    /// Указать тип топлива (товара).
+    /// </summary>
+    /// <param name="type">Топливо.</param>
     public void SetFuelType(ResourceCode type)
     {
         _builder.SetFuelType(type);
@@ -88,6 +156,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         Steps[1].CompleteStepCommand.Execute(null);
     }
     
+    /// <summary>
+    /// Указать кол-во.
+    /// </summary>
+    /// <param name="count">Кол-во без ед. изм.</param>
     public async void SetCount(decimal count)
     {
         _builder.SetAmount(count);
@@ -96,13 +168,15 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
 
         if (true)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Ещё не реализовано").ShowAsync();
+            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Ещё не реализовано").ShowAsync(); // TODO: Реализовать логику.
             return;
         }
         Steps[2].CompleteStepCommand.Execute(null);
     }
-
     
+    /// <summary>
+    /// Перейти к прошлому шагу.
+    /// </summary>
     public void StepBack()
     {
         if (CurrentStepIndex > 0)
@@ -122,6 +196,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
     }
 
+    /// <summary>
+    /// Добавить символ в превьювер кол-ва.
+    /// </summary>
+    /// <param name="item">Символ.</param>
     public void AddCharInAmountPreview(string item)
     {
         if (AmountPreview == "0")
@@ -133,11 +211,17 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         AmountPreview += item;
     }
 
+    /// <summary>
+    /// Удалить последний символ из превьювера кол-ва.
+    /// </summary>
     public void DeleteLastChar()
     {
         AmountPreview = AmountPreview[..^1];
     }
 
+    /// <summary>
+    /// Сменить единицу измерения (деньги на литры).
+    /// </summary>
     public void SwitchAmount()
     {
         if (IsAmountMoney)
@@ -152,6 +236,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
     }
 
+    /// <summary>
+    /// Подгрузка данных из БД.
+    /// </summary>
     private async Task LoadDataAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -160,11 +247,14 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             .Where(x => x.IsShow == 1)
             .OrderBy(p => p.ResourceName)
             .AsNoTracking()
-            .ToListAsync();
+            .ToArrayAsync();
 
-        Products = products;
+        Resources = new ObservableCollection<ResourceCode>(products);
     }
 
+    /// <summary>
+    /// Инициализирвать шаги покупки.
+    /// </summary>
     private void InitializeSteps()
     {
         Steps = new ObservableCollection<StepViewModelBase>
@@ -177,6 +267,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         NameCurrentPage = Steps[0].StepName;
     }
 
+    /// <summary>
+    /// Пометиь шаг выполненным.
+    /// </summary>
     private void OnStepCompleted()
     {
         if (CurrentStepIndex < Steps.Count - 1)
@@ -191,6 +284,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
     }
     
+    /// <summary>
+    /// Завершить процесс заправки по карте.
+    /// </summary>
     private void CompleteRefuelingProcess()
     {
         try
@@ -203,10 +299,13 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка: {ex.Message}");
+            _logger.LogInformation($"Ошибка: {ex.Message}");
         }
     }
     
+    /// <summary>
+    /// Сбросить данные о процессе заправки.
+    /// </summary>
     private void ResetProcess()
     {
         SelectedCardType = null;
@@ -220,10 +319,5 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             step.IsActive = false;
             step.IsCompleted = false;
         }
-    }
-    
-    private bool IsStepActive(int stepIndex)
-    {
-        return IsProcessStarted && CurrentStepIndex == stepIndex && Steps[stepIndex].IsActive;
     }
 }

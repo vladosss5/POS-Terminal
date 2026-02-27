@@ -1,6 +1,6 @@
-﻿using System;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using Terminal.ViewModels.NavigationService;
 
 namespace Terminal.ViewModels;
@@ -10,6 +10,12 @@ namespace Terminal.ViewModels;
 /// </summary>
 public partial class PageViewModelBase : ViewModelBase
 {
+    /// <summary>
+    /// Логгер.
+    /// </summary>
+    private readonly ILogger<PageViewModelBase> _logger;
+    
+    /// <inheritdoc cref="INavigationService"/>
     private INavigationService? _navigationService;
     
     /// <summary>
@@ -20,13 +26,8 @@ public partial class PageViewModelBase : ViewModelBase
         get
         {
             if (_navigationService == null)
-            {
-                throw new InvalidOperationException(
-                    "NavigationService not initialized. " +
-                    "Make sure the page is activated through NavigationService.NavigateTo() " +
-                    "and not created manually with 'new'."
-                );
-            }
+                _logger.LogError("NavigationService не инициализирован");
+                    
             return _navigationService;
         }
     }
@@ -41,6 +42,17 @@ public partial class PageViewModelBase : ViewModelBase
     /// </summary>
     [ObservableProperty]
     private string _title = string.Empty;
+
+    
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    protected PageViewModelBase(
+        ILogger<PageViewModelBase> logger)
+    {
+        _logger = logger;
+    }
+
     
     /// <summary>
     /// Вызывается при активации страницы.
@@ -53,13 +65,13 @@ public partial class PageViewModelBase : ViewModelBase
     /// <summary>
     /// Вызывается при деактивации страницы.
     /// </summary>
-    public virtual void OnDeactivated() { }
+    public void OnDeactivated() { }
     
     /// <summary>
     /// Команда для возврата на предыдущую страницу
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanGoBack))]
-    protected void GoBack()
+    private void GoBack()
     {
         if (IsNavigationInitialized)
         {
@@ -67,8 +79,9 @@ public partial class PageViewModelBase : ViewModelBase
         }
     }
     
-    protected bool CanGoBack()
-    {
-        return IsNavigationInitialized && Navigation.CanGoBack;
-    }
+    /// <summary>
+    /// Можно ли вернуться назад?
+    /// </summary>
+    /// <returns>Можно или не можно.</returns>
+    protected bool CanGoBack() => IsNavigationInitialized && Navigation.CanGoBack;
 }

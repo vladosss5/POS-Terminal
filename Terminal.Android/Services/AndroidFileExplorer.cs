@@ -17,14 +17,22 @@ using Environment = Android.OS.Environment;
 
 namespace Terminal.Android.Services;
 
+/// <summary>
+/// Реализация IFileExplorer под Android платформу.
+/// </summary>
 public class AndroidFileExplorer : IFileExplorer
 {
+    /// <summary>
+    /// Логгер.
+    /// </summary>
     private readonly ILogger<AndroidFileExplorer> _logger;
     
+    /// <inheritdoc cref="Context"/>
     private readonly Context _context;
-    
-    private TaskCompletionSource<bool> _permissionTaskCompletionSource;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public AndroidFileExplorer(
         Context context, 
         ILogger<AndroidFileExplorer> logger)
@@ -33,6 +41,7 @@ public class AndroidFileExplorer : IFileExplorer
         _logger = logger;
     }
     
+    /// <inheritdoc />
     public async Task CopyDataBaseDirectoryToDownloadsAsync()
     {
         _logger.LogInformation($"Логика копирования для Android");
@@ -43,15 +52,9 @@ public class AndroidFileExplorer : IFileExplorer
         if (string.IsNullOrEmpty(sourceDir))
             _logger.LogInformation("Source directory path is invalid");
 
-        await CopyToDownloadsScopedStorageAsync(sourceDir);
-    }
-    
-     private async Task CopyToDownloadsScopedStorageAsync(string sourceDir)
-    {
         var resolver = _context.ContentResolver;
         var destinationFolder = Path.Combine(Environment.DirectoryDownloads, "Terminal_DB_Backup");
         _logger.LogInformation($"destinationFolder = {destinationFolder}");
-        // string destinationFolder = "Terminal_DB_Backup";
         
         foreach (var file in Directory.GetFiles(sourceDir))
         {
@@ -67,14 +70,20 @@ public class AndroidFileExplorer : IFileExplorer
             _logger.LogInformation($"uri = {uri}");
             if (uri == null) continue;
 
-            using var source = File.OpenRead(file);
-            using var dest   = resolver.OpenOutputStream(uri);
+            await using var source = File.OpenRead(file);
+            await using var dest   = resolver.OpenOutputStream(uri);
+            
             _logger.LogInformation($"Копирование");
             await source.CopyToAsync(dest!);
             _logger.LogInformation($"Копирование завершилось");
         }
     }
     
+    /// <summary>
+    /// Получить тип расширения копируемых объектов.
+    /// </summary>
+    /// <param name="fileName">Имя файла.</param>
+    /// <returns>Тип расширения.</returns>
     private string GetMimeType(string fileName)
     {
         var extension = Path.GetExtension(fileName).ToLowerInvariant();

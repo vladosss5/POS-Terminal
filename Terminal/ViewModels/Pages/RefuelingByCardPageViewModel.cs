@@ -309,15 +309,18 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipe = new Receipt
+        var receipe = new SalesReceipt
         {
             Selling = selling,
             Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
         };
         
-        var printResult = await _printService.PrintReceiptAsync(receipe);
+        var printResult = await _printService.PrintSalesReceiptAsync(receipe);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+        
+        if (_printService.IsConnected)
+            _printService.Disconnect();
     }
 
     /// <summary>

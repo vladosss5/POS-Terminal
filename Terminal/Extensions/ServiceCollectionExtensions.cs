@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<EnumFriendlyNameConverter>();
         
         // Сервисы логики
-        collection.AddScoped<ISellingBuilder, SellingBuilder>();
+        collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();

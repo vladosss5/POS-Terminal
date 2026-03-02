@@ -295,13 +295,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
 
             await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
             
-            ResetProcess();
-            
             Navigation.GoBack();    
         }
         catch (Exception ex)
         {
             _logger.LogInformation($"Ошибка: {ex.Message}, {ex.StackTrace}" );
+            await ShowMessage("Ошибка!", $"{ex.Message}, {ex.StackTrace}");
         }
     }
 

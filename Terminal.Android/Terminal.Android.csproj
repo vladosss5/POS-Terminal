@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Sunyard.Binding\Sunyard.Binding.csproj" />
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
     </ItemGroup>
 </Project>

@@ -19,6 +19,6 @@ public static class AndroidServiceCollectionExtensions
     {
         collection.AddSingleton(global::Android.App.Application.Context);
         collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
-        collection.AddSingleton<IPrintService, SunyardPrintService>();
+        collection.AddTransient<IPrintService, SunyardPrintService>();
     }
 }

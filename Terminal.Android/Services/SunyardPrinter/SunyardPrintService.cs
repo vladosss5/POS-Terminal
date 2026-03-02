@@ -5,6 +5,7 @@ using Android.OS;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
@@ -15,7 +16,10 @@ namespace Terminal.Android.Services.SunyardPrinter;
 public class SunyardPrintService : Java.Lang.Object, IPrintService
 {
     private readonly IDbContextFactory<DataContext> _dbFactory;
+    private readonly ILogger<SunyardPrintService> _logger;
     private readonly Context _context;
+    
+    private SunyardPrintListener? _currentPrintListener;
     private IDeviceService? _deviceService;
     private IPrinter? _printer;
     private bool _isConnected;
@@ -29,10 +33,12 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
 
     public SunyardPrintService(
         Context context, 
-        IDbContextFactory<DataContext> dbFactory)
+        IDbContextFactory<DataContext> dbFactory, 
+        ILogger<SunyardPrintService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbFactory = dbFactory;
+        _logger = logger;
     }
 
     public async Task<bool> ConnectAsync()
@@ -123,20 +129,31 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     public async Task<PrintResult> PrintReceiptAsync(Receipt receipt)
     {
         CheckConnection();
+        
+        var status = await GetStatusAsync();
+        if (status != PrinterStatus.Ready)
+        {
+            _logger.LogWarning($"Printer not ready: {status}");
+            return new PrintResult { Success = false, ErrorMessage = $"Printer not ready: {status}" };
+        }
 
         var tcs = new TaskCompletionSource<PrintResult>();
 
         try
         {
             _printer!.SetGray(5);
-
             AddCenteredText(receipt.Header);
             _printer.FeedLine(1);
             
             await using var db = await _dbFactory.CreateDbContextAsync();
 
+            _logger.LogInformation($"Поиск рессурса ID: {receipt.Selling.ResourceCode}");
+            
             var resourse = await db.ResourceCodes
                 .FirstOrDefaultAsync(x => x.FuelCodeKey == receipt.Selling.ResourceCode);
+
+            if (resourse == null)
+                _logger.LogError($"Рессурс ID: {resourse.FuelCodeKey} найден");
             
             AddLeftText($"{resourse.ResourceName} x{receipt.Selling.Amount}");
             AddRightText($"{receipt.Selling.BasePrice:C}");
@@ -154,20 +171,26 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
             if (receipt.CutPaper)
                 _printer.CutPaper();
 
-            _printer.StartPrint(new SunyardPrintListener(tcs));
+            _logger.LogInformation($"Чек составлен. Старт печати");
+            _currentPrintListener = new SunyardPrintListener(tcs, _logger);
+            _printer.StartPrint(_currentPrintListener);
         }
         catch (Exception ex)
         {
+            _logger.LogError($"Ошибка: {ex.Message}, {ex.StackTrace}");
             tcs.TrySetException(ex);
         }
-
+        _logger.LogInformation($"Чек отпечатан");
         return await tcs.Task;
     }
 
     private void CheckConnection()
     {
-        if (!_isConnected || _printer == null)
-            throw new InvalidOperationException("Printer is not connected.");
+        if (_isConnected && _printer != null)
+            return;
+        
+        _logger.LogError("Printer is not connected.");
+        throw new InvalidOperationException("Printer is not connected.");
     }
 
     private void AddCenteredText(string text)

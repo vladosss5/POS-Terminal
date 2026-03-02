@@ -8,8 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
+using Terminal.Core.Models;
 using Terminal.Data.Context;
 
 namespace Terminal.ViewModels.Pages;
@@ -21,6 +23,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
 {
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
+
+    private readonly IPrintService _printService;
     
     /// <inheritdoc cref="ISellingBuilder"/>
     private readonly ISellingBuilder _builder;
@@ -106,12 +110,14 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     public RefuelingByCardPageViewModel(
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
-        ILogger<RefuelingByCardPageViewModel> logger) 
+        ILogger<RefuelingByCardPageViewModel> logger, 
+        IPrintService printService) 
         : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
+        _printService = printService;
 
         InitializeSteps();
         _ = LoadDataAsync();
@@ -285,6 +291,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             await db.AddAsync(selling);
             await db.SaveChangesAsync();
 
+            await PrintReceiptAsync(selling);
+
             await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
             
             ResetProcess();
@@ -293,10 +301,26 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            _logger.LogInformation($"Ошибка: {ex.Message}");
+            _logger.LogInformation($"Ошибка: {ex.Message}, {ex.StackTrace}" );
         }
     }
-    
+
+    private async Task PrintReceiptAsync(Selling selling)
+    {
+        if (!_printService.IsConnected)
+            await _printService.ConnectAsync();
+        
+        var receipe = new Receipt
+        {
+            Selling = selling,
+            Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
+        };
+        
+        var printResult = await _printService.PrintReceiptAsync(receipe);
+        
+        _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+    }
+
     /// <summary>
     /// Сбросить данные о процессе заправки.
     /// </summary>

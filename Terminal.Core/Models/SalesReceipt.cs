@@ -2,7 +2,10 @@
 
 namespace Terminal.Core.Models;
 
-public class Receipt
+/// <summary>
+/// Модель чека о покупке.
+/// </summary>
+public class SalesReceipt
 {
     public string Header { get; set; } = "ООО \"Торговля\"";
     public string Footer { get; set; } = "Спасибо за покупку!";

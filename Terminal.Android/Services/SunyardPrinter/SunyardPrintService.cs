@@ -15,8 +15,19 @@ namespace Terminal.Android.Services.SunyardPrinter;
 
 public class SunyardPrintService : Java.Lang.Object, IPrintService
 {
+    /// <summary>
+    /// Фабрика "<inheritdoc cref="DataContext"/>"
+    /// </summary>
     private readonly IDbContextFactory<DataContext> _dbFactory;
+    
+    /// <summary>
+    /// Логгер.
+    /// </summary>
     private readonly ILogger<SunyardPrintService> _logger;
+    
+    /// <summary>
+    /// Доступ к глобальной информации о среде приложения.
+    /// </summary>
     private readonly Context _context;
     
     private SunyardPrintListener? _currentPrintListener;
@@ -31,6 +42,9 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     public event EventHandler<bool>? ConnectionChanged;
     public event EventHandler<string>? ErrorOccurred;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public SunyardPrintService(
         Context context, 
         IDbContextFactory<DataContext> dbFactory, 
@@ -41,6 +55,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _logger = logger;
     }
 
+    /// <inheritdoc/>
     public async Task<bool> ConnectAsync()
     {
         if (_isConnected) return true;
@@ -99,6 +114,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         return await tcs.Task;
     }
 
+    /// <inheritdoc/>
     public void Disconnect()
     {
         if (_isConnected && _serviceConnection != null)
@@ -106,8 +122,13 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
             try
             {
                 _context.UnbindService(_serviceConnection);
+                _logger.LogInformation("Закрыто соединение с принтером.");
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
+
             _isConnected = false;
             _printer = null;
             _deviceService = null;
@@ -116,6 +137,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         }
     }
 
+    /// <inheritdoc/>
     public async Task<PrinterStatus> GetStatusAsync()
     {
         CheckConnection();
@@ -126,7 +148,8 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         });
     }
 
-    public async Task<PrintResult> PrintReceiptAsync(Receipt receipt)
+    /// <inheritdoc/>
+    public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
         CheckConnection();
         
@@ -142,33 +165,33 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         try
         {
             _printer!.SetGray(5);
-            AddCenteredText(receipt.Header);
+            AddCenteredText(salesReceipt.Header);
             _printer.FeedLine(1);
             
             await using var db = await _dbFactory.CreateDbContextAsync();
 
-            _logger.LogInformation($"Поиск рессурса ID: {receipt.Selling.ResourceCode}");
+            _logger.LogInformation($"Поиск рессурса ID: {salesReceipt.Selling.ResourceCode}");
             
             var resourse = await db.ResourceCodes
-                .FirstOrDefaultAsync(x => x.FuelCodeKey == receipt.Selling.ResourceCode);
+                .FirstOrDefaultAsync(x => x.FuelCodeKey == salesReceipt.Selling.ResourceCode);
 
             if (resourse == null)
                 _logger.LogError($"Рессурс ID: {resourse.FuelCodeKey} найден");
             
-            AddLeftText($"{resourse.ResourceName} x{receipt.Selling.Amount}");
-            AddRightText($"{receipt.Selling.BasePrice:C}");
+            AddLeftText($"{resourse.ResourceName} x{salesReceipt.Selling.Amount}");
+            AddRightText($"{salesReceipt.Selling.BasePrice:C}");
 
             AddCenteredText("-------------------");
-            AddRightText($"ИТОГО: {receipt.Total:C}");
+            AddRightText($"ИТОГО: {salesReceipt.Total:C}");
 
-            if (!string.IsNullOrEmpty(receipt.Footer))
+            if (!string.IsNullOrEmpty(salesReceipt.Footer))
             {
                 _printer.FeedLine(1);
-                AddCenteredText(receipt.Footer);
+                AddCenteredText(salesReceipt.Footer);
             }
 
             _printer.FeedLine(3);
-            if (receipt.CutPaper)
+            if (salesReceipt.CutPaper)
                 _printer.CutPaper();
 
             _logger.LogInformation($"Чек составлен. Старт печати");

@@ -309,33 +309,18 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipe = new Receipt
+        var receipe = new SalesReceipt
         {
             Selling = selling,
             Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
         };
         
-        var printResult = await _printService.PrintReceiptAsync(receipe);
+        var printResult = await _printService.PrintSalesReceiptAsync(receipe);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
-    }
-
-    /// <summary>
-    /// Сбросить данные о процессе заправки.
-    /// </summary>
-    private void ResetProcess()
-    {
-        SelectedCardType = null;
-        SelectedFuelType = null;
-        Amount = 0;
-        IsProcessStarted = false;
-        CurrentStepIndex = 0;
         
-        foreach (var step in Steps)
-        {
-            step.IsActive = false;
-            step.IsCompleted = false;
-        }
+        if (_printService.IsConnected)
+            _printService.Disconnect();
     }
 
     private async Task ShowMessage(string title, string text)

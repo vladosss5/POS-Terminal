@@ -1,5 +1,8 @@
 ﻿namespace Terminal.Core.Enums;
 
+/// <summary>
+/// Статусы принтера.
+/// </summary>
 public enum PrinterStatus
 {
     Ready = 0x00,

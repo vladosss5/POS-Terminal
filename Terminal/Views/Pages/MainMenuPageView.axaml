@@ -10,57 +10,25 @@
     <Grid RowDefinitions="Auto, *">
         <TextBlock Grid.Row="0" Text="{Binding Title}" Classes="page-title"/>
         <ScrollViewer Grid.Row="1">
-            <UniformGrid Columns="2" 
-                HorizontalAlignment="Center"
-                VerticalAlignment="Stretch"
-                Margin="20">
+            <ItemsControl ItemsSource="{Binding MenuItems}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" Rows="0" 
+                                     HorizontalAlignment="Center" 
+                                     VerticalAlignment="Stretch" 
+                                     Margin="20"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 
-                <Button Command="{Binding OpenRefuelingByCard}"
-                        Classes="selector-button">
-                    <TextBlock Text="Заправка по карте" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Возврат на карту" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Возврат на счёт" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Инфо по карте" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Закрыть смену" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Инкассация" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Меню оператора" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Пром. отчёт" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Заправка по карте" Classes="text-button" />
-                </Button>
-                
-                <Button Classes="selector-button">
-                    <TextBlock Text="Настройка" Classes="text-button" />
-                </Button>
-                
-                <Button Command="{Binding CopyDataBaseDirectoryToDownloads}"
-                        Classes="selector-button">
-                    <TextBlock Text="Копировать БД" Classes="text-button" />
-                </Button>
-            </UniformGrid>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Classes="selector-button"
+                                Command="{Binding Command}">
+                            <TextBlock Text="{Binding Title}" Classes="text-button"/>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
     </Grid>
 </UserControl>

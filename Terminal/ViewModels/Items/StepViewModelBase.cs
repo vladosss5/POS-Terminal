@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Terminal.ViewModels.Steps;
+namespace Terminal.ViewModels.Items;
 
 /// <summary>
 /// Модель шага процесса.

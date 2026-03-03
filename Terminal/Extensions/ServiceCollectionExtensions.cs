@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        collection.AddSingleton<IPrintService, PrintServiceCommon>();
     }
     
     /// <summary>

@@ -96,106 +96,53 @@
                                HorizontalAlignment="Center"/>
                     
                     <Grid Grid.Row="2"
-                          RowDefinitions="*, *, *, *" 
-                          ColumnDefinitions="*, *, *, *" 
-                          VerticalAlignment="Stretch"
-                          HorizontalAlignment="Stretch">
-                    
-                        <Button Grid.Row="3" Grid.Column="0" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="00">
-                            <TextBlock Text="00" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="3" Grid.Column="1" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="0">
-                            <TextBlock Text="0" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="3" Grid.Column="2" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter=",">
-                            <TextBlock Text="," Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="2" Grid.Column="0" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="1">
-                            <TextBlock Text="1" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="2" Grid.Column="1" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="2">
-                            <TextBlock Text="2" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="2" Grid.Column="2" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="3">
-                            <TextBlock Text="3" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="1" Grid.Column="0" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="4">
-                            <TextBlock Text="4" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="1" Grid.Column="1" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="5">
-                            <TextBlock Text="5" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="1" Grid.Column="2" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="6">
-                            <TextBlock Text="6" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="0" Grid.Column="0" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="7">
-                            <TextBlock Text="7" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="0" Grid.Column="1" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="8">
-                            <TextBlock Text="8" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="0" Grid.Column="2" Classes="number-button"
-                                Command="{Binding AddCharInAmountPreview}"
-                                CommandParameter="9">
-                            <TextBlock Text="9" Classes="text-button" />
-                        </Button>
-                        
-                        <Button Grid.Row="0" Grid.Column="3" Classes="number-button" 
+                          RowDefinitions="*,*,*,*"
+                          ColumnDefinitions="*,*,*,*"
+                          Margin="8">
+
+                        <ItemsControl Grid.Row="0" Grid.RowSpan="4"
+                                      Grid.Column="0" Grid.ColumnSpan="3"
+                                      ItemsSource="{Binding KeypadButtons}">
+
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" 
+                                                 Rows="4"
+                                                 HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Stretch"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Classes="number-button"
+                                            Command="{Binding #UserControl.((pages:RefuelingByCardPageViewModel)DataContext).AddCharInAmountPreview}"
+                                            CommandParameter="{Binding }">
+                                        <TextBlock Text="{Binding}" Classes="text-button"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Grid.Row="0" Grid.Column="3" Classes="number-button"
                                 Command="{Binding SwitchAmount}">
                             <Panel>
-                                <Image IsVisible="{Binding IsAmountMoney}"
-                                    Source="../../Assets/fuel.png"/>
-                                
-                                <Image IsVisible="{Binding !IsAmountMoney}"
-                                       Source="../../Assets/ruble.png"/>
+                                <Image IsVisible="{Binding IsAmountMoney}"    Source="../../Assets/fuel.png"/>
+                                <Image IsVisible="{Binding !IsAmountMoney}"   Source="../../Assets/ruble.png"/>
                             </Panel>
                         </Button>
-                        
+
                         <Button Grid.Row="1" Grid.Column="3" Classes="number-button"
                                 Command="{Binding DeleteLastChar}">
                             <Image Source="../../Assets/backspace.png"/>
                         </Button>
-                        
+
                         <Button Grid.Row="2" Grid.RowSpan="2" Grid.Column="3"
+                                Classes="number-button"
                                 Command="{Binding SetCount}"
                                 CommandParameter="{Binding Amount}"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
                                 CornerRadius="20"
-                                Margin="5">
+                                Margin="8">
                             <Image Source="../../Assets/enter.png"/>
                         </Button>
                     </Grid>

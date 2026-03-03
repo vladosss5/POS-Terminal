@@ -13,7 +13,7 @@ using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
-using StepViewModelBase = Terminal.ViewModels.Items.StepViewModelBase;
+using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -104,6 +104,14 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
     [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
+
+    public ObservableCollection<string> KeypadButtons { get; } = new()
+    { 
+        "7",  "8", "9" , 
+        "4",  "5", "6" , 
+        "1",  "2", "3" , 
+        "00", "0", ","
+    };
 
     /// <summary>
     /// Конструктор.

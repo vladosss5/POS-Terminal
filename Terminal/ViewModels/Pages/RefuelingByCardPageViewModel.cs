@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,15 +27,19 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
+    /// <inheritdoc cref="IPrintService"/>
     private readonly IPrintService _printService;
     
     /// <inheritdoc cref="ISellingBuilder"/>
     private readonly ISellingBuilder _builder;
     
-    /// <summary>
-    /// Логгер.
-    /// </summary>
+    /// <inheritdoc cref="ILogger"/>
     private readonly ILogger<RefuelingByCardPageViewModel> _logger;
+    
+    /// <summary>
+    /// Кол-во топлива.
+    /// </summary>
+    private decimal _amountFuel;
 
     /// <summary>
     /// Сообщения о типах кол-ва.
@@ -68,16 +74,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Выбранный тип топлива (товар).
     /// </summary>
     [ObservableProperty] private ResourceCode? _selectedFuelType;
-    
-    /// <summary>
-    /// Кол-во без указания ед.изм.
-    /// </summary>
-    [ObservableProperty] private decimal _amount;
-
-    /// <summary>
-    /// Превьювер кол-ва.
-    /// </summary>
-    [ObservableProperty] private string _amountPreview = "0";
 
     /// <summary>
     /// Кол-во указано в деньгах?
@@ -94,6 +90,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Наименование текущей страницы (шага).
     /// </summary>
     [ObservableProperty] private string _nameCurrentPage;
+
+    /// <summary>
+    /// Св-во для хранения товаров (типов топлива).
+    /// </summary>
+    [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
+    
     
     /// <summary>
     /// Св-во для хранения типов оплаты.
@@ -101,10 +103,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
 
     /// <summary>
-    /// Св-во для хранения товаров (типов топлива).
+    /// Коллекция цифровых кнопок. 
     /// </summary>
-    [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
-
     public ObservableCollection<string> KeypadButtons { get; } = new()
     { 
         "7",  "8", "9" , 
@@ -112,6 +112,39 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         "1",  "2", "3" , 
         "00", "0", ","
     };
+    
+    /// <summary>
+    /// Предпросмотр кол-ва денег.
+    /// </summary>
+    public string AmountMoneyPreview
+    {
+        get => string.IsNullOrEmpty(field) ? "0" : field;
+        set
+        {
+            if (!SetProperty(ref field, value)) 
+                return;
+            
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+                _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
+        }
+    }
+
+    /// <summary>
+    /// Предпросмотр кол-ва топлива.
+    /// </summary>
+    public string AmountFuelPreview
+    {
+        get => string.IsNullOrEmpty(field) ? "0" : field;
+        set
+        {
+            if (!SetProperty(ref field, value)) 
+                return;
+            
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+                _amountFuel = d;
+        }
+    }
+    
 
     /// <summary>
     /// Конструктор.
@@ -166,12 +199,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать кол-во.
     /// </summary>
-    /// <param name="count">Кол-во без ед. изм.</param>
-    public async void SetCount(decimal count)
+    public void SetCount()
     {
-        _builder.SetAmount(count);
-
-        Amount = count;
+        _builder.SetAmount(_amountFuel);
 
         Steps[2].CompleteStepCommand.Execute(null);
     }
@@ -204,21 +234,76 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="item">Символ.</param>
     public void AddCharInAmountPreview(string item)
     {
-        if (AmountPreview == "0")
-            AmountPreview = string.Empty;
+        string current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
+        int maxDecimals = IsAmountMoney ? 2 : 3;
 
-        if (AmountPreview.Length > 10)
-            return;
+        int dotIndex = current.IndexOf(",", StringComparison.Ordinal);
         
-        AmountPreview += item;
+        if (dotIndex >= 0 && item != ",")
+        {
+            int decimalsAfterDot = current.Length - dotIndex - 1;
+            
+            if (decimalsAfterDot >= maxDecimals) 
+                return;
+        }
+        
+        
+        if (item == "," && current.Contains(item))
+            return;
+
+        if (current == "0" && item == ",")
+            current = "0";
+
+        string newValue = current == "0" && item != ","
+            ? item
+            : current + item;
+        
+        if (newValue.Length > 14) 
+            return;
+
+        if (IsAmountMoney)
+            AmountMoneyPreview = newValue;
+        else
+            AmountFuelPreview = newValue;
     }
 
     /// <summary>
     /// Удалить последний символ из превьювера кол-ва.
     /// </summary>
-    public void DeleteLastChar()
+    ///
+    public void DeleteLastCharFromPreview()
     {
-        AmountPreview = AmountPreview[..^1];
+        if (IsAmountMoney)
+        {
+            AmountMoneyPreview = DeleteLastChar(AmountMoneyPreview);
+        }
+        else
+        {
+            AmountFuelPreview = DeleteLastChar(AmountFuelPreview);
+        }
+    }
+    
+    private string DeleteLastChar(string str) 
+    {
+        if (str.Length > 1)
+        {
+            str = str[..^1];
+        }
+        else
+        {
+            str = "0";
+        }
+
+        return str;
+    }
+
+    /// <summary>
+    /// Сбросить значение превьювера на 0.
+    /// </summary>
+    public void AmountPreviewSetZero()
+    {
+        AmountFuelPreview = "0";
+        AmountMoneyPreview = "0";
     }
 
     /// <summary>
@@ -228,11 +313,28 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     {
         if (IsAmountMoney)
         {
+            if (!decimal.TryParse(AmountMoneyPreview, out var money))
+                return;
+            
+            _amountFuel = money / (SelectedFuelType?.ResourcePrice ?? 1m);
+            AmountFuelPreview = _amountFuel
+                .ToString($"N3", CultureInfo.CurrentCulture)
+                .TrimEnd('0')
+                .TrimEnd(',');
+                
             IsAmountMoney = false;
             AmountWhat = _amountMessages[1];
         }
         else
         {
+            if (!decimal.TryParse(AmountFuelPreview, out var fuel)) 
+                return;
+            
+            AmountMoneyPreview = (fuel * (SelectedFuelType?.ResourcePrice ?? 1m))
+                .ToString($"N2", CultureInfo.CurrentCulture)
+                .TrimEnd('0')
+                .TrimEnd(',');
+                
             IsAmountMoney = true;
             AmountWhat = _amountMessages[0];
         }

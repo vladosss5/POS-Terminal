@@ -84,11 +84,18 @@
                       VerticalAlignment="Stretch"
                       IsVisible="{Binding Steps[2].IsActive}">
                     <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
-                        <TextBlock Text="{Binding AmountPreview}"
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Stretch"
-                                   FontSize="60"
-                                   TextWrapping="Wrap"/>
+                        <Panel>
+                            <TextBlock Text="{Binding AmountFuelPreview}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Stretch"
+                                       FontSize="60" TextWrapping="Wrap"
+                                       IsVisible="{Binding !IsAmountMoney}"/>
+                            <TextBlock Text="{Binding AmountMoneyPreview}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Stretch"
+                                       FontSize="60" TextWrapping="Wrap"
+                                       IsVisible="{Binding IsAmountMoney}"/>
+                        </Panel>
                     </Border>
                       
                     <TextBlock Grid.Row="1" Text="{Binding AmountWhat}"
@@ -134,15 +141,18 @@
                             </Panel>
                         </Button>
 
-                        <Button Grid.Row="1" Grid.Column="3" Classes="number-button"
-                                Command="{Binding DeleteLastChar}">
+                        <Button Grid.Row="1" Grid.Column="3" 
+                                Classes="number-button"
+                                Tapped="OnButtonTapped"
+                                Holding="OnButtonHolding"
+                                Gestures.IsHoldWithMouseEnabled="True"
+                                Gestures.IsHoldingEnabled="True">
                             <Image Source="../../Assets/backspace.png"/>
                         </Button>
 
                         <Button Grid.Row="2" Grid.RowSpan="2" Grid.Column="3"
                                 Classes="number-button"
                                 Command="{Binding SetCount}"
-                                CommandParameter="{Binding Amount}"
                                 CornerRadius="20"
                                 Margin="8">
                             <Image Source="../../Assets/enter.png"/>

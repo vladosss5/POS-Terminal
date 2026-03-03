@@ -4,6 +4,7 @@ using Android.OS;
 using Avalonia;
 using Avalonia.Android;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui.Devices;
 using Terminal.Android.Extensions;
 using Terminal.Extensions;
 
@@ -25,6 +26,10 @@ public class MainActivity : AvaloniaMainActivity<App>
         services.AddCommonServices();
         services.AddAndroidServices();
         services.AddDataContext();
+
+        var deviceManufacturer = DeviceInfo.Current.Manufacturer;
+        if (deviceManufacturer == "alps")
+            services.AddServicesForSunyard();
         
         App.Services = services.BuildServiceProvider();
         

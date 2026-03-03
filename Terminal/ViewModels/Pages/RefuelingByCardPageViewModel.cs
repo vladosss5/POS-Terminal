@@ -292,7 +292,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             await db.SaveChangesAsync();
 
             await PrintReceiptAsync(selling);
-
+            
             await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
             
             Navigation.GoBack();    

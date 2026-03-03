@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
+using Terminal.ViewModels.Items;
 using Terminal.ViewModels.NavigationService;
 
 namespace Terminal.ViewModels.Pages;
@@ -19,6 +23,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
+
+    public ObservableCollection<MainMenuItemModel> MenuItems { get; } = new();
+    
     
     /// <summary>
     /// Конструктор.
@@ -31,12 +38,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _fileExplorer = fileExplorer;
         _logger = logger;
         Title = "Главная";
+
+        AddItemsIntoMenu();
     }
     
     /// <summary>
     /// Команда открытия страницы заправки по карте.
     /// </summary>
-    public void OpenRefuelingByCard()
+    private void OpenRefuelingByCard()
     {
         Navigation.NavigateTo<RefuelingByCardPageViewModel>();
     }
@@ -59,5 +68,56 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     {
         base.OnActivated(navigationService);
         _logger.LogInformation("MainMenuPageViewModel activated");
+    }
+
+    /// <summary>
+    /// Создать кнопки главного меню.
+    /// </summary>
+    private void AddItemsIntoMenu()
+    {
+        MenuItems.AddRange([
+            new MainMenuItemModel
+            {
+                Title = "Заправка", 
+                Command = new RelayCommand(OpenRefuelingByCard)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на карту"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на счёт"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инфо по карте"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Закрыть смену"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инкассация"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Меню оператора"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Пром. отчёт"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Настройка"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Копировать БД", 
+                Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
+            }
+        ]);
     }
 }

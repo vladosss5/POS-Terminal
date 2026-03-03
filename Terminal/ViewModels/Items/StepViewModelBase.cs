@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace Terminal.ViewModels;
+namespace Terminal.ViewModels.Items;
 
 /// <summary>
 /// Модель шага процесса.

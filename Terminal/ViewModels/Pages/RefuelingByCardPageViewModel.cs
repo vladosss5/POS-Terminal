@@ -36,6 +36,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ILogger"/>
     private readonly ILogger<RefuelingByCardPageViewModel> _logger;
     
+    private readonly CultureInfo _russianCulture;
+    
     /// <summary>
     /// Кол-во топлива.
     /// </summary>
@@ -160,6 +162,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         _dbFactory = dbFactory;
         _logger = logger;
         _printService = printService;
+        _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
         _ = LoadDataAsync();
@@ -313,12 +316,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     {
         if (IsAmountMoney)
         {
-            if (!decimal.TryParse(AmountMoneyPreview, out var money))
+            if (!decimal.TryParse(AmountMoneyPreview, NumberStyles.Any, _russianCulture, out var money))
                 return;
             
             _amountFuel = money / (SelectedFuelType?.ResourcePrice ?? 1m);
             AmountFuelPreview = _amountFuel
-                .ToString($"N3", CultureInfo.CurrentCulture)
+                .ToString($"N3", _russianCulture)
                 .TrimEnd('0')
                 .TrimEnd(',');
                 
@@ -327,11 +330,11 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
         else
         {
-            if (!decimal.TryParse(AmountFuelPreview, out var fuel)) 
+            if (!decimal.TryParse(AmountFuelPreview, NumberStyles.Any, _russianCulture, out var fuel)) 
                 return;
             
             AmountMoneyPreview = (fuel * (SelectedFuelType?.ResourcePrice ?? 1m))
-                .ToString($"N2", CultureInfo.CurrentCulture)
+                .ToString($"N2", _russianCulture)
                 .TrimEnd('0')
                 .TrimEnd(',');
                 

@@ -5,7 +5,7 @@ namespace Terminal.ViewModels.Items;
 /// <summary>
 /// Элемент главного меню (кнопка действия).
 /// </summary>
-public class MainMenuItemModel
+public record struct MainMenuItemModel
 {
     /// <summary>
     /// Название кнопки.
@@ -16,9 +16,4 @@ public class MainMenuItemModel
     /// Команда вызываемая кнопкой.
     /// </summary>
     public ICommand? Command { get; set; }
-    
-    /// <summary>
-    /// Параметр для вызова команда с параметром.
-    /// </summary>
-    public object? Parameter { get; set; }
 }

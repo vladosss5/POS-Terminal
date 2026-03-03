@@ -30,8 +30,8 @@ public static class ServiceCollectionExtensions
         // View и ViewModel
         collection.AddTransient<MainViewModel>();
 
-        collection.AddTransient<MainMenuPageView>();
-        collection.AddTransient<MainMenuPageViewModel>();
+        collection.AddSingleton<MainMenuPageView>();
+        collection.AddSingleton<MainMenuPageViewModel>();
 
         collection.AddTransient<RefuelingByCardPageViewModel>();
         collection.AddTransient<RefuelingByCardPageView>();

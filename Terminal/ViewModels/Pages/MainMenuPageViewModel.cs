@@ -67,6 +67,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _logger.LogInformation("MainMenuPageViewModel activated");
     }
 
+    /// <summary>
+    /// Создать кнопки главного меню.
+    /// </summary>
     private void AddItemsIntoMenu()
     {
         MenuItems.AddRange([

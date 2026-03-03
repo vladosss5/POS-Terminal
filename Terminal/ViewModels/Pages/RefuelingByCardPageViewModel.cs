@@ -12,7 +12,7 @@ using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
-using Terminal.ViewModels.Steps;
+using StepViewModelBase = Terminal.ViewModels.Items.StepViewModelBase;
 
 namespace Terminal.ViewModels.Pages;
 

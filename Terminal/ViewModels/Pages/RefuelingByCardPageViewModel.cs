@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -200,9 +199,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
     
     /// <summary>
-    /// Указать кол-во.
+    /// Указать кол-во топлива.
     /// </summary>
-    public void SetCount()
+    public void SetAmount()
     {
         _builder.SetAmount(_amountFuel);
 
@@ -232,7 +231,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Добавить символ в превьювер кол-ва.
+    /// Добавить символ в предпросмотр кол-ва.
     /// </summary>
     /// <param name="item">Символ.</param>
     public void AddCharInAmountPreview(string item)
@@ -250,14 +249,13 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
                 return;
         }
         
-        
         if (item == "," && current.Contains(item))
             return;
 
         if (current == "0" && item == ",")
             current = "0";
-
-        string newValue = current == "0" && item != ","
+        
+        var newValue = current == "0" && item != ","
             ? item
             : current + item;
         
@@ -271,7 +269,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Удалить последний символ из превьювера кол-ва.
+    /// Удалить последний символ из предпросмотра кол-ва.
     /// </summary>
     ///
     public void DeleteLastCharFromPreview()
@@ -284,20 +282,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         {
             AmountFuelPreview = DeleteLastChar(AmountFuelPreview);
         }
-    }
-    
-    private string DeleteLastChar(string str) 
-    {
-        if (str.Length > 1)
-        {
-            str = str[..^1];
-        }
-        else
-        {
-            str = "0";
-        }
-
-        return str;
     }
 
     /// <summary>
@@ -364,12 +348,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// </summary>
     private void InitializeSteps()
     {
-        Steps = new ObservableCollection<StepViewModelBase>
-        {
-            new("Тип оплаты", OnStepCompleted),
-            new("Тип топлива", OnStepCompleted),
-            new("Количество", OnStepCompleted)
-        };
+        Steps =
+        [
+            new StepViewModelBase("Тип оплаты", OnStepCompleted),
+            new StepViewModelBase("Тип топлива", OnStepCompleted),
+            new StepViewModelBase("Количество", OnStepCompleted)
+        ];
 
         NameCurrentPage = Steps[0].StepName;
     }
@@ -417,19 +401,33 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             await ShowMessage("Ошибка!", $"{ex.Message}, {ex.StackTrace}");
         }
     }
+    
+    private string DeleteLastChar(string str) 
+    {
+        if (str.Length > 1)
+        {
+            str = str[..^1];
+        }
+        else
+        {
+            str = "0";
+        }
+
+        return str;
+    }
 
     private async Task PrintReceiptAsync(Selling selling)
     {
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipe = new SalesReceipt
+        var receipt = new SalesReceipt
         {
             Selling = selling,
             Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
         };
         
-        var printResult = await _printService.PrintSalesReceiptAsync(receipe);
+        var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
         

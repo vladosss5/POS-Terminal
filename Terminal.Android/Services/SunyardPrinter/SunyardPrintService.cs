@@ -13,6 +13,12 @@ using Terminal.Data.Context;
 
 namespace Terminal.Android.Services.SunyardPrinter;
 
+
+/// <summary>
+/// Реализация сервиса печати для терминалов Sunyard на платформе Android.
+/// Обеспечивает подключение к системному сервису Sunyard, получение объекта принтера,
+/// формирование и печать чеков с поддержкой текста, форматирования и отрезки бумаги.
+/// </summary>
 public class SunyardPrintService : Java.Lang.Object, IPrintService
 {
     /// <summary>
@@ -37,9 +43,19 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     private readonly object _lock = new();
     private SunyardServiceConnection? _serviceConnection;
 
+    /// <summary>
+    /// Возвращает true, если сервис подключён к системному сервису Sunyard и принтер доступен.
+    /// </summary>
     public bool IsConnected => _isConnected;
 
+    /// <summary>
+    /// Событие, возникающее при изменении состояния подключения к принтеру.
+    /// </summary>
     public event EventHandler<bool>? ConnectionChanged;
+    
+    /// <summary>
+    /// Событие, возникающее при ошибках в работе сервиса (например, потеря соединения).
+    /// </summary>
     public event EventHandler<string>? ErrorOccurred;
 
     /// <summary>
@@ -207,6 +223,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         return await tcs.Task;
     }
 
+    /// <summary>
+    /// Проверяет состояние подключения к принтеру.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Выбрасывается, если принтер не подключён.</exception>
     private void CheckConnection()
     {
         if (_isConnected && _printer != null)
@@ -216,6 +236,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         throw new InvalidOperationException("Printer is not connected.");
     }
 
+    /// <summary>
+    /// Добавляет текст с выравниванием по центру в очередь печати.
+    /// </summary>
+    /// <param name="text">Текст для печати.</param>
     private void AddCenteredText(string text)
     {
         var bundle = new Bundle();
@@ -224,6 +248,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _printer!.AddText(bundle, text);
     }
 
+    /// <summary>
+    /// Добавляет текст с выравниванием по левому краю в очередь печати.
+    /// </summary>
+    /// <param name="text">Текст для печати.</param>
     private void AddLeftText(string text)
     {
         var bundle = new Bundle();
@@ -232,6 +260,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _printer!.AddText(bundle, text);
     }
 
+    /// <summary>
+    /// Добавляет текст с выравниванием по правому краю в очередь печати.
+    /// </summary>
+    /// <param name="text">Текст для печати.</param>
     private void AddRightText(string text)
     {
         var bundle = new Bundle();
@@ -240,6 +272,11 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _printer!.AddText(bundle, text);
     }
 
+    /// <summary>
+    /// Преобразует код статуса из SDK в перечисление PrinterStatus.
+    /// </summary>
+    /// <param name="code">Код статуса из SDK.</param>
+    /// <returns>Соответствующий статус принтера.</returns>
     private PrinterStatus MapStatus(int code)
     {
         return code switch

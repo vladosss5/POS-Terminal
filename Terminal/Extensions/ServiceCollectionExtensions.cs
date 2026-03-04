@@ -30,8 +30,8 @@ public static class ServiceCollectionExtensions
         // View и ViewModel
         collection.AddTransient<MainViewModel>();
 
-        collection.AddTransient<MainMenuPageView>();
-        collection.AddTransient<MainMenuPageViewModel>();
+        collection.AddSingleton<MainMenuPageView>();
+        collection.AddSingleton<MainMenuPageViewModel>();
 
         collection.AddTransient<RefuelingByCardPageViewModel>();
         collection.AddTransient<RefuelingByCardPageView>();
@@ -40,10 +40,11 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<EnumFriendlyNameConverter>();
         
         // Сервисы логики
-        collection.AddScoped<IRefuelingProcessBuilder, RefuelingProcessBuilder>();
+        collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        collection.AddSingleton<IPrintService, PrintServiceCommon>();
     }
     
     /// <summary>

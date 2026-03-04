@@ -6,6 +6,7 @@ using System.Windows.Input;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
 using Terminal.ViewModels.Items;
 using Terminal.ViewModels.NavigationService;
@@ -23,6 +24,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
 
+    /// <summary>
+    /// Коллекция пунктов главного меню.
+    /// </summary>
     public ObservableCollection<MainMenuItemModel> MenuItems { get; } = new();
     
     
@@ -42,6 +46,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// Этот метод вызывается при активации страницы.
+    /// </summary>
+    public override void OnActivated(INavigationService navigationService)
+    {
+        base.OnActivated(navigationService);
+        _logger.LogInformation("MainMenuPageViewModel activated");
+    }
+    
+    /// <summary>
     /// Команда открытия страницы заправки по карте.
     /// </summary>
     private void OpenRefuelingByCard()
@@ -52,19 +65,12 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <summary>
     /// Скопировать директорию с БД в директорию загрузок.
     /// </summary>
-    public async Task CopyDataBaseDirectoryToDownloads()
+    private async Task CopyDataBaseDirectoryToDownloads()
     {
         _logger.LogInformation("Вызвано копирование");
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
-    }
-    
-    /// <summary>
-    /// Этот метод вызывается при активации страницы.
-    /// </summary>
-    public override void OnActivated(INavigationService navigationService)
-    {
-        base.OnActivated(navigationService);
-        _logger.LogInformation("MainMenuPageViewModel activated");
+
+        await MessageBoxManager.GetMessageBoxStandard("Успех", "Каталог скопирован!").ShowAsync();
     }
 
     /// <summary>

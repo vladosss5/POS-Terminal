@@ -2,6 +2,7 @@
 using Android.Content;
 using Microsoft.Extensions.DependencyInjection;
 using Terminal.Android.Services;
+using Terminal.Android.Services.SunyardPrinter;
 using Terminal.Application.Interfaces.Services;
 
 namespace Terminal.Android.Extensions;
@@ -16,7 +17,13 @@ public static class AndroidServiceCollectionExtensions
     /// </summary>
     public static void AddAndroidServices(this IServiceCollection collection)
     {
-        collection.AddSingleton<Context>(global::Android.App.Application.Context);
+        collection.AddSingleton(global::Android.App.Application.Context);
         collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
+        collection.AddTransient<IPrintService, AndroidPrintService>();
+    }
+
+    public static void AddServicesForSunyard(this IServiceCollection collection)
+    {
+        collection.AddTransient<IPrintService, SunyardPrintService>();
     }
 }

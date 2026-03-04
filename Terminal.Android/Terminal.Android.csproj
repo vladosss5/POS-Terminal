@@ -13,10 +13,12 @@
 
     <ItemGroup>
         <PackageReference Include="Avalonia.Android"/>
+        <PackageReference Include="Microsoft.Maui.Essentials" />
         <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen"/>
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Sunyard.Binding\Sunyard.Binding.csproj" />
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
     </ItemGroup>
 </Project>

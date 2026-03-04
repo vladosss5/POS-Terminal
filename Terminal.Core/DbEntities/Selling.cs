@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Terminal.Core.Enums;
 
 namespace Terminal.Core.DbEntities;
 
-public partial class Selling
+/// <summary>
+/// Модель продажи.
+/// </summary>
+public class Selling
 {
     /// <summary>
     /// Первичный ключ продажи (по магазину)
@@ -11,17 +14,17 @@ public partial class Selling
     public int TransactionShopKey { get; set; }
 
     /// <summary>
-    /// Ключ смены
+    /// Номер смены (FK)
     /// </summary>
     public int? ShiftKey { get; set; }
 
     /// <summary>
-    /// Ключ магазина
+    /// Номер магазина
     /// </summary>
     public int? ShopKey { get; set; }
 
     /// <summary>
-    /// Ключ терминала
+    /// Ключ терминала (задаётся единоразово)
     /// </summary>
     public long? TerminalKey { get; set; }
 
@@ -41,29 +44,29 @@ public partial class Selling
     public long? ElectronicNumber { get; set; }
 
     /// <summary>
-    /// Базовый тип
+    /// Базовый тип оплаты TODO:Прикрутить enum
     /// </summary>
     public int? BaseType { get; set; }
 
     /// <summary>
-    /// Производный тип
+    /// Производный тип оплаты TODO:Прикрутить enum
     /// </summary>
     public int? DerivedType { get; set; }
 
     /// <summary>
-    /// Объём продажи
+    /// Кол-во проданного товара 
     /// </summary>
-    public int? Amount { get; set; }
+    public int? Amount { get; set; } // TODO: Переделать на decimal
 
     /// <summary>
-    /// Стоимость по магазину
+    /// Итоговая стоимость покупки (с учётом скидок).
     /// </summary>
-    public int? ShopCost { get; set; }
+    public int? ShopCost { get; set; } // TODO: Переделать на decimal
 
     /// <summary>
-    /// Базовая стоимость по магазину
+    /// Базовая стоимость покупки (без скидок).
     /// </summary>
-    public int? ShopBaseCost { get; set; }
+    public int? ShopBaseCost { get; set; } // TODO: Переделать на decimal
 
     /// <summary>
     /// Цена продажи
@@ -76,14 +79,14 @@ public partial class Selling
     public int? ShoppingCartKey { get; set; }
 
     /// <summary>
-    /// Ключ ресурса
+    /// Ключ ресурса (FK)
     /// </summary>
     public int? ResourceKey { get; set; }
 
     /// <summary>
     /// Ключ коллекции
     /// </summary>
-    public int? CollectionKey { get; set; }
+    public int? CollectionKey { get; set; } // TODO: Переделать на enum
 
     /// <summary>
     /// Код ресурса (ссылка на ResourceCode.FuelCodeKey)
@@ -126,24 +129,24 @@ public partial class Selling
     public int? ApplicationId { get; set; }
 
     /// <summary>
-    /// Количество транзакций
+    /// Количество транзакций (всегда 1 кроме талонов и ТК)
     /// </summary>
     public int? TransactionCount { get; set; }
 
     /// <summary>
-    /// Подпись
+    /// Подпись не используется
     /// </summary>
     public string? Sign { get; set; }
 
     /// <summary>
     /// Статус приложения
     /// </summary>
-    public int? AppStatus { get; set; }
+    public int? AppStatus { get; set; } // TODO: Переделать на enum
 
     /// <summary>
     /// Режим приложения
     /// </summary>
-    public int? AppMode { get; set; }
+    public int? AppMode { get; set; } // TODO: Переделать на enum
 
     /// <summary>
     /// Лимит приложения
@@ -319,4 +322,10 @@ public partial class Selling
     /// Внешний код
     /// </summary>
     public string? ExternalCode { get; set; }
+    
+    /// <summary>
+    /// Тип оплаты.
+    /// </summary>
+    [NotMapped] 
+    public PaymentTypes PaymentType { get; set; }
 }

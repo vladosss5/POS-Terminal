@@ -53,14 +53,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         base.OnActivated(navigationService);
         _logger.LogInformation("MainMenuPageViewModel activated");
     }
-    
-    /// <summary>
-    /// Команда открытия страницы заправки по карте.
-    /// </summary>
-    private void OpenRefuelingByCard()
-    {
-        Navigation.NavigateTo<RefuelingByCardPageViewModel>();
-    }
 
     /// <summary>
     /// Скопировать директорию с БД в директорию загрузок.
@@ -82,7 +74,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Заправка", 
-                Command = new RelayCommand(OpenRefuelingByCard)
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<RefuelingByCardPageViewModel>();
+                })
             },
             new MainMenuItemModel
             {
@@ -107,6 +102,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Меню оператора"
+            },
+            new MainMenuItemModel
+            {
+              Title  = "Печать чека",
+              Command = new RelayCommand(delegate
+              {
+                  Navigation.NavigateTo<PrintingReceiptPageViewModel>();
+              })
             },
             new MainMenuItemModel
             {

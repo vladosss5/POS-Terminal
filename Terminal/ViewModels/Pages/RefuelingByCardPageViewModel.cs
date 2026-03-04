@@ -50,6 +50,11 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         "Указывается кол-во в ₽",
         "Указывается кол-во в литрах"
     };
+
+    /// <summary>
+    /// Выбранный тип оплаты.
+    /// </summary>
+    private PaymentTypes _selectedPaymentType;
     
     /// <summary>
     /// Коллекция шагов заправки.
@@ -180,7 +185,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="type">Тип оплаты.</param>
     public void SetPaymentType(PaymentTypes type)
     {
-        _builder.SetPaymentType(type);
+        _selectedPaymentType = type;
 
         SelectedCardType = type;
         Steps[0].CompleteStepCommand.Execute(null);
@@ -189,12 +194,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать тип топлива (товара).
     /// </summary>
-    /// <param name="type">Топливо.</param>
-    public void SetFuelType(ResourceCode type)
+    /// <param name="resource">Топливо.</param>
+    public void SetFuelType(ResourceCode resource)
     {
-        _builder.SetResourceCode(type.FuelCodeKey);
+        _builder.SetResourceCode(resource);
 
-        SelectedFuelType = type;
+        SelectedFuelType = resource;
         Steps[1].CompleteStepCommand.Execute(null);
     }
     

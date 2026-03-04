@@ -28,7 +28,7 @@ public partial class ResourceCode
     /// <summary>
     /// Цена ресурса
     /// </summary>
-    public int? ResourcePrice { get; set; }
+    public decimal? ResourcePrice { get; set; }
 
     /// <summary>
     /// Признак отображения в интерфейсе

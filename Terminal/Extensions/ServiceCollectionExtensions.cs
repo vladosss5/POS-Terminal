@@ -35,6 +35,9 @@ public static class ServiceCollectionExtensions
 
         collection.AddTransient<RefuelingByCardPageViewModel>();
         collection.AddTransient<RefuelingByCardPageView>();
+
+        collection.AddTransient<PrintingReceiptPageViewModel>();
+        collection.AddTransient<PrintingReceiptPageView>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

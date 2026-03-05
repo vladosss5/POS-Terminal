@@ -30,7 +30,7 @@ public record struct ReceiptForListingDto
     /// <summary>
     /// Дата и время продажи
     /// </summary>
-    public DateTime SaleDate { get; set; }
+    public string? SaleDate { get; set; }
     
     /// <summary>
     /// Итоговая цена чека.

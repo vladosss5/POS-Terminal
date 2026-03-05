@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
@@ -142,6 +143,8 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     {
         if (sales == null)
             return Enumerable.Empty<ReceiptForListingDto>();
+
+        var cultureInfo = new CultureInfo("ru-RU");
         
         return sales.Select(sale => new ReceiptForListingDto
         {
@@ -149,7 +152,9 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
             ResourceName = sale.ResourceName ?? sale.ResourceName ?? "Неизвестный товар",
             ResourceCount = sale.Amount.HasValue ? Convert.ToDecimal(sale.Amount.Value) : 0m,
             PricePerItem = sale.SellingPrice.HasValue ? Convert.ToDecimal(sale.SellingPrice.Value) : 0m,
-            SaleDate = sale.TransactionDatetime ?? DateTime.MinValue,
+            SaleDate = sale.TransactionDatetime == null 
+                ? DateTime.MinValue.ToString(cultureInfo) 
+                : sale.TransactionDatetime.Value.ToString(cultureInfo),
             FullReceiptPrice = sale.ShopCost.HasValue ? Convert.ToDecimal(sale.ShopCost.Value) : 0m
         });
     }

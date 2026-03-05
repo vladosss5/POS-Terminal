@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -17,13 +18,20 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Логика работы страницы печати чека PrintingReceiptPageView.
 /// </summary>
-public class PrintingReceiptPageViewModel : PageViewModelBase
+public partial class PrintingReceiptPageViewModel : PageViewModelBase
 {
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
     /// <inheritdoc cref="IPrintService" />
     private readonly IPrintService _printService;
+    
+    private const int PageSize = 20;
+    private int _currentSkip;
+    private bool _isInitialized;
+    
+    [ObservableProperty] private bool _hasMoreItems = true;
+    [ObservableProperty] private bool _isLoading;
 
     /// <summary>
     /// Коллекция чеков.
@@ -74,6 +82,42 @@ public class PrintingReceiptPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// Загрузить ещё чеков.
+    /// </summary>
+    public async Task LoadMoreReceiptsAsync()
+    {
+        if (IsLoading || !HasMoreItems)
+            return;
+        
+        try
+        {
+            IsLoading = true;
+
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var sales = await db.Sales
+                .OrderByDescending(x => x.TransactionShopKey)
+                .Skip(_currentSkip)
+                .Take(PageSize + 1)
+                .ToListAsync();
+
+            bool hasMore = sales.Count > PageSize;
+            if (hasMore)
+                sales.RemoveAt(PageSize);
+            
+            var receipts = MapSellingToReceiptForListingDtos(sales);
+            SalesPerShiftCollection.AddRange(receipts);
+            
+            _currentSkip += sales.Count;
+            HasMoreItems = hasMore;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    /// <summary>
     /// Перейти к прошлому шагу.
     /// </summary>
     public void StepBack() => Navigation.GoBack();
@@ -83,15 +127,10 @@ public class PrintingReceiptPageViewModel : PageViewModelBase
     /// </summary>
     private async Task LoadDataAsync()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-
-        var sales = await db.Sales
-            .OrderByDescending(x => x.TransactionShopKey)
-            .ToListAsync();
+        if (_isInitialized) return;
         
-        var receipts = MapSellingToReceiptForListingDtos(sales);
-        
-        SalesPerShiftCollection.AddRange(receipts);
+        await LoadMoreReceiptsAsync();
+        _isInitialized = true;
     }
 
     /// <summary>

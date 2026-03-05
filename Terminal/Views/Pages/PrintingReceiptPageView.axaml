@@ -35,7 +35,9 @@
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch">
             <Grid RowDefinitions="*, Auto">
-                <ScrollViewer Grid.Row="0">
+                <ScrollViewer Grid.Row="0"
+                              Name="ItemsScrollViewer"
+                              ScrollChanged="OnScrollChanged">
                     <ItemsControl ItemsSource="{Binding SalesPerShiftCollection}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>

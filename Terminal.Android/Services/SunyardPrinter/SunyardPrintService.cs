@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
@@ -177,38 +178,45 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         }
 
         var tcs = new TaskCompletionSource<PrintResult>();
-
+        var cultureRu = new CultureInfo("ru-RU");
+        
         try
         {
-            _printer!.SetGray(5);
-            AddCenteredText(salesReceipt.Header);
-            _printer.FeedLine(1);
+            _printer!.SetGray(10);
             
-            await using var db = await _dbFactory.CreateDbContextAsync();
+            AddKeyValueText("Чек", salesReceipt.Number);
+            AddCenteredText("----------------------------------------");
+            AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
 
-            _logger.LogInformation($"Поиск рессурса ID: {salesReceipt.Selling.ResourceCode}");
-            
-            var resourse = await db.ResourceCodes
-                .FirstOrDefaultAsync(x => x.FuelCodeKey == salesReceipt.Selling.ResourceCode);
-
-            if (resourse == null)
-                _logger.LogError($"Рессурс ID: {resourse.FuelCodeKey} найден");
-            
-            AddLeftText($"{resourse.ResourceName} x{salesReceipt.Selling.Amount}");
-            AddRightText($"{salesReceipt.Selling.BasePrice:C}");
-
-            AddCenteredText("-------------------");
-            AddRightText($"ИТОГО: {salesReceipt.Total:C}");
-
-            if (!string.IsNullOrEmpty(salesReceipt.Footer))
+            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
             {
-                _printer.FeedLine(1);
-                AddCenteredText(salesReceipt.Footer);
+                AddKeyValueText("Карта", salesReceipt.CardNumber!);
+                AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
+            }
+            
+            AddCenteredText("----------------Продажа----------------");
+            AddKeyValueText(
+                salesReceipt.ResourceName, 
+                $"= {salesReceipt.Amount.ToString(cultureRu)}");
+            
+            AddKeyValueText(
+                salesReceipt.PricePerUnit.ToString(cultureRu), 
+                $"= {salesReceipt.SellingPrice.ToString(cultureRu)}");
+            
+            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString(cultureRu)}");
+            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString(cultureRu)}");
+
+            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
+            {
+                AddCenteredText("-----------Инфо по кошелькам-----------");
             }
 
-            _printer.FeedLine(3);
-            if (salesReceipt.CutPaper)
-                _printer.CutPaper();
+            AddCenteredText("----------------------------------------");
+            AddLeftText($"Оператор {salesReceipt.Operator}");
+            AddCenteredText("----------------------------------------");
+
+            _printer.FeedLine(6);
+            _printer.CutPaper();
 
             _logger.LogInformation($"Чек составлен. Старт печати");
             _currentPrintListener = new SunyardPrintListener(tcs, _logger);
@@ -246,6 +254,38 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         bundle.PutInt("font", IPrintConstant.IFontSize.Normal);
         bundle.PutInt("align", IPrintConstant.IAlign.Center);
         _printer!.AddText(bundle, text);
+    }
+
+    private void AddKeyValueText(string key, string value)
+    {
+        // Определяем оптимальную ширину для вашего принтера
+        const int totalWidth = 32; // Обычно термопринтеры имеют 32-42 символа
+        const int minSpaces = 2;   // Минимальное количество пробелов между колонками
+    
+        // Рассчитываем доступное место для ключа и значения
+        int keyMaxLength = (totalWidth - minSpaces) / 2;
+        int valueMaxLength = totalWidth - keyMaxLength - minSpaces;
+    
+        // Обрабатываем ключ (обрезаем при необходимости)
+        string displayKey = key.Length > keyMaxLength
+            ? key.Substring(0, keyMaxLength - 3) + "..."
+            : key;
+    
+        // Обрабатываем значение
+        string displayValue = value.Length > valueMaxLength
+            ? value.Substring(0, valueMaxLength - 3) + "..."
+            : value;
+    
+        // Рассчитываем количество пробелов
+        int spacesNeeded = totalWidth - displayKey.Length - displayValue.Length;
+        if (spacesNeeded < 1) spacesNeeded = 1;
+    
+        string line = displayKey + new string(' ', spacesNeeded) + displayValue;
+    
+        var bundle = new Bundle();
+        bundle.PutInt("font", IPrintConstant.IFontSize.Normal);
+        bundle.PutInt("align", IPrintConstant.IAlign.Left);
+        _printer!.AddText(bundle, line);
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
@@ -93,17 +94,19 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     public async Task PrintReceipt(ReceiptForListingDto receiptDto)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
-
-        var selling = await db.Sales.FirstOrDefaultAsync(x => x.TransactionShopKey == receiptDto.TransactionShopKey);
-
+        
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
+
+        var selling = await db.Sales.FirstOrDefaultAsync(x => x.TransactionShopKey == receiptDto.TransactionShopKey);
         
-        var receipt = new SalesReceipt
+        if (selling == null)
         {
-            Selling = selling,
-            Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
-        };
+            Logger.LogError("Продажа не найдена!");
+            return;
+        }
+        
+        var receipt = MapSellingToSalesReceipt(selling);
         
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
@@ -260,5 +263,32 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
                 : sale.TransactionDatetime.Value.ToString(cultureInfo),
             FullReceiptPrice = sale.ShopCost.HasValue ? Convert.ToDecimal(sale.ShopCost.Value) : 0m
         });
+    }
+
+    private SalesReceipt MapSellingToSalesReceipt(Selling selling)
+    {
+        return new SalesReceipt
+        {
+            Number = selling.CheckNumber != null 
+                ? selling.CheckNumber.ToString()! 
+                : "Номер не определён",
+            TerminalNumber = selling.TerminalKey != null 
+                ? selling.TerminalKey.ToString()! 
+                : "Неизвестный номер",
+            CardNumber = selling.IssuerCardId != null 
+                ? selling.IssuerCardId.Value.ToString() 
+                : "0",
+            TransactionDateTime = selling.TransactionDatetime ?? DateTime.MinValue,
+            ResourceName = selling.ResourceName ?? "Неизвестный ресурс",
+            Amount = selling.Amount ?? 0,
+            PricePerUnit = selling.BasePrice ?? 0,
+            SellingPrice = selling.BasePrice ?? 0 * selling.Amount ?? 0,
+            Discount = (selling.BasePrice ?? 0 * selling.Amount ?? 0) - selling.ClientCost ?? 0,
+            TotalPrice = selling.ClientCost ?? 0,
+            Operator = selling.PersonKey != null 
+                ? selling.PersonKey.ToString()! 
+                : "Неизвестный оператор",
+            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
+        };
     }
 }

@@ -106,7 +106,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Св-во для хранения типов оплаты.
     /// </summary>
-    public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
+    public IEnumerable<PaymentTypes> PaymentTypesCollection => Enum.GetValues<PaymentTypes>();
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -426,11 +426,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipt = new SalesReceipt
-        {
-            Selling = selling,
-            Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
-        };
+        var receipt = MapSellingToSalesReceipt(selling);
         
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
@@ -447,5 +443,32 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         await MessageBoxManager
             .GetMessageBoxStandard(title, text)
             .ShowAsync();
+    }
+    
+    private SalesReceipt MapSellingToSalesReceipt(Selling selling)
+    {
+        return new SalesReceipt
+        {
+            Number = selling.CheckNumber != null 
+                ? selling.CheckNumber.ToString()! 
+                : "Номер не определён",
+            TerminalNumber = selling.TerminalKey != null 
+                ? selling.TerminalKey.ToString()! 
+                : "Неизвестный номер",
+            CardNumber = selling.IssuerCardId != null 
+                ? selling.IssuerCardId.Value.ToString() 
+                : "0",
+            TransactionDateTime = selling.TransactionDatetime ?? DateTime.MinValue,
+            ResourceName = selling.ResourceName ?? "Неизвестный ресурс",
+            Amount = selling.Amount ?? 0,
+            PricePerUnit = selling.BasePrice ?? 0,
+            SellingPrice = selling.BasePrice ?? 0 * selling.Amount ?? 0,
+            Discount = (selling.BasePrice ?? 0 * selling.Amount ?? 0) - selling.ClientCost ?? 0,
+            TotalPrice = selling.ClientCost ?? 0,
+            Operator = selling.PersonKey != null 
+                ? selling.PersonKey.ToString()! 
+                : "Неизвестный оператор",
+            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
+        };
     }
 }

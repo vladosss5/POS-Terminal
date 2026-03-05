@@ -231,12 +231,12 @@ public class Selling
     /// <summary>
     /// Базовая цена
     /// </summary>
-    public int? BasePrice { get; set; }
+    public decimal? BasePrice { get; set; }
 
     /// <summary>
     /// Стоимость для клиента
     /// </summary>
-    public int? ClientCost { get; set; }
+    public decimal? ClientCost { get; set; }
 
     /// <summary>
     /// Флаги запроса

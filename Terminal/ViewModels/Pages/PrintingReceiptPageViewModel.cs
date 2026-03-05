@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -26,12 +27,30 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IPrintService" />
     private readonly IPrintService _printService;
-    
+
+    /// <summary>
+    /// Кол-во элементов на странице.
+    /// </summary>
     private const int PageSize = 20;
-    private int _currentSkip;
-    private bool _isInitialized;
     
+    /// <summary>
+    /// Кол-во пропускаемых записей при подгрузке.
+    /// </summary>
+    private int _currentSkip;
+    
+    /// <summary>
+    /// Токен отмены для работы с БД.
+    /// </summary>
+    private CancellationTokenSource? _loadingCts;
+    
+    /// <summary>
+    /// Вернёт true если есть ли ещё не загруженные данные/
+    /// </summary>
     [ObservableProperty] private bool _hasMoreItems = true;
+    
+    /// <summary>
+    /// Вернёт true, если идёт загрузка данных.
+    /// </summary>
     [ObservableProperty] private bool _isLoading;
 
     /// <summary>
@@ -39,6 +58,18 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// </summary>
     public ObservableCollection<ReceiptForListingDto> SalesPerShiftCollection { get; } = new();
 
+    /// <summary>
+    /// Ключевое слово для поиска.
+    /// </summary>
+    public string Keyword
+    {
+        get;
+        set 
+        {
+            if (SetProperty(ref field, value))
+                _ = OnKeywordChangedAsync();
+        }
+    }
     
     /// <summary>
     /// Конструктор.
@@ -52,7 +83,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         _dbFactory = dbFactory;
         _printService = printService;
 
-        _ = LoadDataAsync();
+        _ = LoadMoreReceiptsAsync();
     }
 
     /// <summary>
@@ -85,24 +116,26 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// <summary>
     /// Загрузить ещё чеков.
     /// </summary>
-    public async Task LoadMoreReceiptsAsync()
+    public async Task LoadMoreReceiptsAsync(CancellationToken cancellationToken = default)
     {
-        if (IsLoading || !HasMoreItems)
+        if (!HasMoreItems)
             return;
         
         try
         {
             IsLoading = true;
 
-            await using var db = await _dbFactory.CreateDbContextAsync();
+            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
             var sales = await db.Sales
                 .OrderByDescending(x => x.TransactionShopKey)
                 .Skip(_currentSkip)
                 .Take(PageSize + 1)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
+            
+            cancellationToken.ThrowIfCancellationRequested();
 
-            bool hasMore = sales.Count > PageSize;
+            var hasMore = sales.Count > PageSize;
             if (hasMore)
                 sales.RemoveAt(PageSize);
             
@@ -119,20 +152,90 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// Обрабатывает изменение поискового запроса.
+    /// </summary>
+    private async Task OnKeywordChangedAsync()
+    {
+        _loadingCts?.Cancel();
+        _loadingCts = new CancellationTokenSource();
+        var token = _loadingCts.Token;
+
+        try 
+        {
+            await Task.Delay(500, token);
+            
+            IsLoading = true;
+
+            if (string.IsNullOrWhiteSpace(Keyword))
+                await ResetToPagedModeAsync(token);
+            else
+                await LoadAllFilteredAsync(token);
+            
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    /// <summary>
+    /// Сбрасывает режим к бесконечной прокрутке (без фильтра).
+    /// </summary>
+    private async Task ResetToPagedModeAsync(CancellationToken token)
+    {
+        SalesPerShiftCollection.Clear();
+        _currentSkip = 0;
+        HasMoreItems = true;
+        await LoadMoreReceiptsAsync(token);
+    }
+
+    /// <summary>
+    /// Загружает все записи, удовлетворяющие поисковому запросу (без пагинации).
+    /// </summary>
+    private async Task LoadAllFilteredAsync(CancellationToken token)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(token);
+
+        var keyword = Keyword?.Trim() ?? string.Empty;
+        var query = db.Sales.AsNoTracking().AsQueryable();
+        
+        var pattern = $"%{keyword}%";
+        var numericKeyword = long.TryParse(keyword, out var num) ? num : (long?)null;
+        var cultureInfo = new CultureInfo("ru-RU");
+        
+        query = query.Where(s =>
+            (numericKeyword != null && s.TransactionShopKey == numericKeyword) ||
+            (s.ResourceName != null && EF.Functions.Like(s.ResourceName, pattern))
+        );
+        
+        var dtos = await query
+            .OrderByDescending(s => s.TransactionDatetime)
+            .Select(s => new ReceiptForListingDto
+            {
+                TransactionShopKey = s.TransactionShopKey,
+                ResourceName = s.ResourceName ?? "Неизвестный товар",
+                ResourceCount = s.Amount.HasValue ? Convert.ToDecimal(s.Amount.Value) : 0m,
+                PricePerItem = s.SellingPrice.HasValue ? Convert.ToDecimal(s.SellingPrice.Value) : 0m,
+                SaleDate = s.TransactionDatetime == null
+                    ? DateTime.MinValue.ToString(cultureInfo)
+                    : s.TransactionDatetime.Value.ToString(cultureInfo),
+                FullReceiptPrice = s.ShopCost.HasValue ? Convert.ToDecimal(s.ShopCost.Value) : 0m
+            })
+            .ToListAsync(token);
+
+        SalesPerShiftCollection.Clear();
+        SalesPerShiftCollection.AddRange(dtos);
+        
+        HasMoreItems = false;
+    }
+    
+    /// <summary>
     /// Перейти к прошлому шагу.
     /// </summary>
     public void StepBack() => Navigation.GoBack();
-
-    /// <summary>
-    /// Подгрузить данные.
-    /// </summary>
-    private async Task LoadDataAsync()
-    {
-        if (_isInitialized) return;
-        
-        await LoadMoreReceiptsAsync();
-        _isInitialized = true;
-    }
 
     /// <summary>
     /// Маппинг коллекций доменной модели Selling к коллекции отображаемых элементов. 
@@ -143,7 +246,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     {
         if (sales == null)
             return Enumerable.Empty<ReceiptForListingDto>();
-
+        
         var cultureInfo = new CultureInfo("ru-RU");
         
         return sales.Select(sale => new ReceiptForListingDto

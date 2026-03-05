@@ -15,7 +15,7 @@
         </Style>
     </UserControl.Styles>
     
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, Auto, *">
         <!-- Шапка -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
             <TextBlock Grid.Column="0" 
@@ -30,15 +30,26 @@
             </Button>
         </Grid>
         
-        <!-- Тело страницы -->
-        <Border Grid.Row="1"
+        <!-- Поиск -->
+        <TextBox Grid.Row="1" Text="{Binding Keyword}" Watermark="Поиск" 
+                 Background="WhiteSmoke" 
+                 BorderBrush="Gray" 
+                 SelectionBrush="Gray" 
+                 SelectionForegroundBrush="Gray"
+                 CornerRadius="15" 
+                 Margin="10,5,10,5">
+        </TextBox>
+        
+        
+        <!-- Список элементов -->
+        <Border Grid.Row="2"
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch">
             <Grid RowDefinitions="*, Auto">
                 <ScrollViewer Grid.Row="0"
                               Name="ItemsScrollViewer"
                               ScrollChanged="OnScrollChanged">
-                    <ItemsControl ItemsSource="{Binding SalesPerShiftCollection}">
+                    <ItemsControl ItemsSource="{Binding SalesPerShiftCollection}" Margin="10">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="1"
@@ -53,8 +64,9 @@
                                         CommandParameter="{Binding}" 
                                         HorizontalAlignment="Stretch" 
                                         CornerRadius="20"
-                                        Margin="5" Padding="10" 
-                                        Background="WhiteSmoke">
+                                        Margin="0,5,0,0" Padding="10" 
+                                        Background="WhiteSmoke"
+                                        BorderBrush="DarkGray">
                                     <Grid ColumnDefinitions="*, *" RowDefinitions="*, *, *" Background="Transparent">
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TransactionShopKey}" 
                                                    Classes="text-items-control" HorizontalAlignment="Left"/>

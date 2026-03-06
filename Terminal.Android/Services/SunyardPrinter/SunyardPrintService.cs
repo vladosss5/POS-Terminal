@@ -256,9 +256,9 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <param name="text">Текст в середине линии.</param>
     private void AddLineWidthText(string text = "")
     {
-        var widthPage = 48;
-        var lengthInputText = text.Length;
-        var spacer = new string('-', (widthPage - lengthInputText) / 2);
+        const int widthPage = 48;
+        
+        var spacer = new string('-', (widthPage - text.Length) / 2);
         var inputText = spacer + text + spacer;
 
         AddCenteredText(inputText);

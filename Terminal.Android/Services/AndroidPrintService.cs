@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Services;
 
 namespace Terminal.Android.Services;
 
@@ -15,38 +16,15 @@ namespace Terminal.Android.Services;
 /// </remarks>
 public class AndroidPrintService : IReceiptPrintService
 {
-    private readonly ILogger<AndroidPrintService> _logger;
+    private readonly DialogPrintService _dialogPrintService;
 
-    /// <summary>
-    /// Конструктор.
-    /// </summary>
-    public AndroidPrintService(ILogger<AndroidPrintService> logger)
+    public AndroidPrintService(ILogger<DialogPrintService> logger)
     {
-        _logger = logger;
+        _dialogPrintService = new DialogPrintService(logger);
     }
 
-    /// <summary>
-    /// Напечатать чек о продаже.
-    /// </summary>
-    /// <remarks>
-    /// Не реализовано.
-    /// </remarks>
-    /// <param name="salesReceipt">Объект чека о покупке.</param>
-    /// <returns>Результат печати.</returns>
     public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
-        LogWarning();
-
-        return new PrintResult
-        {
-            Success = false,
-            ErrorMessage = "Принтер не работает на данном устройстве.",
-            Status = PrinterStatus.Unknown
-        };
-    }
-
-    private void LogWarning()
-    {
-        _logger.LogWarning("Принтер не работает на данном устройстве.");
+        return await _dialogPrintService.PrintSalesReceiptAsync(salesReceipt);
     }
 }

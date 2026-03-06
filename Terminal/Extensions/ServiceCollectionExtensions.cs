@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Implementations.Builders;
+using Terminal.Application.Implementations.Mappers;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
 using Terminal.Data.Context;
@@ -43,6 +45,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<EnumFriendlyNameConverter>();
         
         // Сервисы логики
+        collection.AddTransient<ISalesReceiptMappingService, SalesReceiptMappingService>();
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();

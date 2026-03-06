@@ -9,10 +9,9 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
-using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -28,6 +27,9 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IPrintService" />
     private readonly IPrintService _printService;
+
+    /// <inheritdoc cref="ISalesReceiptMappingService" />
+    private readonly ISalesReceiptMappingService _receiptMappingService;
 
     /// <summary>
     /// Кол-во элементов на странице.
@@ -78,11 +80,13 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     public PrintingReceiptPageViewModel(
         ILogger<PageViewModelBase> logger, 
         IDbContextFactory<DataContext> dbFactory, 
-        IPrintService printService) 
+        IPrintService printService, 
+        ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
         _printService = printService;
+        _receiptMappingService = receiptMappingService;
 
         _ = LoadMoreReceiptsAsync();
     }
@@ -106,7 +110,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
             return;
         }
         
-        var receipt = MapSellingToSalesReceipt(selling);
+        var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
@@ -196,7 +200,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Загружает все записи, удовлетворяющие поисковому запросу (без пагинации).
+    /// Загрузка записей из БД содержащих Keyword в подстроке.
     /// </summary>
     private async Task LoadAllFilteredAsync(CancellationToken token)
     {
@@ -263,32 +267,5 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
                 : sale.TransactionDatetime.Value.ToString(cultureInfo),
             FullReceiptPrice = sale.ShopCost.HasValue ? Convert.ToDecimal(sale.ShopCost.Value) : 0m
         });
-    }
-
-    private SalesReceipt MapSellingToSalesReceipt(Selling selling)
-    {
-        return new SalesReceipt
-        {
-            Number = selling.CheckNumber != null 
-                ? selling.CheckNumber.ToString()! 
-                : "Номер не определён",
-            TerminalNumber = selling.TerminalKey != null 
-                ? selling.TerminalKey.ToString()! 
-                : "Неизвестный номер",
-            CardNumber = selling.IssuerCardId != null 
-                ? selling.IssuerCardId.Value.ToString() 
-                : "0",
-            TransactionDateTime = selling.TransactionDatetime ?? DateTime.MinValue,
-            ResourceName = selling.ResourceName ?? "Неизвестный ресурс",
-            Amount = selling.Amount ?? 0,
-            PricePerUnit = selling.BasePrice ?? 0,
-            SellingPrice = selling.BasePrice ?? 0 * selling.Amount ?? 0,
-            Discount = (selling.BasePrice ?? 0 * selling.Amount ?? 0) - selling.ClientCost ?? 0,
-            TotalPrice = selling.ClientCost ?? 0,
-            Operator = selling.PersonKey != null 
-                ? selling.PersonKey.ToString()! 
-                : "Неизвестный оператор",
-            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
-        };
     }
 }

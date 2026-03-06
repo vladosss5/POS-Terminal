@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Data.Context;
 
 namespace Terminal.Android.Services.SunyardPrinter;
 
@@ -21,11 +21,6 @@ namespace Terminal.Android.Services.SunyardPrinter;
 /// </summary>
 public class SunyardPrintService : Java.Lang.Object, IPrintService
 {
-    /// <summary>
-    /// Фабрика "<inheritdoc cref="DataContext"/>"
-    /// </summary>
-    private readonly IDbContextFactory<DataContext> _dbFactory;
-    
     /// <summary>
     /// Логгер.
     /// </summary>
@@ -62,12 +57,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     /// Конструктор.
     /// </summary>
     public SunyardPrintService(
-        Context context, 
-        IDbContextFactory<DataContext> dbFactory, 
+        Context context,
         ILogger<SunyardPrintService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _dbFactory = dbFactory;
         _logger = logger;
     }
 
@@ -177,38 +170,45 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         }
 
         var tcs = new TaskCompletionSource<PrintResult>();
-
+        var cultureRu = new CultureInfo("ru-RU");
+        
         try
         {
-            _printer!.SetGray(5);
-            AddCenteredText(salesReceipt.Header);
-            _printer.FeedLine(1);
+            _printer!.SetGray(10);
             
-            await using var db = await _dbFactory.CreateDbContextAsync();
+            AddKeyValueText("Чек", salesReceipt.Number);
+            AddLineWidthText();
+            AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
 
-            _logger.LogInformation($"Поиск рессурса ID: {salesReceipt.Selling.ResourceCode}");
-            
-            var resourse = await db.ResourceCodes
-                .FirstOrDefaultAsync(x => x.FuelCodeKey == salesReceipt.Selling.ResourceCode);
-
-            if (resourse == null)
-                _logger.LogError($"Рессурс ID: {resourse.FuelCodeKey} найден");
-            
-            AddLeftText($"{resourse.ResourceName} x{salesReceipt.Selling.Amount}");
-            AddRightText($"{salesReceipt.Selling.BasePrice:C}");
-
-            AddCenteredText("-------------------");
-            AddRightText($"ИТОГО: {salesReceipt.Total:C}");
-
-            if (!string.IsNullOrEmpty(salesReceipt.Footer))
+            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
             {
-                _printer.FeedLine(1);
-                AddCenteredText(salesReceipt.Footer);
+                AddKeyValueText("Карта", salesReceipt.CardNumber!);
+                AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
+            }
+            
+            AddLineWidthText("Продажа");
+            AddKeyValueText(
+                salesReceipt.ResourceName, 
+                $"= {salesReceipt.Amount.ToString(cultureRu)}");
+            
+            AddKeyValueText(
+                salesReceipt.PricePerUnit.ToString(cultureRu), 
+                $"= {salesReceipt.SellingPrice.ToString(cultureRu)}");
+            
+            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString(cultureRu)}");
+            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString(cultureRu)}");
+
+            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
+            {
+                AddLineWidthText("Инфо по кошелькам");
             }
 
-            _printer.FeedLine(3);
-            if (salesReceipt.CutPaper)
-                _printer.CutPaper();
+            AddLineWidthText();
+            AddLeftText($"Оператор {salesReceipt.Operator}");
+            AddLineWidthText();
+
+            _printer.FeedLine(6);
+            _printer.CutPaper();
 
             _logger.LogInformation($"Чек составлен. Старт печати");
             _currentPrintListener = new SunyardPrintListener(tcs, _logger);
@@ -246,6 +246,35 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         bundle.PutInt("font", IPrintConstant.IFontSize.Normal);
         bundle.PutInt("align", IPrintConstant.IAlign.Center);
         _printer!.AddText(bundle, text);
+    }
+
+    /// <summary>
+    /// Добавить линию по ширине.
+    /// </summary>
+    /// <param name="text">Текст в середине линии.</param>
+    private void AddLineWidthText(string text = "")
+    {
+        var widthPage = 48;
+        var lengthInputText = text.Length;
+        var spacer = new string('-', (widthPage - lengthInputText) / 2);
+        var inputText = spacer + text + spacer;
+
+        AddCenteredText(inputText);
+    }
+
+    /// <summary>
+    /// Добавить строку с ключом слева и значением справа.
+    /// </summary>
+    /// <param name="key">Ключ.</param>
+    /// <param name="value">Значение.</param>
+    private void AddKeyValueText(string key, string value)
+    {
+        var chips = new List<PrinterChip>
+        {
+            new(key, 0.5f, IPrintConstant.IAlign.Left),
+            new(value, 0.5f, IPrintConstant.IAlign.Right)
+        };
+        _printer!.AddTextChips(chips);
     }
 
     /// <summary>

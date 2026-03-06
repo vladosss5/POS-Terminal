@@ -35,7 +35,7 @@
                 VerticalAlignment="Stretch">
             <Panel>
                 <!-- Тип оплаты -->
-                <ItemsControl ItemsSource="{Binding PaymentTypes}"
+                <ItemsControl ItemsSource="{Binding PaymentTypesCollection}"
                               IsVisible="{Binding Steps[0].IsActive}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

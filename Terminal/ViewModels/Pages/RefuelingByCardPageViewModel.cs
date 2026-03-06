@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -34,6 +34,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="ILogger"/>
     private readonly ILogger<RefuelingByCardPageViewModel> _logger;
+    
+    /// <inheritdoc cref="ISalesReceiptMappingService" />
+    private readonly ISalesReceiptMappingService _receiptMappingService;
     
     private readonly CultureInfo _russianCulture;
     
@@ -101,7 +104,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Св-во для хранения типов оплаты.
     /// </summary>
-    public IEnumerable<PaymentTypes> PaymentTypes => Enum.GetValues<PaymentTypes>();
+    public IEnumerable<PaymentTypes> PaymentTypesCollection => Enum.GetValues<PaymentTypes>();
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -154,13 +157,15 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
         ILogger<RefuelingByCardPageViewModel> logger, 
-        IPrintService printService) 
+        IPrintService printService, 
+        ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
         _printService = printService;
+        _receiptMappingService = receiptMappingService;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
@@ -180,8 +185,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="type">Тип оплаты.</param>
     public void SetPaymentType(PaymentTypes type)
     {
-        _builder.SetPaymentType(type);
-
         SelectedCardType = type;
         Steps[0].CompleteStepCommand.Execute(null);
     }
@@ -189,12 +192,12 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать тип топлива (товара).
     /// </summary>
-    /// <param name="type">Топливо.</param>
-    public void SetFuelType(ResourceCode type)
+    /// <param name="resource">Топливо.</param>
+    public void SetFuelType(ResourceCode resource)
     {
-        _builder.SetResourceCode(type.FuelCodeKey);
+        _builder.SetResourceCode(resource);
 
-        SelectedFuelType = type;
+        SelectedFuelType = resource;
         Steps[1].CompleteStepCommand.Execute(null);
     }
     
@@ -416,16 +419,16 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         return str;
     }
 
+    /// <summary>
+    /// Печать чека о продаже.
+    /// </summary>
+    /// <param name="selling">Продажа.</param>
     private async Task PrintReceiptAsync(Selling selling)
     {
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipt = new SalesReceipt
-        {
-            Selling = selling,
-            Total = selling.ParcelPrice is null ? 0 : (decimal)selling.ParcelPrice
-        };
+        var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
@@ -435,6 +438,11 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             _printService.Disconnect();
     }
 
+    /// <summary>
+    /// Вывести сообщение.
+    /// </summary>
+    /// <param name="title">Заголовок.</param>
+    /// <param name="text">Текст сообщения.</param>
     private async Task ShowMessage(string title, string text)
     {
         _logger.LogInformation($"{title}: {text}");

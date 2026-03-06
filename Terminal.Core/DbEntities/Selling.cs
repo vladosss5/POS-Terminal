@@ -56,22 +56,22 @@ public class Selling
     /// <summary>
     /// Кол-во проданного товара 
     /// </summary>
-    public int? Amount { get; set; } // TODO: Переделать на decimal
+    public decimal? Amount { get; set; }
 
     /// <summary>
     /// Итоговая стоимость покупки (с учётом скидок).
     /// </summary>
-    public int? ShopCost { get; set; } // TODO: Переделать на decimal
+    public decimal? ShopCost { get; set; }
 
     /// <summary>
     /// Базовая стоимость покупки (без скидок).
     /// </summary>
-    public int? ShopBaseCost { get; set; } // TODO: Переделать на decimal
-
+    public decimal? ShopBaseCost { get; set; } 
+    
     /// <summary>
     /// Цена продажи
     /// </summary>
-    public int? SellingPrice { get; set; }
+    public decimal? SellingPrice { get; set; }
 
     /// <summary>
     /// Ключ корзины
@@ -231,12 +231,12 @@ public class Selling
     /// <summary>
     /// Базовая цена
     /// </summary>
-    public int? BasePrice { get; set; }
+    public decimal? BasePrice { get; set; }
 
     /// <summary>
     /// Стоимость для клиента
     /// </summary>
-    public int? ClientCost { get; set; }
+    public decimal? ClientCost { get; set; }
 
     /// <summary>
     /// Флаги запроса
@@ -322,10 +322,4 @@ public class Selling
     /// Внешний код
     /// </summary>
     public string? ExternalCode { get; set; }
-    
-    /// <summary>
-    /// Тип оплаты.
-    /// </summary>
-    [NotMapped] 
-    public PaymentTypes PaymentType { get; set; }
 }

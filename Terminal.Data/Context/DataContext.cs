@@ -91,7 +91,7 @@ public partial class DataContext : DbContext
     public virtual DbSet<ResourceCode> ResourceCodes { get; set; }
 
     /// <inheritdoc cref="Selling"/>
-    public virtual DbSet<Selling> Sellings { get; set; }
+    public virtual DbSet<Selling> Sales { get; set; }
 
     /// <inheritdoc cref="SellingIgnore"/>
     public virtual DbSet<SellingIgnore> SellingIgnores { get; set; }

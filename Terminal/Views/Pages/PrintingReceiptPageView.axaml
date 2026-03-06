@@ -1,0 +1,94 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.PrintingReceiptPageView"
+             x:DataType="pages:PrintingReceiptPageViewModel"
+             x:Name="UserControl">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto, Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="Печать чека" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="80"
+                    Background="Transparent" CornerRadius="20">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <!-- Поиск -->
+        <TextBox Grid.Row="1" Text="{Binding Keyword}" Watermark="Поиск" 
+                 Background="WhiteSmoke" 
+                 BorderBrush="Gray" 
+                 SelectionBrush="Gray" 
+                 SelectionForegroundBrush="Gray"
+                 CornerRadius="15" 
+                 Margin="10,5,10,5">
+        </TextBox>
+        
+        
+        <!-- Список элементов -->
+        <Border Grid.Row="2"
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch">
+            <Grid RowDefinitions="*, Auto">
+                <ScrollViewer Grid.Row="0"
+                              Name="ItemsScrollViewer"
+                              ScrollChanged="OnScrollChanged">
+                    <ItemsControl ItemsSource="{Binding SalesPerShiftCollection}" Margin="10">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="1"
+                                             HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Top"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding #UserControl.((pages:PrintingReceiptPageViewModel)DataContext).PrintReceipt}"
+                                        CommandParameter="{Binding}" 
+                                        HorizontalAlignment="Stretch" 
+                                        CornerRadius="20"
+                                        Margin="0,5,0,0" Padding="10" 
+                                        Background="WhiteSmoke"
+                                        BorderBrush="DarkGray">
+                                    <Grid ColumnDefinitions="*, *" RowDefinitions="*, *, *" Background="Transparent">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TransactionShopKey}" 
+                                                   Classes="text-items-control" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SaleDate}" 
+                                                   Classes="text-items-control" HorizontalAlignment="Right"/>
+                            
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ResourceName}" 
+                                                   Classes="text-items-control" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PricePerItem}" 
+                                                   Classes="text-items-control" HorizontalAlignment="Right"/>
+                            
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Итого:" 
+                                                   Classes="text-items-control" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FullReceiptPrice}" 
+                                                   Classes="text-items-control" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

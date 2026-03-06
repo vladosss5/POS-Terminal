@@ -13,7 +13,7 @@ public partial class PageViewModelBase : ViewModelBase
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<PageViewModelBase> _logger;
+    protected readonly ILogger<PageViewModelBase> Logger;
     
     /// <inheritdoc cref="INavigationService"/>
     private INavigationService? _navigationService;
@@ -26,7 +26,7 @@ public partial class PageViewModelBase : ViewModelBase
         get
         {
             if (_navigationService == null)
-                _logger.LogError("NavigationService не инициализирован");
+                Logger.LogError("NavigationService не инициализирован");
                     
             return _navigationService;
         }
@@ -50,7 +50,7 @@ public partial class PageViewModelBase : ViewModelBase
     protected PageViewModelBase(
         ILogger<PageViewModelBase> logger)
     {
-        _logger = logger;
+        Logger = logger;
     }
 
     

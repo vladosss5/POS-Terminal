@@ -9,22 +9,16 @@ namespace Terminal.Application.Interfaces.Builders;
 public interface ISellingBuilder
 {
     /// <summary>
-    /// Задать тип оплаты.
-    /// </summary>
-    /// <param name="type">Тип оплаты.</param>
-    public ISellingBuilder SetPaymentType(PaymentTypes type);
-
-    /// <summary>
-    /// Задать код продаваемого ресурса.
+    /// Задать атрибутику о ресурсе.
     /// </summary>
     /// <param name="resourceCode">Id ресурса.</param>
-    public ISellingBuilder SetResourceCode(int resourceCode);
-    
+    public void SetResourceCode(ResourceCode resourceCode);
+
     /// <summary>
     /// Задать кол-во.
     /// </summary>
     /// <param name="amount">Кол-во единиц</param>
-    public ISellingBuilder SetAmount(decimal amount);
+    public void SetAmount(decimal amount);
 
     /// <summary>
     /// Собрать итоговый объект процесса заправки.

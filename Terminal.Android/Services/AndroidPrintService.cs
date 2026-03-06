@@ -13,7 +13,7 @@ namespace Terminal.Android.Services;
 /// НЕ ИСПОЛЬЗОВАТЬ!
 /// Сервис выступает заглушкой для работы приложения на Android платформах кроме устройств Sunyard.
 /// </remarks>
-public class AndroidPrintService : IPrintService
+public class AndroidPrintService : IReceiptPrintService
 {
     private readonly ILogger<AndroidPrintService> _logger;
 
@@ -23,48 +23,6 @@ public class AndroidPrintService : IPrintService
     public AndroidPrintService(ILogger<AndroidPrintService> logger)
     {
         _logger = logger;
-    }
-
-    /// <summary>
-    /// Возвращает true если принтер подключен.
-    /// </summary>
-    public bool IsConnected => false;
-
-    /// <summary>
-    /// Подключить принтер.
-    /// </summary>
-    /// <remarks>
-    /// Не реализовано.
-    /// </remarks>
-    /// <returns></returns>
-    public async Task<bool> ConnectAsync()
-    {
-        LogWarning();
-        return false;
-    }
-
-    /// <summary>
-    /// Отключить принтер.
-    /// </summary>
-    /// <remarks>
-    /// Не реализовано.
-    /// </remarks>
-    public void Disconnect()
-    {
-        LogWarning();
-    }
-
-    /// <summary>
-    /// Получить статус принтера.
-    /// </summary>
-    /// <remarks>
-    /// Не реализовано.
-    /// </remarks>
-    /// <returns></returns>
-    public async Task<PrinterStatus> GetStatusAsync()
-    {
-        LogWarning();
-        return PrinterStatus.Unknown;
     }
 
     /// <summary>

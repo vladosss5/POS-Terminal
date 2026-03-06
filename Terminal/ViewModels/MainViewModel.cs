@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Terminal.ViewModels.NavigationService;
-using Terminal.ViewModels.Pages;
+using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;
 

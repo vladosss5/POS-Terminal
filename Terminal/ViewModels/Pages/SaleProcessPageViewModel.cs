@@ -26,8 +26,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
-    /// <inheritdoc cref="IPrintService"/>
-    private readonly IPrintService _printService;
+    /// <inheritdoc cref="IReceiptPrintService"/>
+    private readonly IReceiptPrintService _receiptPrintService;
     
     /// <inheritdoc cref="ISellingBuilder"/>
     private readonly ISellingBuilder _builder;
@@ -157,14 +157,14 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
         ILogger<SaleProcessPageViewModel> logger, 
-        IPrintService printService, 
+        IReceiptPrintService receiptPrintService, 
         ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
-        _printService = printService;
+        _receiptPrintService = receiptPrintService;
         _receiptMappingService = receiptMappingService;
         _russianCulture = new CultureInfo("ru-RU");
 
@@ -425,17 +425,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <param name="selling">Продажа.</param>
     private async Task PrintReceiptAsync(Selling selling)
     {
-        if (!_printService.IsConnected)
-            await _printService.ConnectAsync();
-        
         var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
-        var printResult = await _printService.PrintSalesReceiptAsync(receipt);
+        var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
-        
-        if (_printService.IsConnected)
-            _printService.Disconnect();
     }
 
     /// <summary>

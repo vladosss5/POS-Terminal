@@ -25,8 +25,8 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
-    /// <inheritdoc cref="IPrintService" />
-    private readonly IPrintService _printService;
+    /// <inheritdoc cref="IReceiptPrintService" />
+    private readonly IReceiptPrintService _printService;
 
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
@@ -80,7 +80,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     public PrintingReceiptPageViewModel(
         ILogger<PageViewModelBase> logger, 
         IDbContextFactory<DataContext> dbFactory, 
-        IPrintService printService, 
+        IReceiptPrintService printService, 
         ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
@@ -99,11 +99,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         
-        if (!_printService.IsConnected)
-            await _printService.ConnectAsync();
-
         var selling = await db.Sales.FirstOrDefaultAsync(x => x.TransactionShopKey == receiptDto.TransactionShopKey);
-        
         if (selling == null)
         {
             Logger.LogError("Продажа не найдена!");
@@ -111,13 +107,9 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         }
         
         var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
-        
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
         Logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
-        
-        if (_printService.IsConnected)
-            _printService.Disconnect();
     }
     
     /// <summary>

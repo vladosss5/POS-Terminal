@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Data.Context;
+using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
-using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
 using Terminal.Views;
 

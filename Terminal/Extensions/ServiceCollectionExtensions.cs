@@ -11,8 +11,8 @@ using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
 using Terminal.Data.Context;
+using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
-using Terminal.ViewModels.NavigationService;
 using Terminal.ViewModels.Pages;
 using Terminal.Views.Pages;
 
@@ -50,7 +50,6 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
-        collection.AddSingleton<IPrintService, PrintServiceCommon>();
     }
     
     /// <summary>

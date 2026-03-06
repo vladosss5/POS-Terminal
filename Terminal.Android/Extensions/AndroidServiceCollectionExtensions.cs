@@ -12,18 +12,25 @@ namespace Terminal.Android.Extensions;
 /// </summary>
 public static class AndroidServiceCollectionExtensions
 {
-    /// <summary>
-    /// Регистрация сервисов для Android.
-    /// </summary>
-    public static void AddAndroidServices(this IServiceCollection collection)
+    /// <param name="collection"></param>
+    extension(IServiceCollection collection)
     {
-        collection.AddSingleton(global::Android.App.Application.Context);
-        collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
-        collection.AddTransient<IPrintService, AndroidPrintService>();
-    }
+        /// <summary>
+        /// Регистрация сервисов для Android.
+        /// </summary>
+        public void AddAndroidServices()
+        {
+            collection.AddSingleton(global::Android.App.Application.Context);
+            collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
+            collection.AddTransient<IReceiptPrintService, AndroidPrintService>();
+        }
 
-    public static void AddServicesForSunyard(this IServiceCollection collection)
-    {
-        collection.AddTransient<IPrintService, SunyardPrintService>();
+        /// <summary>
+        /// Регистрация сервисов для терминалов Sunyard (alps)
+        /// </summary>
+        public void AddServicesForSunyard()
+        {
+            collection.AddTransient<IReceiptPrintService, SunyardPrintService>();
+        }
     }
 }

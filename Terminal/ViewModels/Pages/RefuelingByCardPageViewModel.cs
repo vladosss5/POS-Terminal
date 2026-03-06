@@ -400,8 +400,8 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            _logger.LogInformation($"Ошибка: {ex.Message}, {ex.StackTrace}" );
-            await ShowMessage("Ошибка!", $"{ex.Message}, {ex.StackTrace}");
+            _logger.LogError($"Ошибка: {ex.Message},\n {ex.InnerException}, \n {ex.StackTrace}" );
+            await ShowMessage("Ошибка!", $"{ex.Message}, {ex.InnerException}");
         }
     }
     

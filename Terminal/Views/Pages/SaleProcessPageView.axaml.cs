@@ -6,21 +6,21 @@ using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
 
-public partial class RefuelingByCardPageView : UserControl
+public partial class SaleProcessPageView : UserControl
 {
-    public RefuelingByCardPageView()
+    public SaleProcessPageView()
     {
         InitializeComponent();
     }
 
     public void SetPaymentTypeCommand(PaymentTypes type)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.SetPaymentType(type);
+        (DataContext as SaleProcessPageViewModel)!.SetPaymentType(type);
     }
 
     public void SetFuelTypesCommand(ResourceCode type)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.SetFuelType(type);
+        (DataContext as SaleProcessPageViewModel)!.SetFuelType(type);
     }
     
     /// <summary>
@@ -33,7 +33,7 @@ public partial class RefuelingByCardPageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as RefuelingByCardPageViewModel)!.AmountPreviewSetZero();
+                (DataContext as SaleProcessPageViewModel)!.AmountPreviewSetZero();
                 break;
         }
     }
@@ -45,6 +45,6 @@ public partial class RefuelingByCardPageView : UserControl
     /// <param name="e"></param>
     private void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.DeleteLastCharFromPreview();
+        (DataContext as SaleProcessPageViewModel)!.DeleteLastCharFromPreview();
     }
 }

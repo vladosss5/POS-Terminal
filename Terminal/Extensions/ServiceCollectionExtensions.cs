@@ -35,8 +35,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<MainMenuPageView>();
         collection.AddSingleton<MainMenuPageViewModel>();
 
-        collection.AddTransient<RefuelingByCardPageViewModel>();
-        collection.AddTransient<RefuelingByCardPageView>();
+        collection.AddTransient<SaleProcessPageViewModel>();
+        collection.AddTransient<SaleProcessPageView>();
 
         collection.AddTransient<PrintingReceiptPageViewModel>();
         collection.AddTransient<PrintingReceiptPageView>();

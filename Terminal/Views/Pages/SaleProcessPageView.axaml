@@ -5,8 +5,8 @@
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
              xmlns:converters="clr-namespace:Terminal.Converters"
              mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="800"
-             x:Class="Terminal.Views.Pages.RefuelingByCardPageView"
-             x:DataType="pages:RefuelingByCardPageViewModel"
+             x:Class="Terminal.Views.Pages.SaleProcessPageView"
+             x:DataType="pages:SaleProcessPageViewModel"
              x:Name="UserControl">
     
     <UserControl.Resources>
@@ -123,7 +123,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Classes="number-button"
-                                            Command="{Binding #UserControl.((pages:RefuelingByCardPageViewModel)DataContext).AddCharInAmountPreview}"
+                                            Command="{Binding #UserControl.((pages:SaleProcessPageViewModel)DataContext).AddCharInAmountPreview}"
                                             CommandParameter="{Binding }">
                                         <TextBlock Text="{Binding}" Classes="text-button"/>
                                     </Button>

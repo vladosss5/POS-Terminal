@@ -76,7 +76,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Title = "Заправка", 
                 Command = new RelayCommand(delegate
                 {
-                    Navigation.NavigateTo<RefuelingByCardPageViewModel>();
+                    Navigation.NavigateTo<SaleProcessPageViewModel>();
                 })
             },
             new MainMenuItemModel

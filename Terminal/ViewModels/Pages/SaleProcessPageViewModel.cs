@@ -21,7 +21,7 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Страница процесса заправки по карте.
 /// </summary>
-public partial class RefuelingByCardPageViewModel : PageViewModelBase
+public partial class SaleProcessPageViewModel : PageViewModelBase
 {
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -33,7 +33,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     private readonly ISellingBuilder _builder;
     
     /// <inheritdoc cref="ILogger"/>
-    private readonly ILogger<RefuelingByCardPageViewModel> _logger;
+    private readonly ILogger<SaleProcessPageViewModel> _logger;
     
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
@@ -153,10 +153,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public RefuelingByCardPageViewModel(
+    public SaleProcessPageViewModel(
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
-        ILogger<RefuelingByCardPageViewModel> logger, 
+        ILogger<SaleProcessPageViewModel> logger, 
         IPrintService printService, 
         ISalesReceiptMappingService receiptMappingService) 
         : base(logger)

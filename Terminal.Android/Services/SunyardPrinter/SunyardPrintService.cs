@@ -1,16 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Data.Context;
 
 namespace Terminal.Android.Services.SunyardPrinter;
 
@@ -22,11 +21,6 @@ namespace Terminal.Android.Services.SunyardPrinter;
 /// </summary>
 public class SunyardPrintService : Java.Lang.Object, IPrintService
 {
-    /// <summary>
-    /// Фабрика "<inheritdoc cref="DataContext"/>"
-    /// </summary>
-    private readonly IDbContextFactory<DataContext> _dbFactory;
-    
     /// <summary>
     /// Логгер.
     /// </summary>
@@ -63,12 +57,10 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     /// Конструктор.
     /// </summary>
     public SunyardPrintService(
-        Context context, 
-        IDbContextFactory<DataContext> dbFactory, 
+        Context context,
         ILogger<SunyardPrintService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _dbFactory = dbFactory;
         _logger = logger;
     }
 
@@ -185,7 +177,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
             _printer!.SetGray(10);
             
             AddKeyValueText("Чек", salesReceipt.Number);
-            AddCenteredText("----------------------------------------");
+            AddLineWidthText();
             AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
 
             if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
@@ -194,7 +186,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
                 AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
             }
             
-            AddCenteredText("----------------Продажа----------------");
+            AddLineWidthText("Продажа");
             AddKeyValueText(
                 salesReceipt.ResourceName, 
                 $"= {salesReceipt.Amount.ToString(cultureRu)}");
@@ -208,12 +200,12 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
 
             if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
             {
-                AddCenteredText("-----------Инфо по кошелькам-----------");
+                AddLineWidthText("Инфо по кошелькам");
             }
 
-            AddCenteredText("----------------------------------------");
+            AddLineWidthText();
             AddLeftText($"Оператор {salesReceipt.Operator}");
-            AddCenteredText("----------------------------------------");
+            AddLineWidthText();
 
             _printer.FeedLine(6);
             _printer.CutPaper();
@@ -256,36 +248,33 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _printer!.AddText(bundle, text);
     }
 
+    /// <summary>
+    /// Добавить линию по ширине.
+    /// </summary>
+    /// <param name="text">Текст в середине линии.</param>
+    private void AddLineWidthText(string text = "")
+    {
+        var widthPage = 48;
+        var lengthInputText = text.Length;
+        var spacer = new string('-', (widthPage - lengthInputText) / 2);
+        var inputText = spacer + text + spacer;
+
+        AddCenteredText(inputText);
+    }
+
+    /// <summary>
+    /// Добавить строку с ключом слева и значением справа.
+    /// </summary>
+    /// <param name="key">Ключ.</param>
+    /// <param name="value">Значение.</param>
     private void AddKeyValueText(string key, string value)
     {
-        // Определяем оптимальную ширину для вашего принтера
-        const int totalWidth = 32; // Обычно термопринтеры имеют 32-42 символа
-        const int minSpaces = 2;   // Минимальное количество пробелов между колонками
-    
-        // Рассчитываем доступное место для ключа и значения
-        int keyMaxLength = (totalWidth - minSpaces) / 2;
-        int valueMaxLength = totalWidth - keyMaxLength - minSpaces;
-    
-        // Обрабатываем ключ (обрезаем при необходимости)
-        string displayKey = key.Length > keyMaxLength
-            ? key.Substring(0, keyMaxLength - 3) + "..."
-            : key;
-    
-        // Обрабатываем значение
-        string displayValue = value.Length > valueMaxLength
-            ? value.Substring(0, valueMaxLength - 3) + "..."
-            : value;
-    
-        // Рассчитываем количество пробелов
-        int spacesNeeded = totalWidth - displayKey.Length - displayValue.Length;
-        if (spacesNeeded < 1) spacesNeeded = 1;
-    
-        string line = displayKey + new string(' ', spacesNeeded) + displayValue;
-    
-        var bundle = new Bundle();
-        bundle.PutInt("font", IPrintConstant.IFontSize.Normal);
-        bundle.PutInt("align", IPrintConstant.IAlign.Left);
-        _printer!.AddText(bundle, line);
+        var chips = new List<PrinterChip>
+        {
+            new(key, 0.5f, IPrintConstant.IAlign.Left),
+            new(value, 0.5f, IPrintConstant.IAlign.Right)
+        };
+        _printer!.AddTextChips(chips);
     }
 
     /// <summary>

@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -35,6 +35,9 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ILogger"/>
     private readonly ILogger<RefuelingByCardPageViewModel> _logger;
     
+    /// <inheritdoc cref="ISalesReceiptMappingService" />
+    private readonly ISalesReceiptMappingService _receiptMappingService;
+    
     private readonly CultureInfo _russianCulture;
     
     /// <summary>
@@ -50,11 +53,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         "Указывается кол-во в ₽",
         "Указывается кол-во в литрах"
     };
-
-    /// <summary>
-    /// Выбранный тип оплаты.
-    /// </summary>
-    private PaymentTypes _selectedPaymentType;
     
     /// <summary>
     /// Коллекция шагов заправки.
@@ -159,13 +157,15 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
         ILogger<RefuelingByCardPageViewModel> logger, 
-        IPrintService printService) 
+        IPrintService printService, 
+        ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
         _printService = printService;
+        _receiptMappingService = receiptMappingService;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
@@ -185,8 +185,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="type">Тип оплаты.</param>
     public void SetPaymentType(PaymentTypes type)
     {
-        _selectedPaymentType = type;
-
         SelectedCardType = type;
         Steps[0].CompleteStepCommand.Execute(null);
     }
@@ -421,12 +419,16 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         return str;
     }
 
+    /// <summary>
+    /// Печать чека о продаже.
+    /// </summary>
+    /// <param name="selling">Продажа.</param>
     private async Task PrintReceiptAsync(Selling selling)
     {
         if (!_printService.IsConnected)
             await _printService.ConnectAsync();
         
-        var receipt = MapSellingToSalesReceipt(selling);
+        var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
         var printResult = await _printService.PrintSalesReceiptAsync(receipt);
         
@@ -436,6 +438,11 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             _printService.Disconnect();
     }
 
+    /// <summary>
+    /// Вывести сообщение.
+    /// </summary>
+    /// <param name="title">Заголовок.</param>
+    /// <param name="text">Текст сообщения.</param>
     private async Task ShowMessage(string title, string text)
     {
         _logger.LogInformation($"{title}: {text}");
@@ -443,32 +450,5 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
         await MessageBoxManager
             .GetMessageBoxStandard(title, text)
             .ShowAsync();
-    }
-    
-    private SalesReceipt MapSellingToSalesReceipt(Selling selling)
-    {
-        return new SalesReceipt
-        {
-            Number = selling.CheckNumber != null 
-                ? selling.CheckNumber.ToString()! 
-                : "Номер не определён",
-            TerminalNumber = selling.TerminalKey != null 
-                ? selling.TerminalKey.ToString()! 
-                : "Неизвестный номер",
-            CardNumber = selling.IssuerCardId != null 
-                ? selling.IssuerCardId.Value.ToString() 
-                : "0",
-            TransactionDateTime = selling.TransactionDatetime ?? DateTime.MinValue,
-            ResourceName = selling.ResourceName ?? "Неизвестный ресурс",
-            Amount = selling.Amount ?? 0,
-            PricePerUnit = selling.BasePrice ?? 0,
-            SellingPrice = selling.BasePrice ?? 0 * selling.Amount ?? 0,
-            Discount = (selling.BasePrice ?? 0 * selling.Amount ?? 0) - selling.ClientCost ?? 0,
-            TotalPrice = selling.ClientCost ?? 0,
-            Operator = selling.PersonKey != null 
-                ? selling.PersonKey.ToString()! 
-                : "Неизвестный оператор",
-            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
-        };
     }
 }

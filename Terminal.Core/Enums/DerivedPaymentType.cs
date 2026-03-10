@@ -31,7 +31,7 @@ public enum DerivedPaymentType
     BankCard = 5,
     
     /// <summary>
-    /// При BasePaymentType == Cash + дисконтная/бонусная карта.
+    /// При BaseType == Cash + дисконтная/бонусная карта.
     /// </summary>
     Discount = 8
 }

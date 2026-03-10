@@ -88,7 +88,8 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddLineWidthText();
             AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
 
-            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
+            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
+                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
             {
                 AddKeyValueText("Карта", salesReceipt.CardNumber!);
                 AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
@@ -106,7 +107,8 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString(cultureRu)}");
             AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString(cultureRu)}");
 
-            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
+            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
+                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
             {
                 AddLineWidthText("Инфо по кошелькам");
             }

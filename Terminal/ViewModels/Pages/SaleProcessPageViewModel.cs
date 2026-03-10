@@ -70,11 +70,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     [ObservableProperty] private bool _isProcessStarted;
     
     /// <summary>
-    /// Типы оплаты.
-    /// </summary>
-    [ObservableProperty] private PaymentTypes? _selectedCardType;
-    
-    /// <summary>
     /// Выбранный тип топлива (товар).
     /// </summary>
     [ObservableProperty] private ResourceCode? _selectedFuelType;
@@ -99,12 +94,18 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
     [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
-    
-    
+
     /// <summary>
-    /// Св-во для хранения типов оплаты.
+    /// Типы оплаты.
     /// </summary>
-    public IEnumerable<PaymentTypes> PaymentTypesCollection => Enum.GetValues<PaymentTypes>();
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; private set; } = new()
+    {
+        { "Наличные", (BasePaymentType.Cash, DerivedPaymentType.Cash) },
+        { "Топливная", (BasePaymentType.NonCash, DerivedPaymentType.FuelCard) },
+        { "Ведомость", (BasePaymentType.NonCash, DerivedPaymentType.FuelStatement) },
+        { "Талоны", (BasePaymentType.NonCash, DerivedPaymentType.FuelTalon) },
+        { "Банковская карта", (BasePaymentType.NonCash, DerivedPaymentType.BankCard) }
+    };
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -182,10 +183,13 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать тип оплаты.
     /// </summary>
-    /// <param name="type">Тип оплаты.</param>
-    public void SetPaymentType(PaymentTypes type)
+    /// <param name="typeKey">Тип оплаты.</param>
+    public void SetPaymentType(string typeKey)
     {
-        SelectedCardType = type;
+        if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
+            return;
+        
+        _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
         Steps[0].CompleteStepCommand.Execute(null);
     }
 

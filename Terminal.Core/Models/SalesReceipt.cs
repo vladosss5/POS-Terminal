@@ -62,9 +62,14 @@ public class SalesReceipt
     /// Оператор.
     /// </summary>
     public string? Operator { get; set; }
+
+    /// <summary>
+    /// Базовый тип оплаты.
+    /// </summary>
+    public BasePaymentType BaseType { get; set; }
     
     /// <summary>
-    /// Тип оплаты.
+    /// Дополнительный тип оплаты.
     /// </summary>
-    public PaymentTypes PaymentTypes { get; set; }
+    public DerivedPaymentType DerivedType { get; set; }
 }

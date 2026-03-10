@@ -718,7 +718,7 @@ namespace Terminal.Data.Migrations
                     b.Property<int>("VendorKey")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BasePaymentType")
+                    b.Property<int?>("BaseType")
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal?>("CompleteVolume")
@@ -828,7 +828,7 @@ namespace Terminal.Data.Migrations
                     b.Property<int?>("BasePrice")
                         .HasColumnType("NUMERIC( 10, 3 )");
 
-                    b.Property<int?>("BasePaymentType")
+                    b.Property<int?>("BaseType")
                         .HasColumnType("INTEGER( 1 )");
 
                     b.Property<decimal?>("BeginTemperature")
@@ -1006,7 +1006,7 @@ namespace Terminal.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BasePaymentType")
+                    b.Property<int?>("BaseType")
                         .HasColumnType("INTEGER (1)");
 
                     b.Property<int?>("CollectionKey")
@@ -1099,7 +1099,7 @@ namespace Terminal.Data.Migrations
                     b.Property<decimal?>("BasePrice")
                         .HasColumnType("NUMERIC( 10, 3 )");
 
-                    b.Property<int?>("BasePaymentType")
+                    b.Property<int?>("BaseType")
                         .HasColumnType("INTEGER( 1 )");
 
                     b.Property<decimal?>("BeginTemperature")

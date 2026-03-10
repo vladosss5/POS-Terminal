@@ -1,5 +1,6 @@
 ﻿using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
+using Terminal.Core.Enums;
 
 namespace Terminal.Application.Implementations.Builders;
 
@@ -8,6 +9,12 @@ public class SellingBuilder : ISellingBuilder
 {
     /// <inheritdoc cref="Selling" />
     private readonly Selling _selling = new();
+
+    public void SetPaymentTypes(BasePaymentType baseType, DerivedPaymentType derivedType)
+    {
+        _selling.BaseType = baseType;
+        _selling.DerivedType = derivedType;
+    }
 
     /// <inheritdoc/>
     public void SetResourceCode(ResourceCode resourceCode)

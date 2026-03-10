@@ -13,9 +13,9 @@ public partial class SaleProcessPageView : UserControl
         InitializeComponent();
     }
 
-    public void SetPaymentTypeCommand(PaymentTypes type)
+    public void SetPaymentTypeCommand(string typeKey)
     {
-        (DataContext as SaleProcessPageViewModel)!.SetPaymentType(type);
+        (DataContext as SaleProcessPageViewModel)!.SetPaymentType(typeKey);
     }
 
     public void SetFuelTypesCommand(ResourceCode type)

@@ -32,7 +32,8 @@ public class SalesReceiptMappingService : ISalesReceiptMappingService
             Operator = selling.PersonKey != null 
                 ? selling.PersonKey.ToString()! 
                 : "Неизвестный оператор",
-            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
+            BaseType = selling.BaseType,
+            DerivedType = selling.DerivedType
         };
     }
 }

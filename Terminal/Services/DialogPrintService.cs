@@ -70,8 +70,8 @@ public class DialogPrintService : IReceiptPrintService
         AppendLineWidth(ref sb);
         AppendKeyValueLine(ref sb, "Терминал:", receipt.TerminalNumber);
         AppendKeyValueLine(ref sb, "Дата:", receipt.TransactionDateTime.ToString(culture));
-        
-        if (receipt.PaymentTypes == PaymentTypes.FuelCard)
+
+        if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
         {
             AppendKeyValueLine(ref sb, "Карта", receipt.CardNumber!);
             AppendKeyValueLine(ref sb, "Карта сокр", receipt.CardNumber!);
@@ -83,7 +83,7 @@ public class DialogPrintService : IReceiptPrintService
         AppendKeyValueLine(ref sb, "Скидка", $"= {receipt.Discount.ToString(culture)}");
         AppendKeyValueLine(ref sb, "Итого", $"= {receipt.TotalPrice.ToString(culture)}");
         
-        if (receipt.PaymentTypes == PaymentTypes.FuelCard)
+        if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
         {
             AppendLineWidth(ref sb, "Инфо по кошелькам");
         }

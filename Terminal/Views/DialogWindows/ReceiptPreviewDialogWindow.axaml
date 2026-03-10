@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dialogWindows="clr-namespace:Terminal.ViewModels.DialogWindows"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
         x:Class="Terminal.Views.DialogWindows.ReceiptPreviewDialogWindow"
         x:DataType="dialogWindows:ReceiptPreviewDialogViewModel"
         Title="Предпросмотр чека" Width="400" Height="600" 

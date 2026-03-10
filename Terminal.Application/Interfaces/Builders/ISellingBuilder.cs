@@ -9,6 +9,13 @@ namespace Terminal.Application.Interfaces.Builders;
 public interface ISellingBuilder
 {
     /// <summary>
+    /// Задать базовый и дополнительный типы оплаты.
+    /// </summary>
+    /// <param name="baseType">Базовый.</param>
+    /// <param name="derivedType">Дополнительный.</param>
+    public void SetPaymentTypes(BasePaymentType baseType, DerivedPaymentType derivedType);
+        
+    /// <summary>
     /// Задать атрибутику о ресурсе.
     /// </summary>
     /// <param name="resourceCode">Id ресурса.</param>

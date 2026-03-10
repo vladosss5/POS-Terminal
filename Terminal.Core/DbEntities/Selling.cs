@@ -46,12 +46,12 @@ public class Selling
     /// <summary>
     /// Базовый тип оплаты.
     /// </summary>
-    public BasePaymentType BaseType { get; set; }
+    public BasePaymentType? BaseType { get; set; }
 
     /// <summary>
     /// Производный тип оплаты.
     /// </summary>
-    public DerivedPaymentType DerivedType { get; set; }
+    public DerivedPaymentType? DerivedType { get; set; }
 
     /// <summary>
     /// Кол-во проданного товара.
@@ -151,17 +151,17 @@ public class Selling
     /// <summary>
     /// Лимит приложения.
     /// </summary>
-    public float AppLimit { get; set; }
+    public float? AppLimit { get; set; }
 
     /// <summary>
     /// Значение приложения.
     /// </summary>
-    public float AppValue { get; set; }
+    public float? AppValue { get; set; }
 
     /// <summary>
     /// Второй лимит приложения.
     /// </summary>
-    public float AppSecondLimit { get; set; }
+    public float? AppSecondLimit { get; set; }
 
     /// <summary>
     /// Второе значение приложения.
@@ -196,22 +196,22 @@ public class Selling
     /// <summary>
     /// Бонусы начисленные.
     /// </summary>
-    public decimal BonusIn { get; set; }
+    public decimal? BonusIn { get; set; }
 
     /// <summary>
     /// Бонусы списанные.
     /// </summary>
-    public decimal BonusOut { get; set; }
+    public decimal? BonusOut { get; set; }
 
     /// <summary>
     /// Стоимость начисленных бонусов.
     /// </summary>
-    public decimal BonusInCost { get; set; }
+    public decimal? BonusInCost { get; set; }
 
     /// <summary>
     /// Стоимость списанных бонусов.
     /// </summary>
-    public decimal BonusOutCost { get; set; }
+    public decimal? BonusOutCost { get; set; }
 
     /// <summary>
     /// Признак отчёта по счёту.
@@ -246,7 +246,7 @@ public class Selling
     /// <summary>
     /// Тип отложенного бонуса.
     /// </summary>
-    public DelayedBonusType DelayedBonusType { get; set; }
+    public DelayedBonusType? DelayedBonusType { get; set; }
 
     /// <summary>
     /// Цена посылки.
@@ -316,7 +316,7 @@ public class Selling
     /// <summary>
     /// Тип карты.
     /// </summary>
-    public DiscountApplicationTypeEnum CardType { get; set; }
+    public DiscountApplicationTypeEnum? CardType { get; set; }
 
     /// <summary>
     /// Внешний код.

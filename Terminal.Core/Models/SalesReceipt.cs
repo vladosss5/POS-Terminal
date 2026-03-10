@@ -71,5 +71,5 @@ public class SalesReceipt
     /// <summary>
     /// Дополнительный тип оплаты.
     /// </summary>
-    public DerivedPaymentType DerivedType { get; set; }
+    public DerivedPaymentType? DerivedType { get; set; }
 }

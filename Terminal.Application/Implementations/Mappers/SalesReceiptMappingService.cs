@@ -32,7 +32,7 @@ public class SalesReceiptMappingService : ISalesReceiptMappingService
             Operator = selling.PersonKey != null 
                 ? selling.PersonKey.ToString()! 
                 : "Неизвестный оператор",
-            BaseType = selling.BaseType,
+            BaseType = selling.BaseType ?? BasePaymentType.Undefined,
             DerivedType = selling.DerivedType
         };
     }

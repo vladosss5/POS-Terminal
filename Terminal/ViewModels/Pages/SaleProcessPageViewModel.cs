@@ -98,7 +98,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Типы оплаты.
     /// </summary>
-    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; private set; } = new()
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; } = new()
     {
         { "Наличные", (BasePaymentType.Cash, DerivedPaymentType.Cash) },
         { "Топливная", (BasePaymentType.NonCash, DerivedPaymentType.FuelCard) },
@@ -110,13 +110,13 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Коллекция цифровых кнопок. 
     /// </summary>
-    public ObservableCollection<string> KeypadButtons { get; } = new()
-    { 
-        "7",  "8", "9" , 
-        "4",  "5", "6" , 
-        "1",  "2", "3" , 
+    public ObservableCollection<string> KeypadButtons { get; } =
+    [
+        "7", "8", "9",
+        "4", "5", "6",
+        "1", "2", "3",
         "00", "0", ","
-    };
+    ];
     
     /// <summary>
     /// Предпросмотр кол-ва денег.
@@ -299,7 +299,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Сбросить значение превьювера на 0.
+    /// Сбросить значения предпросмотров на 0.
     /// </summary>
     public void AmountPreviewSetZero()
     {
@@ -396,11 +396,18 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         try
         {
-            var selling = _builder.Build();
-            
             await using var db = await _dbFactory.CreateDbContextAsync();
 
+            var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
+            var currentNumber = chekNumberSetting.Value.Value + 1;
+            
+            _builder.SetCheckNumber(currentNumber);
+            var selling = _builder.Build();
             await db.AddAsync(selling);
+
+            chekNumberSetting.Value = currentNumber;
+            db.Update(chekNumberSetting);
+            
             await db.SaveChangesAsync();
 
             await PrintReceiptAsync(selling);

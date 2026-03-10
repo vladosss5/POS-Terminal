@@ -28,6 +28,12 @@ public interface ISellingBuilder
     public void SetAmount(decimal amount);
 
     /// <summary>
+    /// Задать номер чека.
+    /// </summary>
+    /// <param name="number"></param>
+    public void SetCheckNumber(int number);
+
+    /// <summary>
     /// Собрать итоговый объект процесса заправки.
     /// </summary>
     /// <returns>Модель процесса заправки.</returns>

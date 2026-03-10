@@ -30,12 +30,19 @@ public class SellingBuilder : ISellingBuilder
     {
         _selling.Amount = (int)amount;
     }
+    
+    /// <inheritdoc/>
+    public void SetCheckNumber(int number)
+    {
+        _selling.CheckNumber = number;
+    }
 
     /// <inheritdoc/>
     public Selling Build()
     {
         _selling.TransactionDatetime = DateTime.Now;
         _selling.ShopCost = _selling.SellingPrice * _selling.Amount; //TODO: тут расчёт скидок.
+        
         return _selling;
     }
 }

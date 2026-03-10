@@ -44,17 +44,17 @@ public class Selling
     public long? ElectronicNumber { get; set; }
 
     /// <summary>
-    /// Базовый тип оплаты TODO:Прикрутить enum
+    /// Базовый тип оплаты.
     /// </summary>
-    public int? BaseType { get; set; }
+    public BasePaymentType BaseType { get; set; }
 
     /// <summary>
-    /// Производный тип оплаты TODO:Прикрутить enum
+    /// Производный тип оплаты.
     /// </summary>
-    public int? DerivedType { get; set; }
+    public DerivedPaymentType DerivedType { get; set; }
 
     /// <summary>
-    /// Кол-во проданного товара 
+    /// Кол-во проданного товара.
     /// </summary>
     public decimal? Amount { get; set; }
 
@@ -69,257 +69,257 @@ public class Selling
     public decimal? ShopBaseCost { get; set; } 
     
     /// <summary>
-    /// Цена продажи
+    /// Цена продажи.
     /// </summary>
     public decimal? SellingPrice { get; set; }
 
     /// <summary>
-    /// Ключ корзины
+    /// Ключ корзины.
     /// </summary>
     public int? ShoppingCartKey { get; set; }
 
     /// <summary>
-    /// Ключ ресурса (FK)
+    /// Ключ ресурса (FK).
     /// </summary>
     public int? ResourceKey { get; set; }
 
     /// <summary>
-    /// Ключ коллекции
+    /// Ключ коллекции.
     /// </summary>
-    public int? CollectionKey { get; set; } // TODO: Переделать на enum
+    public int? CollectionKey { get; set; }
 
     /// <summary>
-    /// Код ресурса (ссылка на ResourceCode.FuelCodeKey)
+    /// Код ресурса (ссылка на ResourceCode.FuelCodeKey).
     /// </summary>
     public int? ResourceCode { get; set; }
 
     /// <summary>
-    /// Ключ ресурса по магазину
+    /// Ключ ресурса по магазину.
     /// </summary>
     public int? ResourceShopKey { get; set; }
 
     /// <summary>
-    /// Наименование ресурса
+    /// Наименование ресурса.
     /// </summary>
     public string? ResourceName { get; set; }
 
     /// <summary>
-    /// ID терминала эмитента
+    /// ID терминала эмитента.
     /// </summary>
     public int? IssuerTerminalId { get; set; }
 
     /// <summary>
-    /// ID карты эмитента
+    /// ID карты эмитента.
     /// </summary>
     public int? IssuerCardId { get; set; }
 
     /// <summary>
-    /// Ключ организации
+    /// Ключ организации.
     /// </summary>
     public int? OrganisationKey { get; set; }
 
     /// <summary>
-    /// Ключ персоны
+    /// Ключ персоны.
     /// </summary>
     public int? PersonKey { get; set; }
 
     /// <summary>
-    /// ID приложения
+    /// ID приложения.
     /// </summary>
     public int? ApplicationId { get; set; }
 
     /// <summary>
-    /// Количество транзакций (всегда 1 кроме талонов и ТК)
+    /// Количество транзакций (всегда 1 кроме талонов и ТК).
     /// </summary>
     public int? TransactionCount { get; set; }
 
     /// <summary>
-    /// Подпись не используется
+    /// Подпись не используется.
     /// </summary>
     public string? Sign { get; set; }
 
     /// <summary>
-    /// Статус приложения
+    /// Статус приложения.
     /// </summary>
-    public int? AppStatus { get; set; } // TODO: Переделать на enum
+    public int? AppStatus { get; set; }
 
     /// <summary>
-    /// Режим приложения
+    /// Режим приложения.
     /// </summary>
-    public int? AppMode { get; set; } // TODO: Переделать на enum
+    public int? AppMode { get; set; }
 
     /// <summary>
-    /// Лимит приложения
+    /// Лимит приложения.
     /// </summary>
-    public int? AppLimit { get; set; }
+    public float AppLimit { get; set; }
 
     /// <summary>
-    /// Значение приложения
+    /// Значение приложения.
     /// </summary>
-    public double? AppValue { get; set; }
+    public float AppValue { get; set; }
 
     /// <summary>
-    /// Второй лимит приложения
+    /// Второй лимит приложения.
     /// </summary>
-    public double? AppSecondLimit { get; set; }
+    public float AppSecondLimit { get; set; }
 
     /// <summary>
-    /// Второе значение приложения
+    /// Второе значение приложения.
     /// </summary>
     public double? AppSecondValue { get; set; }
 
     /// <summary>
-    /// Номер чека
+    /// Номер чека.
     /// </summary>
     public int? CheckNumber { get; set; }
 
     /// <summary>
-    /// Период валидности
+    /// Период валидности.
     /// </summary>
     public long? ValidityPeriod { get; set; }
 
     /// <summary>
-    /// Общий ID приложения
+    /// Общий ID приложения.
     /// </summary>
     public int? CommonApplicationId { get; set; }
 
     /// <summary>
-    /// GUID транзакции
+    /// GUID транзакции.
     /// </summary>
     public Guid? Guid { get; set; }
 
     /// <summary>
-    /// Код ошибки
+    /// Код ошибки.
     /// </summary>
     public int? ErrorCode { get; set; }
 
     /// <summary>
-    /// Бонусы начисленные
+    /// Бонусы начисленные.
     /// </summary>
-    public double? BonusIn { get; set; }
+    public decimal BonusIn { get; set; }
 
     /// <summary>
-    /// Бонусы списанные
+    /// Бонусы списанные.
     /// </summary>
-    public int? BonusOut { get; set; }
+    public decimal BonusOut { get; set; }
 
     /// <summary>
-    /// Стоимость начисленных бонусов
+    /// Стоимость начисленных бонусов.
     /// </summary>
-    public int? BonusInCost { get; set; }
+    public decimal BonusInCost { get; set; }
 
     /// <summary>
-    /// Стоимость списанных бонусов
+    /// Стоимость списанных бонусов.
     /// </summary>
-    public int? BonusOutCost { get; set; }
+    public decimal BonusOutCost { get; set; }
 
     /// <summary>
-    /// Признак отчёта по счёту
+    /// Признак отчёта по счёту.
     /// </summary>
     public int? IsAccountRep { get; set; }
 
     /// <summary>
-    /// Запрошенный объём
+    /// Запрошенный объём.
     /// </summary>
-    public int? RequestedAmount { get; set; }
+    public decimal? RequestedAmount { get; set; }
 
     /// <summary>
-    /// Запрошенная стоимость
+    /// Запрошенная стоимость.
     /// </summary>
-    public int? RequestedCost { get; set; }
+    public decimal? RequestedCost { get; set; }
 
     /// <summary>
-    /// Базовая цена
+    /// Базовая цена.
     /// </summary>
     public decimal? BasePrice { get; set; }
 
     /// <summary>
-    /// Стоимость для клиента
+    /// Стоимость для клиента.
     /// </summary>
     public decimal? ClientCost { get; set; }
 
     /// <summary>
-    /// Флаги запроса
+    /// Флаги запроса.
     /// </summary>
     public int? RequestFlags { get; set; }
 
     /// <summary>
-    /// Тип отложенного бонуса
+    /// Тип отложенного бонуса.
     /// </summary>
-    public int? DelayedBonusType { get; set; }
+    public DelayedBonusType DelayedBonusType { get; set; }
 
     /// <summary>
-    /// Цена посылки
+    /// Цена посылки.
     /// </summary>
-    public int? ParcelPrice { get; set; }
+    public decimal? ParcelPrice { get; set; }
 
     /// <summary>
-    /// Ключ товара
+    /// Ключ товара.
     /// </summary>
     public int? CommodityKey { get; set; }
 
     /// <summary>
-    /// Ключ оплаты товара
+    /// Ключ оплаты товара.
     /// </summary>
     public int? PaymentOfCommodityKey { get; set; }
 
     /// <summary>
-    /// Ключ набора товаров
+    /// Ключ набора товаров.
     /// </summary>
     public int? SetOfGoodsKey { get; set; }
 
     /// <summary>
-    /// Ключ вендора
+    /// Ключ вендора.
     /// </summary>
     public int? VendorKey { get; set; }
 
     /// <summary>
-    /// Температура
+    /// Температура.
     /// </summary>
-    public int? Temperature { get; set; }
+    public float? Temperature { get; set; }
 
     /// <summary>
-    /// Плотность
+    /// Плотность.
     /// </summary>
-    public int? Density { get; set; }
+    public float? Density { get; set; }
 
     /// <summary>
-    /// GUID товара
+    /// GUID товара.
     /// </summary>
     public Guid? CommodityGuid { get; set; }
 
     /// <summary>
-    /// GUID набора товаров
+    /// GUID набора товаров.
     /// </summary>
     public Guid? SetOfGoodsGuid { get; set; }
 
     /// <summary>
-    /// Начальная температура
+    /// Начальная температура.
     /// </summary>
-    public decimal? BeginTemperature { get; set; }
+    public float? BeginTemperature { get; set; }
 
     /// <summary>
-    /// Конечная температура
+    /// Конечная температура.
     /// </summary>
-    public decimal? EndTemperature { get; set; }
+    public float? EndTemperature { get; set; }
 
     /// <summary>
-    /// Флаги продажи
+    /// Флаги продажи.
     /// </summary>
     public long? SellingFlags { get; set; }
 
     /// <summary>
-    /// Перелив
+    /// Перелив.
     /// </summary>
     public decimal? Overflow { get; set; }
 
     /// <summary>
-    /// Тип карты
+    /// Тип карты.
     /// </summary>
-    public int? CardType { get; set; }
+    public DiscountApplicationTypeEnum CardType { get; set; }
 
     /// <summary>
-    /// Внешний код
+    /// Внешний код.
     /// </summary>
     public string? ExternalCode { get; set; }
 }

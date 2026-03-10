@@ -239,6 +239,13 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <param name="item">Символ.</param>
     public void AddCharInAmountPreview(string item)
     {
+        if (item == "00")
+        {
+            AddCharInAmountPreview("0");
+            AddCharInAmountPreview("0");
+            return;
+        }
+        
         string current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
         int maxDecimals = IsAmountMoney ? 2 : 3;
 

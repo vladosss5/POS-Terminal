@@ -401,8 +401,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
             await PrintReceiptAsync(selling);
             
-            await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
-            
             Navigation.GoBack();    
         }
         catch (Exception ex)

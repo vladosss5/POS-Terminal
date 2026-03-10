@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -97,33 +98,39 @@ public partial class App : Avalonia.Application
     {
         try
         {
-            bool dataBaseIsClear;
             var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
-            await using (var context = await factory.CreateDbContextAsync())
+
+            await using var context = await factory.CreateDbContextAsync();
+            
+            await context.Database.MigrateAsync();
+            
+            List<string> scripts = [];
+
+            if (!await context.ResourceCodes.AnyAsync())
             {
-                _logger.LogInformation("[DB] Start migration");
-                await context.Database.MigrateAsync();
-                _logger.LogInformation($"[DB] End migration");
+                var resourceTableFillingScript = await ReadSqlScriptFromResourceAsync("1_pos.terminal.sql");
                 
-                dataBaseIsClear = !await context.ResourceCodes.AnyAsync();
-                _logger.LogInformation($"[DB] The SQL will have to be executed = {dataBaseIsClear}");
+                if (resourceTableFillingScript != null) 
+                    scripts.Add(resourceTableFillingScript);
             }
 
-            if (dataBaseIsClear)
+            if (!await context.Settings.AnyAsync())
             {
-                string? sqlScript = await ReadSqlScriptFromResourceAsync();
-                if (!string.IsNullOrEmpty(sqlScript))
-                {
-                    _logger.LogInformation($"[DB] Начато выполнение скриптов");
-                    var sqlExecutor = Services.GetRequiredService<ISqlExecutor>();
-                    var rowsAffected = await sqlExecutor.ExecuteNonQueryAsync(sqlScript);
-                    _logger.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
-                }
-                else
-                {
-                    _logger.LogError("[DB] Не удалось найти скрипт во встроенных ресурсах");
-                }
+                var settingsTableFillingScript = await ReadSqlScriptFromResourceAsync("FillSettingsTable.sql");
+
+                if (settingsTableFillingScript != null) 
+                    scripts.Add(settingsTableFillingScript);
             }
+
+            var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();
+            var rowsAffected = 0;
+            
+            _logger.LogInformation($"[DB] Начато выполнение скриптов");
+            foreach (var script in scripts)
+            {
+                rowsAffected = await sqlExecutor.ExecuteNonQueryAsync(script);
+            }
+            _logger.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
         }
         catch (Exception ex)
         {
@@ -132,14 +139,14 @@ public partial class App : Avalonia.Application
     }
     
     /// <summary>
-    /// Получение SQl из рессурсов проекта.
+    /// Получение SQl из ресурсов проекта.
     /// </summary>
-    private async Task<string?> ReadSqlScriptFromResourceAsync()
+    private async Task<string?> ReadSqlScriptFromResourceAsync(string scriptName)
     {
         var assembly = typeof(App).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();
     
-        var sqlResource = resourceNames.FirstOrDefault(r => r.EndsWith("1_pos.terminal.sql")); // TODO: Переделать на выполнение множества скриптов.
+        var sqlResource = resourceNames.FirstOrDefault(r => r.EndsWith(scriptName));
     
         if (sqlResource == null)
         {

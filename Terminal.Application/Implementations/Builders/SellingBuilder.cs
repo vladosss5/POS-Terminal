@@ -1,4 +1,5 @@
-﻿using Terminal.Application.Interfaces.Builders;
+﻿using System.Globalization;
+using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 
@@ -28,13 +29,30 @@ public class SellingBuilder : ISellingBuilder
     /// <inheritdoc/>
     public void SetAmount(decimal amount)
     {
-        _selling.Amount = (int)amount;
+        _selling.Amount = amount;
     }
     
     /// <inheritdoc/>
     public void SetCheckNumber(int number)
     {
         _selling.CheckNumber = number;
+    }
+
+    /// <inheritdoc/>
+    public void SetRequestedVolume(string volume, bool isCost)
+    {
+        var decimalValue = decimal.Parse(volume, new CultureInfo("ru-RU"));
+        
+        if (isCost)
+        {
+            _selling.RequestedCost = Math.Round(decimalValue, 2);
+            _selling.RequestedAmount = _selling.RequestedCost / _selling.Amount;
+        }
+        else
+        {
+            _selling.RequestedAmount = Math.Round(decimalValue, 3);
+            _selling.RequestedCost = _selling.RequestedAmount / _selling.Amount;
+        }
     }
 
     /// <inheritdoc/>

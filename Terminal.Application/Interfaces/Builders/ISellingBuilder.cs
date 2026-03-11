@@ -34,6 +34,13 @@ public interface ISellingBuilder
     public void SetCheckNumber(int number);
 
     /// <summary>
+    /// Задать запрошенный объём топлива/денег.
+    /// </summary>
+    /// <param name="volume">Запрошенное кол-во.</param>
+    /// <param name="isCost"></param>
+    public void SetRequestedVolume(string volume, bool isCost);
+
+    /// <summary>
     /// Собрать итоговый объект процесса заправки.
     /// </summary>
     /// <returns>Модель процесса заправки.</returns>

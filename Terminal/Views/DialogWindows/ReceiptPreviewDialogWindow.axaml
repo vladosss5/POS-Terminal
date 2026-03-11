@@ -11,6 +11,7 @@
     
     <ScrollViewer>
         <TextBlock Text="{Binding ReceiptText}" 
+                   HorizontalAlignment="Center"
                    FontFamily="Courier New"
                    FontSize="12"
                    TextWrapping="Wrap"/>

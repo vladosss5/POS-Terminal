@@ -129,7 +129,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
                 _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
         }
     }
@@ -145,7 +145,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
                 _amountFuel = d;
         }
     }
@@ -211,7 +211,10 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     public void SetAmount()
     {
         _builder.SetAmount(_amountFuel);
-
+        
+        var volume = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
+        _builder.SetRequestedVolume(volume, IsAmountMoney);
+        
         Steps[2].CompleteStepCommand.Execute(null);
     }
     

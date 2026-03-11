@@ -59,18 +59,21 @@ public class Selling
     public decimal? Amount { get; set; }
 
     /// <summary>
-    /// Итоговая стоимость покупки (с учётом скидок).
+    /// Итоговая стоимость покупки (с учётом скидок) за транзакцию.
     /// </summary>
     public decimal? ShopCost { get; set; }
 
     /// <summary>
-    /// Базовая стоимость покупки (без скидок).
+    /// Базовая стоимость покупки (без скидок) за транзакцию.
     /// </summary>
     public decimal? ShopBaseCost { get; set; } 
     
     /// <summary>
-    /// Цена продажи.
+    /// Цена товара за ед. с учётом скидок.
     /// </summary>
+    /// <remarks>
+    /// Рассчитывается как ShopCost/Amount
+    /// </remarks>
     public decimal? SellingPrice { get; set; }
 
     /// <summary>
@@ -229,13 +232,19 @@ public class Selling
     public decimal? RequestedCost { get; set; }
 
     /// <summary>
-    /// Базовая цена.
+    /// Цена за ед. без скидок.
     /// </summary>
+    /// <remarks>
+    /// Рассчитывается как ShopBaseCost/Amount
+    /// </remarks>
     public decimal? BasePrice { get; set; }
 
     /// <summary>
     /// Стоимость для клиента.
     /// </summary>
+    /// <remarks>
+    /// То же что и RequestedCost.
+    /// </remarks>
     public decimal? ClientCost { get; set; }
 
     /// <summary>

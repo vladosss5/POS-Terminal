@@ -6,18 +6,25 @@ using Terminal.ViewModels.DialogWindows;
 
 namespace Terminal.Views.DialogWindows;
 
+/// <summary>
+/// Диалоговое окно для демонстрации чеков.
+/// </summary>
 public partial class ReceiptPreviewDialogWindow : Window
 {
     private readonly TaskCompletionSource<bool> _tcs;
     
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="receiptText"></param>
     public ReceiptPreviewDialogWindow(string receiptText)
     {
         InitializeComponent();
         
         _tcs = new TaskCompletionSource<bool>();
-        DataContext = new ReceiptPreviewDialogViewModel(receiptText, _tcs);
+        DataContext = new ReceiptPreviewDialogViewModel(receiptText);
         
-        Closed += (s, e) => _tcs.TrySetResult(false);
+        Closed += (_, _) => _tcs.TrySetResult(false);
     }
     
     /// <summary>

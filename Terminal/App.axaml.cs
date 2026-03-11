@@ -23,10 +23,10 @@ public partial class App : Avalonia.Application
     /// <summary>
     /// Логгер.
     /// </summary>
-    private static ILogger<App> _logger { get; set; }
+    private static ILogger<App>? Logger { get; set; }
     
     /// <summary>
-    /// Св-во для получения зарегестрированных сервисов.
+    /// Св-во для получения зарегистрированных сервисов.
     /// </summary>
     public static IServiceProvider? Services { get; set; }
     
@@ -40,11 +40,11 @@ public partial class App : Avalonia.Application
     }
 
     /// <summary>
-    /// Иницализация процессов после инита фреймфорка.
+    /// Инициализация процессов после инита фреймфорка.
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
-        _logger = Services.GetRequiredService<ILogger<App>>();
+        Logger = Services.GetRequiredService<ILogger<App>>();
         
         await InitializeDatabaseAsync();
 
@@ -125,16 +125,16 @@ public partial class App : Avalonia.Application
             var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();
             var rowsAffected = 0;
             
-            _logger.LogInformation($"[DB] Начато выполнение скриптов");
+            Logger?.LogInformation($"[DB] Начато выполнение скриптов");
             foreach (var script in scripts)
             {
                 rowsAffected = await sqlExecutor.ExecuteNonQueryAsync(script);
             }
-            _logger.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
+            Logger?.LogInformation($"[DB] Скрипт выполнен успешно, затронуто строк: {rowsAffected}");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
+            Logger?.LogError($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
         }
     }
     
@@ -150,7 +150,7 @@ public partial class App : Avalonia.Application
     
         if (sqlResource == null)
         {
-            _logger.LogError($"[DB] Скрипт не найден. Доступные ресурсы: {string.Join(", ", resourceNames)}");
+            Logger?.LogError($"[DB] Скрипт не найден. Доступные ресурсы: {string.Join(", ", resourceNames)}");
             return null;
         }
 

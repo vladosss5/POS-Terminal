@@ -6,18 +6,32 @@ using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
 
+/// <summary>
+/// Страница процесса продажи.
+/// </summary>
 public partial class SaleProcessPageView : UserControl
 {
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public SaleProcessPageView()
     {
         InitializeComponent();
     }
 
+    /// <summary>
+    /// Задать тип оплаты.
+    /// </summary>
+    /// <param name="typeKey">Ключ типа.</param>
     public void SetPaymentTypeCommand(string typeKey)
     {
         (DataContext as SaleProcessPageViewModel)!.SetPaymentType(typeKey);
     }
 
+    /// <summary>
+    /// Задать тип топлива.
+    /// </summary>
+    /// <param name="type">Продаваемый ресурс.</param>
     public void SetFuelTypesCommand(ResourceCode type)
     {
         (DataContext as SaleProcessPageViewModel)!.SetFuelType(type);

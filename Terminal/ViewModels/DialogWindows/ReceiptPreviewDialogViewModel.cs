@@ -3,22 +3,22 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Terminal.ViewModels.DialogWindows;
 
+/// <summary>
+/// Диалоговое окно для отображения чеков.
+/// </summary>
 public partial class ReceiptPreviewDialogViewModel : ViewModelBase
 {
+    /// <summary>
+    /// Текст чека.
+    /// </summary>
     [ObservableProperty] private string _receiptText;
-    
-    private readonly TaskCompletionSource<bool> _tcs;
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     /// <param name="receiptText">Текст чека.</param>
-    /// <param name="tcs"></param>
-    public ReceiptPreviewDialogViewModel(
-        string receiptText, 
-        TaskCompletionSource<bool> tcs)
+    public ReceiptPreviewDialogViewModel(string receiptText)
     {
         _receiptText = receiptText;
-        _tcs = tcs;
     }
 }

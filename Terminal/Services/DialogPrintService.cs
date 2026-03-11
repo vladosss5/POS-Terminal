@@ -11,17 +11,31 @@ using Terminal.Views.DialogWindows;
 
 namespace Terminal.Services;
 
+/// <summary>
+/// Реализация печати чеков через диалоговое окно.
+/// </summary>
 public class DialogPrintService : IReceiptPrintService
 {
+    /// <summary>
+    /// Ширина страницы.
+    /// </summary>
     private const int PageWidth = 48;
     
+    /// <summary>
+    /// Логгер.
+    /// </summary>
     private readonly ILogger<DialogPrintService> _logger;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="logger"></param>
     public DialogPrintService(ILogger<DialogPrintService> logger)
     {
         _logger = logger;
     }
 
+    /// <inheritdoc/>
     public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
         try
@@ -32,15 +46,10 @@ public class DialogPrintService : IReceiptPrintService
             
             bool result;
             
-            if (Avalonia.Application.Current?.ApplicationLifetime is 
-                IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                result = await dialog.ShowModalDialog(desktop.MainWindow);
-            }
+            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                result = await dialog.ShowModalDialog(desktop.MainWindow!);
             else
-            {
                 result = await dialog.ShowModalDialog();
-            }
             
             return new PrintResult
             {
@@ -61,6 +70,11 @@ public class DialogPrintService : IReceiptPrintService
         }
     }
 
+    /// <summary>
+    /// Получить форматированный текст чека.
+    /// </summary>
+    /// <param name="receipt">Чек о покупке.</param>
+    /// <returns>Текст чека.</returns>
     private string FormatReceiptText(SalesReceipt receipt)
     {
         var culture = new CultureInfo("ru-RU");
@@ -95,12 +109,23 @@ public class DialogPrintService : IReceiptPrintService
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Вставить линию типа ключ-значение.
+    /// </summary>
+    /// <param name="sb">Изменяемый строитель строки.</param>
+    /// <param name="key">Ключ.</param>
+    /// <param name="value">Значение.</param>
     private static void AppendKeyValueLine(ref StringBuilder sb, string key, string value)
     {
         var spacer = new string(' ', PageWidth - key.Length - value.Length);
         sb.AppendLine(key + spacer + value);
     }
 
+    /// <summary>
+    /// Ставить линию растянутую по ширине.
+    /// </summary>
+    /// <param name="sb">Изменяемый строитель строки.</param>
+    /// <param name="text">Опциональный текст в строке.</param>
     private static void AppendLineWidth(ref StringBuilder sb, string text = "")
     {
         var spacer = new string('-', (PageWidth - text.Length) / 2);

@@ -30,14 +30,14 @@ public interface ISellingBuilder
     /// <summary>
     /// Задать номер чека.
     /// </summary>
-    /// <param name="number"></param>
+    /// <param name="number">Номер.</param>
     public void SetCheckNumber(int number);
 
     /// <summary>
     /// Задать запрошенный объём топлива/денег.
     /// </summary>
     /// <param name="volume">Запрошенное кол-во.</param>
-    /// <param name="isCost"></param>
+    /// <param name="isCost">True - кол-во денег.<br/> False - кол-во топлива.</param>
     public void SetRequestedVolume(string volume, bool isCost);
 
     /// <summary>

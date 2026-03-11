@@ -21,19 +21,19 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Страница процесса заправки по карте.
 /// </summary>
-public partial class RefuelingByCardPageViewModel : PageViewModelBase
+public partial class SaleProcessPageViewModel : PageViewModelBase
 {
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
-    /// <inheritdoc cref="IPrintService"/>
-    private readonly IPrintService _printService;
+    /// <inheritdoc cref="IReceiptPrintService"/>
+    private readonly IReceiptPrintService _receiptPrintService;
     
     /// <inheritdoc cref="ISellingBuilder"/>
     private readonly ISellingBuilder _builder;
     
     /// <inheritdoc cref="ILogger"/>
-    private readonly ILogger<RefuelingByCardPageViewModel> _logger;
+    private readonly ILogger<SaleProcessPageViewModel> _logger;
     
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
@@ -70,11 +70,6 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     [ObservableProperty] private bool _isProcessStarted;
     
     /// <summary>
-    /// Типы оплаты.
-    /// </summary>
-    [ObservableProperty] private PaymentTypes? _selectedCardType;
-    
-    /// <summary>
     /// Выбранный тип топлива (товар).
     /// </summary>
     [ObservableProperty] private ResourceCode? _selectedFuelType;
@@ -99,23 +94,29 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
     [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
-    
-    
+
     /// <summary>
-    /// Св-во для хранения типов оплаты.
+    /// Типы оплаты.
     /// </summary>
-    public IEnumerable<PaymentTypes> PaymentTypesCollection => Enum.GetValues<PaymentTypes>();
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; } = new()
+    {
+        { "Наличные", (BasePaymentType.Cash, DerivedPaymentType.Cash) },
+        { "Топливная", (BasePaymentType.NonCash, DerivedPaymentType.FuelCard) },
+        { "Ведомость", (BasePaymentType.NonCash, DerivedPaymentType.FuelStatement) },
+        { "Талоны", (BasePaymentType.NonCash, DerivedPaymentType.FuelTalon) },
+        { "Банковская карта", (BasePaymentType.NonCash, DerivedPaymentType.BankCard) }
+    };
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
     /// </summary>
-    public ObservableCollection<string> KeypadButtons { get; } = new()
-    { 
-        "7",  "8", "9" , 
-        "4",  "5", "6" , 
-        "1",  "2", "3" , 
+    public ObservableCollection<string> KeypadButtons { get; } =
+    [
+        "7", "8", "9",
+        "4", "5", "6",
+        "1", "2", "3",
         "00", "0", ","
-    };
+    ];
     
     /// <summary>
     /// Предпросмотр кол-ва денег.
@@ -128,7 +129,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
                 _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
         }
     }
@@ -144,7 +145,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
                 _amountFuel = d;
         }
     }
@@ -153,18 +154,18 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public RefuelingByCardPageViewModel(
+    public SaleProcessPageViewModel(
         ISellingBuilder builder, 
         IDbContextFactory<DataContext> dbFactory, 
-        ILogger<RefuelingByCardPageViewModel> logger, 
-        IPrintService printService, 
+        ILogger<SaleProcessPageViewModel> logger, 
+        IReceiptPrintService receiptPrintService, 
         ISalesReceiptMappingService receiptMappingService) 
         : base(logger)
     {
         _builder = builder;
         _dbFactory = dbFactory;
         _logger = logger;
-        _printService = printService;
+        _receiptPrintService = receiptPrintService;
         _receiptMappingService = receiptMappingService;
         _russianCulture = new CultureInfo("ru-RU");
 
@@ -182,10 +183,13 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать тип оплаты.
     /// </summary>
-    /// <param name="type">Тип оплаты.</param>
-    public void SetPaymentType(PaymentTypes type)
+    /// <param name="typeKey">Тип оплаты.</param>
+    public void SetPaymentType(string typeKey)
     {
-        SelectedCardType = type;
+        if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
+            return;
+        
+        _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
         Steps[0].CompleteStepCommand.Execute(null);
     }
 
@@ -207,7 +211,10 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     public void SetAmount()
     {
         _builder.SetAmount(_amountFuel);
-
+        
+        var volume = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
+        _builder.SetRequestedVolume(volume, IsAmountMoney);
+        
         Steps[2].CompleteStepCommand.Execute(null);
     }
     
@@ -239,6 +246,13 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="item">Символ.</param>
     public void AddCharInAmountPreview(string item)
     {
+        if (item == "00")
+        {
+            AddCharInAmountPreview("0");
+            AddCharInAmountPreview("0");
+            return;
+        }
+        
         string current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
         int maxDecimals = IsAmountMoney ? 2 : 3;
 
@@ -288,7 +302,7 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Сбросить значение превьювера на 0.
+    /// Сбросить значения предпросмотров на 0.
     /// </summary>
     public void AmountPreviewSetZero()
     {
@@ -385,23 +399,28 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     {
         try
         {
-            var selling = _builder.Build();
-            
             await using var db = await _dbFactory.CreateDbContextAsync();
 
+            var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
+            var currentNumber = chekNumberSetting.Value.Value + 1;
+            
+            _builder.SetCheckNumber(currentNumber);
+            var selling = _builder.Build();
             await db.AddAsync(selling);
+
+            chekNumberSetting.Value = currentNumber;
+            db.Update(chekNumberSetting);
+            
             await db.SaveChangesAsync();
 
             await PrintReceiptAsync(selling);
-            
-            await ShowMessage("Успех!", $"Сделана покупка №{selling.TransactionShopKey}");
             
             Navigation.GoBack();    
         }
         catch (Exception ex)
         {
-            _logger.LogInformation($"Ошибка: {ex.Message}, {ex.StackTrace}" );
-            await ShowMessage("Ошибка!", $"{ex.Message}, {ex.StackTrace}");
+            _logger.LogError($"Ошибка: {ex.Message},\n {ex.InnerException}, \n {ex.StackTrace}" );
+            await ShowMessage("Ошибка!", $"{ex.Message}, {ex.InnerException}");
         }
     }
     
@@ -425,17 +444,11 @@ public partial class RefuelingByCardPageViewModel : PageViewModelBase
     /// <param name="selling">Продажа.</param>
     private async Task PrintReceiptAsync(Selling selling)
     {
-        if (!_printService.IsConnected)
-            await _printService.ConnectAsync();
-        
         var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
-        var printResult = await _printService.PrintSalesReceiptAsync(receipt);
+        var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
-        
-        if (_printService.IsConnected)
-            _printService.Disconnect();
     }
 
     /// <summary>

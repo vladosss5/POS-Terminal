@@ -11,28 +11,29 @@ public class SalesReceiptMappingService : ISalesReceiptMappingService
     /// <inheritdoc/>
     public SalesReceipt MapSellingToSalesReceipt(Selling selling)
     {
+        var checkNumber = selling.CheckNumber != null ? selling.CheckNumber.ToString()! : "Номер не определён";
+        var terminalNumber = selling.TerminalKey != null ? selling.TerminalKey.ToString()! : "Неизвестный номер";
+        var cardNumber = selling.IssuerCardId != null ? selling.IssuerCardId.Value.ToString() : "0";
+        var currentOperator = selling.PersonKey != null ? selling.PersonKey.ToString()! : "Неизвестный оператор";
+        
+        var sellingPrice = selling.ShopCost ?? 0 / selling.Amount ?? 0;
+        var discount = selling.ShopBaseCost ?? 0 - selling.ShopCost ?? 0;
+        
         return new SalesReceipt
         {
-            Number = selling.CheckNumber != null 
-                ? selling.CheckNumber.ToString()! 
-                : "Номер не определён",
-            TerminalNumber = selling.TerminalKey != null 
-                ? selling.TerminalKey.ToString()! 
-                : "Неизвестный номер",
-            CardNumber = selling.IssuerCardId != null 
-                ? selling.IssuerCardId.Value.ToString() 
-                : "0",
+            Number = checkNumber,
+            TerminalNumber = terminalNumber,
+            CardNumber = cardNumber,
             TransactionDateTime = selling.TransactionDatetime ?? DateTime.MinValue,
             ResourceName = selling.ResourceName ?? "Неизвестный ресурс",
-            Amount = selling.Amount ?? 0,
-            PricePerUnit = selling.BasePrice ?? 0,
-            SellingPrice = selling.BasePrice ?? 0 * selling.Amount ?? 0,
-            Discount = (selling.BasePrice ?? 0 * selling.Amount ?? 0) - selling.ClientCost ?? 0,
-            TotalPrice = selling.ClientCost ?? 0,
-            Operator = selling.PersonKey != null 
-                ? selling.PersonKey.ToString()! 
-                : "Неизвестный оператор",
-            PaymentTypes = PaymentTypes.Cash //TODO Изменить при добавлении логики типов оплаты
+            Amount = Math.Round(selling.Amount ?? 0, 3),
+            PricePerUnit = Math.Round(selling.SellingPrice ?? 0, 2),
+            SellingPrice = Math.Round(sellingPrice, 2),
+            Discount = Math.Round(discount, 2),
+            TotalPrice = Math.Round(selling.ShopCost ?? 0, 2),
+            Operator = currentOperator,
+            BaseType = selling.BaseType ?? BasePaymentType.Undefined,
+            DerivedType = selling.DerivedType
         };
     }
 }

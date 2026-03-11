@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Terminal.ViewModels.NavigationService;
+using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;
 

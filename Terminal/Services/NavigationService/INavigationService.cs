@@ -1,6 +1,7 @@
 ﻿using System;
+using Terminal.ViewModels;
 
-namespace Terminal.ViewModels.NavigationService;
+namespace Terminal.Services.NavigationService;
 
 /// <summary>
 /// Сервис навигации между страницами, окнами.

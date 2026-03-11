@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Desktop.Services;
 
 namespace Terminal.Desktop.Extensions;
 
@@ -15,5 +16,6 @@ public static class DesktopServiceCollectionExtensions
     public static void AddDesktopServices(this IServiceCollection collection)
     {
         collection.AddScoped<IFileExplorer, FileExplorer>();
+        collection.AddSingleton<IReceiptPrintService, DesktopPrintService>();
     }
 }

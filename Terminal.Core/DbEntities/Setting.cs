@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Terminal.Core.Enums;
 
 namespace Terminal.Core.DbEntities;
 
@@ -8,7 +9,7 @@ public partial class Setting
     /// <summary>
     /// Первичный ключ настройки
     /// </summary>
-    public int SettingsKey { get; set; }
+    public SettingsKey? SettingsKey { get; set; }
 
     /// <summary>
     /// Значение настройки

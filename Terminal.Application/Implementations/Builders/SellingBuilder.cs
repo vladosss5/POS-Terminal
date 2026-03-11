@@ -1,5 +1,7 @@
-﻿using Terminal.Application.Interfaces.Builders;
+﻿using System.Globalization;
+using Terminal.Application.Interfaces.Builders;
 using Terminal.Core.DbEntities;
+using Terminal.Core.Enums;
 
 namespace Terminal.Application.Implementations.Builders;
 
@@ -8,6 +10,12 @@ public class SellingBuilder : ISellingBuilder
 {
     /// <inheritdoc cref="Selling" />
     private readonly Selling _selling = new();
+
+    public void SetPaymentTypes(BasePaymentType baseType, DerivedPaymentType derivedType)
+    {
+        _selling.BaseType = baseType;
+        _selling.DerivedType = derivedType;
+    }
 
     /// <inheritdoc/>
     public void SetResourceCode(ResourceCode resourceCode)
@@ -21,7 +29,30 @@ public class SellingBuilder : ISellingBuilder
     /// <inheritdoc/>
     public void SetAmount(decimal amount)
     {
-        _selling.Amount = (int)amount;
+        _selling.Amount = amount;
+    }
+    
+    /// <inheritdoc/>
+    public void SetCheckNumber(int number)
+    {
+        _selling.CheckNumber = number;
+    }
+
+    /// <inheritdoc/>
+    public void SetRequestedVolume(string volume, bool isCost)
+    {
+        var decimalValue = decimal.Parse(volume, new CultureInfo("ru-RU"));
+        
+        if (isCost)
+        {
+            _selling.RequestedCost = Math.Round(decimalValue, 2);
+            _selling.RequestedAmount = _selling.RequestedCost / _selling.Amount;
+        }
+        else
+        {
+            _selling.RequestedAmount = Math.Round(decimalValue, 3);
+            _selling.RequestedCost = _selling.RequestedAmount / _selling.Amount;
+        }
     }
 
     /// <inheritdoc/>
@@ -29,6 +60,7 @@ public class SellingBuilder : ISellingBuilder
     {
         _selling.TransactionDatetime = DateTime.Now;
         _selling.ShopCost = _selling.SellingPrice * _selling.Amount; //TODO: тут расчёт скидок.
+        
         return _selling;
     }
 }

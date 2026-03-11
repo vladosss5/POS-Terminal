@@ -6,21 +6,35 @@ using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
 
-public partial class RefuelingByCardPageView : UserControl
+/// <summary>
+/// Страница процесса продажи.
+/// </summary>
+public partial class SaleProcessPageView : UserControl
 {
-    public RefuelingByCardPageView()
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    public SaleProcessPageView()
     {
         InitializeComponent();
     }
 
-    public void SetPaymentTypeCommand(PaymentTypes type)
+    /// <summary>
+    /// Задать тип оплаты.
+    /// </summary>
+    /// <param name="typeKey">Ключ типа.</param>
+    public void SetPaymentTypeCommand(string typeKey)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.SetPaymentType(type);
+        (DataContext as SaleProcessPageViewModel)!.SetPaymentType(typeKey);
     }
 
+    /// <summary>
+    /// Задать тип топлива.
+    /// </summary>
+    /// <param name="type">Продаваемый ресурс.</param>
     public void SetFuelTypesCommand(ResourceCode type)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.SetFuelType(type);
+        (DataContext as SaleProcessPageViewModel)!.SetFuelType(type);
     }
     
     /// <summary>
@@ -33,7 +47,7 @@ public partial class RefuelingByCardPageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as RefuelingByCardPageViewModel)!.AmountPreviewSetZero();
+                (DataContext as SaleProcessPageViewModel)!.AmountPreviewSetZero();
                 break;
         }
     }
@@ -45,6 +59,6 @@ public partial class RefuelingByCardPageView : UserControl
     /// <param name="e"></param>
     private void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as RefuelingByCardPageViewModel)!.DeleteLastCharFromPreview();
+        (DataContext as SaleProcessPageViewModel)!.DeleteLastCharFromPreview();
     }
 }

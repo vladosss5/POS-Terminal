@@ -19,7 +19,7 @@ namespace Terminal.Android.Services.SunyardPrinter;
 /// Обеспечивает подключение к системному сервису Sunyard, получение объекта принтера,
 /// формирование и печать чеков с поддержкой текста, форматирования и отрезки бумаги.
 /// </summary>
-public class SunyardPrintService : Java.Lang.Object, IPrintService
+public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
 {
     /// <summary>
     /// Логгер.
@@ -63,11 +63,83 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger;
     }
-
+    
     /// <inheritdoc/>
-    public async Task<bool> ConnectAsync()
+    public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
-        if (_isConnected) return true;
+        await ConnectAsync();
+        CheckConnection();
+        
+        var status = await GetStatusAsync();
+        if (status != PrinterStatus.Ready)
+        {
+            _logger.LogWarning($"Printer not ready: {status}");
+            return new PrintResult { Success = false, ErrorMessage = $"Printer not ready: {status}" };
+        }
+
+        var tcs = new TaskCompletionSource<PrintResult>();
+        var cultureRu = new CultureInfo("ru-RU");
+
+        try
+        {
+            _printer!.SetGray(10);
+
+            AddKeyValueText("Чек", salesReceipt.Number);
+            AddLineWidthText();
+            AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
+
+            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
+                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
+            {
+                AddKeyValueText("Карта", salesReceipt.CardNumber!);
+                AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
+            }
+
+            AddLineWidthText("Продажа");
+            AddKeyValueText(
+                salesReceipt.ResourceName,
+                $"= {salesReceipt.Amount.ToString(cultureRu)}");
+
+            AddKeyValueText(
+                salesReceipt.PricePerUnit.ToString(cultureRu),
+                $"= {salesReceipt.SellingPrice.ToString(cultureRu)}");
+
+            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString(cultureRu)}");
+            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString(cultureRu)}");
+
+            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
+                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
+            {
+                AddLineWidthText("Инфо по кошелькам");
+            }
+
+            AddLineWidthText();
+            AddLeftText($"Оператор {salesReceipt.Operator}");
+            AddLineWidthText();
+
+            _printer.FeedLine(6);
+            _printer.CutPaper();
+
+            _logger.LogInformation($"Чек составлен. Старт печати");
+            _currentPrintListener = new SunyardPrintListener(tcs, _logger);
+            _printer.StartPrint(_currentPrintListener);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка: {ex.Message}, {ex.StackTrace}");
+            tcs.TrySetException(ex);
+        }
+        finally
+        {
+            Disconnect();
+        }
+        _logger.LogInformation($"Чек отпечатан");
+        return await tcs.Task;
+    }
+
+    private async Task ConnectAsync()
+    {
+        if (_isConnected) return;
 
         var tcs = new TaskCompletionSource<bool>();
 
@@ -109,7 +181,7 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
         if (!_context.BindService(intent, _serviceConnection, Bind.AutoCreate))
         {
             tcs.TrySetException(new InvalidOperationException("Failed to bind to Sunyard service. Make sure the service is installed."));
-            return false;
+            return;
         }
 
         var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(10000));
@@ -120,33 +192,31 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
             throw new TimeoutException("Connection to Sunyard service timed out.");
         }
 
-        return await tcs.Task;
+        await tcs.Task;
     }
 
-    /// <inheritdoc/>
-    public void Disconnect()
+    private void Disconnect()
     {
-        if (_isConnected && _serviceConnection != null)
+        if (!_isConnected || _serviceConnection == null) 
+            return;
+        
+        try
         {
-            try
-            {
-                _context.UnbindService(_serviceConnection);
-                _logger.LogInformation("Закрыто соединение с принтером.");
-            }
-            catch
-            {
-                // ignored
-            }
-
-            _isConnected = false;
-            _printer = null;
-            _deviceService = null;
-            _serviceConnection = null;
-            ConnectionChanged?.Invoke(this, false);
+            _context.UnbindService(_serviceConnection);
+            _logger.LogInformation("Закрыто соединение с принтером.");
         }
+        catch
+        {
+            // ignored
+        }
+
+        _isConnected = false;
+        _printer = null;
+        _deviceService = null;
+        _serviceConnection = null;
+        ConnectionChanged?.Invoke(this, false);
     }
 
-    /// <inheritdoc/>
     public async Task<PrinterStatus> GetStatusAsync()
     {
         CheckConnection();
@@ -155,72 +225,6 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
             int status = _printer!.Status;
             return MapStatus(status);
         });
-    }
-
-    /// <inheritdoc/>
-    public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
-    {
-        CheckConnection();
-        
-        var status = await GetStatusAsync();
-        if (status != PrinterStatus.Ready)
-        {
-            _logger.LogWarning($"Printer not ready: {status}");
-            return new PrintResult { Success = false, ErrorMessage = $"Printer not ready: {status}" };
-        }
-
-        var tcs = new TaskCompletionSource<PrintResult>();
-        var cultureRu = new CultureInfo("ru-RU");
-        
-        try
-        {
-            _printer!.SetGray(10);
-            
-            AddKeyValueText("Чек", salesReceipt.Number);
-            AddLineWidthText();
-            AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
-
-            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
-            {
-                AddKeyValueText("Карта", salesReceipt.CardNumber!);
-                AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
-            }
-            
-            AddLineWidthText("Продажа");
-            AddKeyValueText(
-                salesReceipt.ResourceName, 
-                $"= {salesReceipt.Amount.ToString(cultureRu)}");
-            
-            AddKeyValueText(
-                salesReceipt.PricePerUnit.ToString(cultureRu), 
-                $"= {salesReceipt.SellingPrice.ToString(cultureRu)}");
-            
-            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString(cultureRu)}");
-            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString(cultureRu)}");
-
-            if (salesReceipt.PaymentTypes == PaymentTypes.FuelCard)
-            {
-                AddLineWidthText("Инфо по кошелькам");
-            }
-
-            AddLineWidthText();
-            AddLeftText($"Оператор {salesReceipt.Operator}");
-            AddLineWidthText();
-
-            _printer.FeedLine(6);
-            _printer.CutPaper();
-
-            _logger.LogInformation($"Чек составлен. Старт печати");
-            _currentPrintListener = new SunyardPrintListener(tcs, _logger);
-            _printer.StartPrint(_currentPrintListener);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Ошибка: {ex.Message}, {ex.StackTrace}");
-            tcs.TrySetException(ex);
-        }
-        _logger.LogInformation($"Чек отпечатан");
-        return await tcs.Task;
     }
 
     /// <summary>
@@ -254,9 +258,9 @@ public class SunyardPrintService : Java.Lang.Object, IPrintService
     /// <param name="text">Текст в середине линии.</param>
     private void AddLineWidthText(string text = "")
     {
-        var widthPage = 48;
-        var lengthInputText = text.Length;
-        var spacer = new string('-', (widthPage - lengthInputText) / 2);
+        const int widthPage = 48;
+        
+        var spacer = new string('-', (widthPage - text.Length) / 2);
         var inputText = spacer + text + spacer;
 
         AddCenteredText(inputText);

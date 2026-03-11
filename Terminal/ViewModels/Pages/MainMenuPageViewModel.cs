@@ -8,8 +8,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
-using Terminal.ViewModels.NavigationService;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -76,7 +76,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Title = "Заправка", 
                 Command = new RelayCommand(delegate
                 {
-                    Navigation.NavigateTo<RefuelingByCardPageViewModel>();
+                    Navigation.NavigateTo<SaleProcessPageViewModel>();
                 })
             },
             new MainMenuItemModel

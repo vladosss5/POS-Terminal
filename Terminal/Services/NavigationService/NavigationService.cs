@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Terminal.ViewModels;
 
-namespace Terminal.ViewModels.NavigationService;
+namespace Terminal.Services.NavigationService;
 
 /// <summary>
 /// Реализация сервиса навигации.

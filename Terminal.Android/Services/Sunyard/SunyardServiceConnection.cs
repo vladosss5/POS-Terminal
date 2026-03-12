@@ -3,7 +3,7 @@ using Android.Content;
 using Android.OS;
 using Com.Sunyard.Api;
 
-namespace Terminal.Android.Services.SunyardPrinter;
+namespace Terminal.Android.Services.Sunyard;
 
 /// <summary>
 /// Реализация IServiceConnection для подключения к системному сервису Sunyard.

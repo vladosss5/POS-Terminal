@@ -18,24 +18,6 @@ public partial class SaleProcessPageView : UserControl
     {
         InitializeComponent();
     }
-
-    /// <summary>
-    /// Задать тип оплаты.
-    /// </summary>
-    /// <param name="typeKey">Ключ типа.</param>
-    public void SetPaymentTypeCommand(string typeKey)
-    {
-        (DataContext as SaleProcessPageViewModel)!.SetPaymentType(typeKey);
-    }
-
-    /// <summary>
-    /// Задать тип топлива.
-    /// </summary>
-    /// <param name="type">Продаваемый ресурс.</param>
-    public void SetFuelTypesCommand(ResourceCode type)
-    {
-        (DataContext as SaleProcessPageViewModel)!.SetFuelType(type);
-    }
     
     /// <summary>
     /// Обработчик долгого нажатия.

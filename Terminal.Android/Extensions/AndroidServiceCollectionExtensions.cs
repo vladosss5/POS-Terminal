@@ -1,8 +1,7 @@
-﻿using Android.App;
-using Android.Content;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Terminal.Android.Services;
-using Terminal.Android.Services.SunyardPrinter;
+using Terminal.Android.Services.Sunyard.SunyardCardReader;
+using Terminal.Android.Services.Sunyard.SunyardPrinter;
 using Terminal.Application.Interfaces.Services;
 
 namespace Terminal.Android.Extensions;
@@ -23,7 +22,6 @@ public static class AndroidServiceCollectionExtensions
             collection.AddSingleton(global::Android.App.Application.Context);
             collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
             collection.AddTransient<IReceiptPrintService, AndroidPrintService>();
-            collection.AddSingleton<IReceiptPrintService, AndroidPrintService>();
         }
 
         /// <summary>
@@ -32,6 +30,7 @@ public static class AndroidServiceCollectionExtensions
         public void AddServicesForSunyard()
         {
             collection.AddTransient<IReceiptPrintService, SunyardPrintService>();
+            collection.AddTransient<ICardReaderService, SunyardCardReaderService>();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
 namespace Terminal.Services;
@@ -85,8 +86,14 @@ public class ConfigurationService : IConfigurationService
     /// <inheritdoc/>
     public IEnumerable<PaymentTypeSetting>? GetPaymentTypeSettings()
     {
-        var paymentTypes = GetSection<List<PaymentTypeSetting>>("PaymentTypes");
+        var paymentTypes = GetSection<List<PaymentTypeSettingDto>>("PaymentTypes");
 
-        return paymentTypes;
+        return paymentTypes.Select(dto => new PaymentTypeSetting
+        {
+            DisplayedName = dto.DisplayedName,
+            BaseType = (BasePaymentType)dto.BasePaymentType,
+            DerivedType = (DerivedPaymentType)dto.DerivedPaymentType,
+            IsEnabled = dto.IsEnabled
+        }).ToList();
     }
 }

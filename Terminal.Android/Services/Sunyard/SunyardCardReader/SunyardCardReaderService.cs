@@ -46,12 +46,15 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// </summary>
     public event EventHandler<string>? StatusChanged;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public SunyardCardReaderService(
         Context context,
         ILogger<SunyardCardReaderService> logger)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _context = context;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -72,7 +75,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-            using var registration = cts.Token.Register(() =>
+            await using var registration = cts.Token.Register(() =>
             {
                 try
                 {
@@ -111,46 +114,10 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
         }
     }
 
-    /// <inheritdoc />
-    public async Task<bool> IsReaderAvailableAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await ConnectAsync(cancellationToken).ConfigureAwait(false);
-            return _isConnected && _rfReader != null;
-        }
-        catch
-        {
-            return false;
-        }
-        finally
-        {
-            Disconnect();
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<string?> GetReaderVersionAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await ConnectAsync(cancellationToken).ConfigureAwait(false);
-            return _deviceService?.Version;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to get reader version");
-            return null;
-        }
-        finally
-        {
-            Disconnect();
-        }
-    }
-
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
-        if (_isConnected) return;
+        if (_isConnected) 
+            return;
 
         var tcs = new TaskCompletionSource<bool>();
 

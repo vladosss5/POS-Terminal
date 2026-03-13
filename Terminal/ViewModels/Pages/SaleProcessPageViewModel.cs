@@ -39,6 +39,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
 
+    /// <inheritdoc cref="ICardReaderService" />
     private readonly ICardReaderService _cardReaderService;
     
     private readonly CultureInfo _russianCulture;
@@ -57,6 +58,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         "Указывается кол-во в литрах"
     };
     
+    /// <summary>
+    /// Токен отмены считывания карты.
+    /// </summary>
     private CancellationTokenSource? _cardReadCts;
 
     /// <summary>
@@ -159,10 +163,14 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         }
     }
 
+    
+    /// <summary>
+    /// Строковая информация по карте.
+    /// </summary>
     public string CardInfo
     {
         get;
-        set => SetProperty(ref field, value);
+        private set => SetProperty(ref field, value);
     }
     
 
@@ -191,7 +199,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         
         IsProcessStarted = true;
         CurrentStepIndex = 0;
-        Steps[0].IsActive = true;
+        Steps![0].IsActive = true;
         
         _amountWhat = IsAmountMoney ? _amountMessages[0] : _amountMessages[1];
     }
@@ -435,7 +443,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
-            var currentNumber = chekNumberSetting.Value.Value + 1;
+
+            if (chekNumberSetting == null)
+                return;
+            
+            var currentNumber = chekNumberSetting.Value!.Value + 1;
             
             _builder.SetCheckNumber(currentNumber);
             var selling = _builder.Build();
@@ -471,9 +483,12 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         return str;
     }
 
+    /// <summary>
+    /// Запуск процесса оплаты по карте.
+    /// </summary>
     private async Task ProcessCardForPaymentAsync()
     {
-        _cardReadCts?.Cancel();
+        await _cardReadCts?.CancelAsync()!;
         _cardReadCts = new CancellationTokenSource();
 
         try
@@ -483,9 +498,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
                 cancellationToken: _cardReadCts.Token);
 
             if (!result.IsSuccess)
-            {
                 return;
-            }
 
             CardInfo = result.Card!.Uid;
             Steps[3].CompleteStepCommand.Execute(null);

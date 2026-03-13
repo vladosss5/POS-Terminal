@@ -17,14 +17,17 @@ public class RfListener : IOnRfListener.Stub
     private readonly ILogger _logger;
     private bool _completed;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public RfListener(
         TaskCompletionSource<CardReadResult> tcs,
         SunyardCardReaderService service,
         ILogger logger)
     {
-        _tcs = tcs ?? throw new ArgumentNullException(nameof(tcs));
-        _service = service ?? throw new ArgumentNullException(nameof(service));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _tcs = tcs;
+        _service = service;
+        _logger = logger;
     }
 
     /// <summary>
@@ -32,7 +35,9 @@ public class RfListener : IOnRfListener.Stub
     /// </summary>
     public override void OnCardPass(int cardType)
     {
-        if (_completed) return;
+        if (_completed) 
+            return;
+        
         _completed = true;
 
         try
@@ -50,11 +55,13 @@ public class RfListener : IOnRfListener.Stub
     }
 
     /// <summary>
-    /// Вызывается при ошибке или таймауте.
+    /// Вызывается при ошибке или тайм-ауте.
     /// </summary>
     public override void OnFail(int error, string? message)
     {
-        if (_completed) return;
+        if (_completed) 
+            return;
+        
         _completed = true;
 
         _logger.LogDebug("Card read failed: {Error} - {Message}", error, message);

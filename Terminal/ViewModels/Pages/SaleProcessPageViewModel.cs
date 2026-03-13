@@ -488,7 +488,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     private async Task ProcessCardForPaymentAsync()
     {
-        await _cardReadCts?.CancelAsync()!;
+        if (_cardReadCts != null)
+            await _cardReadCts?.CancelAsync()!;
+        
         _cardReadCts = new CancellationTokenSource();
 
         try

@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Android.OS;
 using Com.Sunyard.Api.Printer;
 using Microsoft.Extensions.Logging;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
-namespace Terminal.Android.Services.SunyardPrinter;
+namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 
 /// <summary>
 /// Слушатель событий печати для принтера Sunyard.

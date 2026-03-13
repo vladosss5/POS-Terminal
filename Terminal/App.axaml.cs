@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,15 +45,21 @@ public partial class App : Avalonia.Application
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
-        Logger = Services.GetRequiredService<ILogger<App>>();
+        if (Design.IsDesignMode) 
+        {
+            base.OnFrameworkInitializationCompleted();
+            return;
+        }
+        
+        Logger = Services!.GetRequiredService<ILogger<App>>();
         
         await InitializeDatabaseAsync();
 
         // Указание на первую открываемую страницу.
-        var navigationService = Services.GetRequiredService<INavigationService>();
+        var navigationService = Services!.GetRequiredService<INavigationService>();
         navigationService.NavigateTo<MainMenuPageViewModel>();
 
-        var mainViewModel = Services.GetRequiredService<MainViewModel>();
+        var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp)
         {

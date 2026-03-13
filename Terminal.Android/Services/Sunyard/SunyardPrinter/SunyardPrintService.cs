@@ -11,7 +11,7 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
-namespace Terminal.Android.Services.SunyardPrinter;
+namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 
 
 /// <summary>

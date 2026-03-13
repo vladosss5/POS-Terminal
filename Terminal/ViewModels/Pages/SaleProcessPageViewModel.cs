@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
+
+    /// <inheritdoc cref="ICardReaderService" />
+    private readonly ICardReaderService _cardReaderService;
     
     private readonly CultureInfo _russianCulture;
     
@@ -55,9 +59,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     };
     
     /// <summary>
-    /// Коллекция шагов заправки.
+    /// Токен отмены считывания карты.
     /// </summary>
-    [ObservableProperty] private ObservableCollection<StepViewModelBase> _steps;
+    private CancellationTokenSource? _cardReadCts;
 
     /// <summary>
     /// Индекс текущего шага.
@@ -94,7 +98,16 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
     [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
-
+    
+    /// <summary>
+    /// Коллекция шагов заправки.
+    /// </summary>
+    public ObservableCollection<StepViewModelBase> Steps
+    {
+        get;
+        private set => SetProperty(ref field, value);
+    }
+    
     /// <summary>
     /// Типы оплаты.
     /// </summary>
@@ -149,6 +162,16 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
                 _amountFuel = d;
         }
     }
+
+    
+    /// <summary>
+    /// Строковая информация по карте.
+    /// </summary>
+    public string CardInfo
+    {
+        get;
+        private set => SetProperty(ref field, value);
+    }
     
 
     /// <summary>
@@ -159,7 +182,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory, 
         ILogger<SaleProcessPageViewModel> logger, 
         IReceiptPrintService receiptPrintService, 
-        ISalesReceiptMappingService receiptMappingService) 
+        ISalesReceiptMappingService receiptMappingService, 
+        ICardReaderService cardReaderService) 
         : base(logger)
     {
         _builder = builder;
@@ -167,6 +191,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _logger = logger;
         _receiptPrintService = receiptPrintService;
         _receiptMappingService = receiptMappingService;
+        _cardReaderService = cardReaderService;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
@@ -174,7 +199,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         
         IsProcessStarted = true;
         CurrentStepIndex = 0;
-        Steps[0].IsActive = true;
+        Steps![0].IsActive = true;
         
         _amountWhat = IsAmountMoney ? _amountMessages[0] : _amountMessages[1];
     }
@@ -184,13 +209,25 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Указать тип оплаты.
     /// </summary>
     /// <param name="typeKey">Тип оплаты.</param>
-    public void SetPaymentType(string typeKey)
+    public async Task SetPaymentType(string typeKey)
     {
         if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
             return;
-        
+
         _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
-        Steps[0].CompleteStepCommand.Execute(null);
+        Steps[2].CompleteStepCommand.Execute(null);
+        
+        if (value.DerivedType == DerivedPaymentType.BankCard)
+        {
+            try
+            {
+                await ProcessCardForPaymentAsync();
+            }
+            catch(Exception e)
+            {
+                _logger.LogError($"{e.Message}, {e.InnerException}");
+            }
+        }
     }
 
     /// <summary>
@@ -202,7 +239,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _builder.SetResourceCode(resource);
 
         SelectedFuelType = resource;
-        Steps[1].CompleteStepCommand.Execute(null);
+        Steps[0].CompleteStepCommand.Execute(null);
     }
     
     /// <summary>
@@ -215,7 +252,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         var volume = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
         _builder.SetRequestedVolume(volume, IsAmountMoney);
         
-        Steps[2].CompleteStepCommand.Execute(null);
+        Steps[1].CompleteStepCommand.Execute(null);
     }
     
     /// <summary>
@@ -225,6 +262,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         if (CurrentStepIndex > 0)
         {
+            if (CurrentStepIndex == 3)
+                _cardReadCts?.Cancel();
+            
             Steps[CurrentStepIndex].IsActive = false;
         
             CurrentStepIndex--;
@@ -367,9 +407,10 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         Steps =
         [
-            new StepViewModelBase("Тип оплаты", OnStepCompleted),
             new StepViewModelBase("Тип топлива", OnStepCompleted),
-            new StepViewModelBase("Количество", OnStepCompleted)
+            new StepViewModelBase("Количество", OnStepCompleted),
+            new StepViewModelBase("Тип оплаты", OnStepCompleted),
+            new StepViewModelBase("Считывание", OnStepCompleted)
         ];
 
         NameCurrentPage = Steps[0].StepName;
@@ -402,7 +443,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
-            var currentNumber = chekNumberSetting.Value.Value + 1;
+
+            if (chekNumberSetting == null)
+                return;
+            
+            var currentNumber = chekNumberSetting.Value!.Value + 1;
             
             _builder.SetCheckNumber(currentNumber);
             var selling = _builder.Build();
@@ -437,6 +482,34 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
         return str;
     }
+
+    /// <summary>
+    /// Запуск процесса оплаты по карте.
+    /// </summary>
+    private async Task ProcessCardForPaymentAsync()
+    {
+        await _cardReadCts?.CancelAsync()!;
+        _cardReadCts = new CancellationTokenSource();
+
+        try
+        {
+            var result = await _cardReaderService.ReadCardAsync(
+                timeoutSeconds: 30,
+                cancellationToken: _cardReadCts.Token);
+
+            if (!result.IsSuccess)
+                return;
+
+            CardInfo = result.Card!.Uid;
+            Steps[3].CompleteStepCommand.Execute(null);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+    
 
     /// <summary>
     /// Печать чека о продаже.

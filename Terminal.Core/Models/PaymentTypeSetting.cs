@@ -5,12 +5,12 @@ namespace Terminal.Core.Models;
 /// <summary>
 /// Модель конфигурации типа оплаты.
 /// </summary>
-public class PaymentTypeSetting
+public record struct PaymentTypeSetting
 {
     /// <summary>
     /// Отображаемое наименование.
     /// </summary>
-    public string DisplayedName { get; set; } = null!;
+    public string DisplayedName { get; set; }
     
     /// <summary>
     /// Базовый тип.

@@ -46,6 +46,8 @@ public static class ServiceCollectionExtensions
 
         collection.AddSingleton<SettingsMenuPageViewModel>();
         collection.AddSingleton<SettingsMenuPageView>();
+
+        collection.AddTransient<PaymentTypesSettingsPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

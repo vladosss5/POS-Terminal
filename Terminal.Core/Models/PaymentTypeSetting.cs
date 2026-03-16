@@ -5,7 +5,7 @@ namespace Terminal.Core.Models;
 /// <summary>
 /// Модель конфигурации типа оплаты.
 /// </summary>
-public record struct PaymentTypeSetting
+public class PaymentTypeSetting
 {
     /// <summary>
     /// Отображаемое наименование.

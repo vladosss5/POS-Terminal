@@ -39,7 +39,7 @@ public class SettingsMenuPageViewModel : PageViewModelBase
                 Title = "Типы оплаты",
                 Command = new RelayCommand(delegate
                 {
-                    Navigation.NavigateTo<SaleProcessPageViewModel>(); // TODO: Сменить страницу
+                    Navigation.NavigateTo<PaymentTypesSettingsPageViewModel>();
                 })
             }
         ]);

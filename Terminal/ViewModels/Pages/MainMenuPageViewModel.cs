@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -117,7 +114,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Настройка"
+                Title = "Настройки",
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<SettingsMenuPageViewModel>();
+                })
             },
             new MainMenuItemModel
             {

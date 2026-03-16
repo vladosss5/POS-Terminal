@@ -40,6 +40,9 @@ public static class ServiceCollectionExtensions
 
         collection.AddTransient<PrintingReceiptPageViewModel>();
         collection.AddTransient<PrintingReceiptPageView>();
+
+        collection.AddSingleton<SettingsMenuPageViewModel>();
+        collection.AddSingleton<SettingsMenuPageView>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

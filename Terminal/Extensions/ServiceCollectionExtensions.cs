@@ -11,6 +11,7 @@ using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
 using Terminal.Data.Context;
+using Terminal.Services;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -29,6 +30,8 @@ public static class ServiceCollectionExtensions
     /// <param name="collection">Дополняемая коллекция сервисов.</param>
     public static void AddCommonServices(this IServiceCollection collection)
     {
+        collection.AddSingleton<IConfigurationService, ConfigurationService>();
+        
         // View и ViewModel
         collection.AddTransient<MainViewModel>();
 

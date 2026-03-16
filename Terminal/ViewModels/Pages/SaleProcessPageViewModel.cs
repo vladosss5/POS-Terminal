@@ -41,6 +41,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="ICardReaderService" />
     private readonly ICardReaderService _cardReaderService;
+
+    /// <inheritdoc cref="IConfigurationService" />
+    private readonly IConfigurationService _configurationService;
     
     private readonly CultureInfo _russianCulture;
     
@@ -111,14 +114,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Типы оплаты.
     /// </summary>
-    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; } = new()
-    {
-        { "Наличные", (BasePaymentType.Cash, DerivedPaymentType.Cash) },
-        { "Топливная", (BasePaymentType.NonCash, DerivedPaymentType.FuelCard) },
-        { "Ведомость", (BasePaymentType.NonCash, DerivedPaymentType.FuelStatement) },
-        { "Талоны", (BasePaymentType.NonCash, DerivedPaymentType.FuelTalon) },
-        { "Банковская карта", (BasePaymentType.NonCash, DerivedPaymentType.BankCard) }
-    };
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; } = new();
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -183,7 +179,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         ILogger<SaleProcessPageViewModel> logger, 
         IReceiptPrintService receiptPrintService, 
         ISalesReceiptMappingService receiptMappingService, 
-        ICardReaderService cardReaderService) 
+        ICardReaderService cardReaderService, IConfigurationService configurationService) 
         : base(logger)
     {
         _builder = builder;
@@ -192,9 +188,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _receiptPrintService = receiptPrintService;
         _receiptMappingService = receiptMappingService;
         _cardReaderService = cardReaderService;
+        _configurationService = configurationService;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
+        InitializePaymentTypes();
         _ = LoadDataAsync();
         
         IsProcessStarted = true;
@@ -418,6 +416,28 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         ];
 
         NameCurrentPage = Steps[0].StepName;
+    }
+
+    /// <summary>
+    /// Подгрузить методы оплаты из конфигурации.
+    /// </summary>
+    private void InitializePaymentTypes()
+    {
+        var paymentTypeList = _configurationService.GetPaymentTypeSettings();
+
+        if (paymentTypeList == null)
+        {
+            _logger.LogError("Не удалось загрузить список типов оплат.");
+            return;
+        }
+        
+        foreach (var paymentType in paymentTypeList)
+        {
+            if (!paymentType.IsEnabled)
+                continue;
+            
+            PaymentTypesDictionary.Add(paymentType.DisplayedName, (paymentType.BaseType, paymentType.DerivedType));
+        }
     }
 
     /// <summary>

@@ -1,7 +1,7 @@
 ﻿namespace Terminal.Core.Enums;
 
 /// <summary>
-/// Настройки терминала.
+/// Номера настроек терминала.
 /// </summary>
 public enum SettingsKey
 {

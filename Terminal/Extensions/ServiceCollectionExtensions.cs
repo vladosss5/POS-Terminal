@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        collection.AddTransient<ICardReaderService, CommonCardReaderService>();
     }
     
     /// <summary>

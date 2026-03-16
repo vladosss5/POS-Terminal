@@ -35,13 +35,4 @@ public partial class ReceiptPreviewDialogWindow : Window
         ShowDialog(owner);
         return _tcs.Task;
     }
-
-    /// <summary>
-    /// Показывает диалог как обычное окно (для Android).
-    /// </summary>
-    public Task<bool> ShowModalDialog()
-    {
-        Show();
-        return _tcs.Task;
-    }
 }

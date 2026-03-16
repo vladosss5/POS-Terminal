@@ -215,18 +215,22 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             return;
 
         _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
-        Steps[2].CompleteStepCommand.Execute(null);
         
-        if (value.DerivedType == DerivedPaymentType.BankCard)
+        if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
         {
             try
             {
+                Steps[2].CompleteStepCommand.Execute(null);
                 await ProcessCardForPaymentAsync();
             }
             catch(Exception e)
             {
                 _logger.LogError($"{e.Message}, {e.InnerException}");
             }
+        }
+        else
+        {
+            await CompleteRefuelingProcess();
         }
     }
 

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Terminal.Application.Interfaces.Services;
@@ -24,7 +26,7 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Словарь настроек приложения.
     /// </summary>
-    private Dictionary<string, object> _config = new();
+    private Dictionary<string, JsonElement> _config = new();
 
     /// <summary>
     /// Конструктор.
@@ -37,27 +39,57 @@ public class ConfigurationService : IConfigurationService
     /// <inheritdoc/>
     public async Task LoadAsync()
     {
-        if (!File.Exists(ConfigFilePath))
+        var assembly = typeof(ConfigurationService).Assembly;
+        var stream = assembly.GetManifestResourceStream(ConfigFilePath);
+
+        
+        if (stream == null)
         {
-            _config = new Dictionary<string, object>();
-            return;
+            var mainAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "Terminal");
+                    
+            if (mainAssembly != null)
+                stream = mainAssembly.GetManifestResourceStream(ConfigFilePath);
         }
 
-        await using var stream = File.OpenRead(ConfigFilePath);
-        
-        _config = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(stream)
-                  ?? new Dictionary<string, object>();
+        using var reader = new StreamReader(stream);
+        var json = reader.ReadToEnd();
+        _config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
     }
     
     /// <inheritdoc/>
     public async Task SaveAsync()
     {
+        Stream? stream;
+    
+        var assembly = typeof(ConfigurationService).Assembly;
+        stream = assembly.GetManifestResourceStream(ConfigFilePath);
+    
+        if (stream == null)
+        {
+            var mainAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "Terminal");
+                    
+            if (mainAssembly != null)
+                stream = mainAssembly.GetManifestResourceStream(ConfigFilePath);
+        }
+    
+        if (stream != null)
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), "config_temp.json");
+        
+            await using var fileStream = File.Create(tempPath);
+            await JsonSerializer.SerializeAsync(fileStream, _config, _jsonOptions);
+        
+            return;
+        }
+    
         var directory = Path.GetDirectoryName(ConfigFilePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             Directory.CreateDirectory(directory);
 
-        await using var stream = File.Create(ConfigFilePath);
-        await JsonSerializer.SerializeAsync(stream, _config, _jsonOptions);
+        await using var fileStream2 = File.Create(ConfigFilePath);
+        await JsonSerializer.SerializeAsync(fileStream2, _config, _jsonOptions);
     }
     
     /// <inheritdoc/>

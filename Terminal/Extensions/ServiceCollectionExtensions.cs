@@ -52,8 +52,11 @@ public static class ServiceCollectionExtensions
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
         
+        // Мапперы
+        collection.AddSingleton<ISettingPaymentTypeMapper, SettingPaymentTypeMapper>();
+        collection.AddSingleton<ISalesReceiptMappingService, SalesReceiptMappingService>();
+        
         // Сервисы логики
-        collection.AddTransient<ISalesReceiptMappingService, SalesReceiptMappingService>();
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();

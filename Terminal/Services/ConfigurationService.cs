@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Models;
 
 namespace Terminal.Services;
 
@@ -14,79 +11,72 @@ namespace Terminal.Services;
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
-    /// <inheritdoc cref="ILogger" />
-    private readonly ILogger<ConfigurationService> _logger;
+    /// <summary>
+    /// Относительный путь к файлу конфигурации
+    /// </summary>
+    private const string ConfigFilePath = "appsettings.json";
     
     /// <summary>
-    /// Секции конфигурации.
+    /// Настройки сериализации.
     /// </summary>
-    private readonly Dictionary<string, object> _sections = new();
+    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+
+    /// <summary>
+    /// Словарь настроек приложения.
+    /// </summary>
+    private Dictionary<string, object> _config = new();
 
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService(ILogger<ConfigurationService> logger)
+    public ConfigurationService()
     {
-        _logger = logger;
-        LoadConfiguration();
-    }
-    
-    /// <summary>
-    /// Загрузить конфигурацию.
-    /// </summary>
-    private void LoadConfiguration()
-    {
-        try
-        {
-            var assembly = typeof(ConfigurationService).Assembly;
-            var stream = assembly.GetManifestResourceStream("appsettings.json");
-            
-            if (stream == null)
-            {
-                var mainAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                    .FirstOrDefault(a => a.GetName().Name == "Terminal");
-                    
-                if (mainAssembly != null)
-                    stream = mainAssembly.GetManifestResourceStream("appsettings.json");
-            }
-
-            if (stream == null)
-            {
-                _logger.LogWarning("Configuration file appsettings.json not found in embedded resources");
-                return;
-            }
-
-            using var reader = new StreamReader(stream);
-            var json = reader.ReadToEnd();
-            var config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-
-            if (config == null)
-                return;
-                    
-            foreach (var kvp in config)
-                _sections[kvp.Key] = kvp.Value;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load configuration");
-        }
+        _ = LoadAsync();
     }
     
     /// <inheritdoc/>
-    public T? GetSection<T>(string sectionName) where T : class
+    public async Task LoadAsync()
     {
-        if (!_sections.TryGetValue(sectionName, out var section))
-            return null;
+        if (!File.Exists(ConfigFilePath))
+        {
+            _config = new Dictionary<string, object>();
+            return;
+        }
 
-        var json = JsonSerializer.Serialize(section);
-        return JsonSerializer.Deserialize<T>(json);
+        await using var stream = File.OpenRead(ConfigFilePath);
+        
+        _config = await JsonSerializer.DeserializeAsync<Dictionary<string, object>>(stream)
+                  ?? new Dictionary<string, object>();
     }
-
+    
     /// <inheritdoc/>
-    public IEnumerable<PaymentTypeSetting>? GetPaymentTypeSettings()
+    public async Task SaveAsync()
     {
-        var paymentTypes = GetSection<List<PaymentTypeSetting>>("PaymentTypes");
+        var directory = Path.GetDirectoryName(ConfigFilePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
 
-        return paymentTypes;
+        await using var stream = File.Create(ConfigFilePath);
+        await JsonSerializer.SerializeAsync(stream, _config, _jsonOptions);
+    }
+    
+    /// <inheritdoc/>
+    public Task<T?> GetValueAsync<T>(string key, T? defaultValue = default)
+    {
+        if (_config.TryGetValue(key, out var value) && value is JsonElement element)
+        {
+            return Task.FromResult(element.Deserialize<T>() ?? defaultValue);
+        }
+        
+        return Task.FromResult(defaultValue);
+    }
+    
+    /// <inheritdoc/>
+    public async Task SetValueAsync<T>(string key, T value)
+    {
+        var jsonElement = JsonSerializer.SerializeToElement(value);
+        _config[key] = jsonElement;
+
+        await SaveAsync();
     }
 }

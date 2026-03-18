@@ -1,6 +1,4 @@
-﻿using Terminal.Core.Models;
-
-namespace Terminal.Application.Interfaces.Services;
+﻿namespace Terminal.Application.Interfaces.Services;
 
 /// <summary>
 /// Сервис для работы с конфигурацией приложения.
@@ -8,16 +6,34 @@ namespace Terminal.Application.Interfaces.Services;
 public interface IConfigurationService
 {
     /// <summary>
-    /// Получить секцию конфигурации по модели.
+    /// Загрузить конфигурацию.
     /// </summary>
-    /// <param name="sectionName">Наименование секции.</param>
-    /// <typeparam name="T">Модель значения секции.</typeparam>
-    /// <returns>Секция конфигурации.</returns>
-    public T? GetSection<T>(string sectionName) where T : class;
+    /// <remarks>
+    /// Вызывается в конструкторе сервиса, но можно вызвать для принудительной загрузки.
+    /// </remarks>
+    public Task LoadAsync();
+
+    /// <summary>
+    /// Получить значение по ключу.
+    /// </summary>
+    /// <param name="key">Ключ.</param>
+    /// <param name="defaultValue"></param>
+    /// <typeparam name="T">Тип для десериализации.</typeparam>
+    /// <returns></returns>
+    public Task<T?> GetValueAsync<T>(string key, T? defaultValue = default);
     
     /// <summary>
-    /// Получить включенные типы оплат.
+    /// Установить значение по ключу.
     /// </summary>
-    /// <returns>Множество моделей настроек типа оплаты.</returns>
-    public IEnumerable<PaymentTypeSetting>? GetPaymentTypeSettings();
+    /// <param name="key">Ключ.</param>
+    /// <param name="value">Значение.</param>
+    /// <typeparam name="T">Тип для десериализации.</typeparam>
+    /// <returns></returns>
+    public Task SetValueAsync<T>(string key, T value);
+    
+    /// <summary>
+    /// Сохранить изменения в файл.
+    /// </summary>
+    /// <returns></returns>
+    public Task SaveAsync();
 }

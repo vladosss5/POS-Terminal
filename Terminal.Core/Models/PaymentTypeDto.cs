@@ -5,13 +5,13 @@ namespace Terminal.Core.Models;
 /// <summary>
 /// Модель конфигурации типа оплаты.
 /// </summary>
-public class PaymentTypeSetting
+public class PaymentTypeDto
 {
     /// <summary>
     /// Отображаемое наименование.
     /// </summary>
-    public string DisplayedName { get; set; }
-    
+    public string DisplayedName { get; set; } = null!;
+
     /// <summary>
     /// Базовый тип.
     /// </summary>

@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
         collection.AddTransient<ICardReaderService, CommonCardReaderService>();
+        collection.AddSingleton<IHashService, HashService>();
     }
     
     /// <summary>

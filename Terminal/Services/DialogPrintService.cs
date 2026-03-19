@@ -2,8 +2,11 @@
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
@@ -41,15 +44,26 @@ public class DialogPrintService : IReceiptPrintService
         try
         {
             var receiptText = FormatReceiptText(salesReceipt);
-            
-            var dialog = new ReceiptPreviewDialogWindow(receiptText);
-            
+
             bool result;
             
             if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var dialog = new ReceiptPreviewDialogWindow(receiptText);
                 result = await dialog.ShowModalDialog(desktop.MainWindow!);
+            }
             else
-                result = await dialog.ShowModalDialog();
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                        "Чек",
+                        receiptText,
+                        ButtonEnum.Ok,
+                        Icon.None,
+                        WindowStartupLocation.CenterOwner)
+                    .ShowAsync();
+                result = true;
+            }
+            
             
             return new PrintResult
             {

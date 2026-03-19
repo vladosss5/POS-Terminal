@@ -14,6 +14,7 @@ using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
+using Terminal.Core.Models;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -44,6 +45,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
+
+    /// <inheritdoc cref="ISettingPaymentTypeMapper" />
+    private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
     
     private readonly CultureInfo _russianCulture;
     
@@ -179,7 +183,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         ILogger<SaleProcessPageViewModel> logger, 
         IReceiptPrintService receiptPrintService, 
         ISalesReceiptMappingService receiptMappingService, 
-        ICardReaderService cardReaderService, IConfigurationService configurationService) 
+        ICardReaderService cardReaderService, 
+        IConfigurationService configurationService, 
+        ISettingPaymentTypeMapper settingPaymentTypeMapper) 
         : base(logger)
     {
         _builder = builder;
@@ -189,6 +195,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _receiptMappingService = receiptMappingService;
         _cardReaderService = cardReaderService;
         _configurationService = configurationService;
+        _settingPaymentTypeMapper = settingPaymentTypeMapper;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
@@ -213,18 +220,22 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             return;
 
         _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
-        Steps[2].CompleteStepCommand.Execute(null);
         
-        if (value.DerivedType == DerivedPaymentType.BankCard)
+        if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
         {
             try
             {
+                Steps[2].CompleteStepCommand.Execute(null);
                 await ProcessCardForPaymentAsync();
             }
             catch(Exception e)
             {
                 _logger.LogError($"{e.Message}, {e.InnerException}");
             }
+        }
+        else
+        {
+            await CompleteRefuelingProcess();
         }
     }
 
@@ -417,23 +428,19 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Подгрузить методы оплаты из конфигурации.
     /// </summary>
-    private void InitializePaymentTypes()
+    private async Task InitializePaymentTypes()
     {
-        var paymentTypeList = _configurationService.GetPaymentTypeSettings();
-
-        if (paymentTypeList == null)
-        {
-            _logger.LogError("Не удалось загрузить список типов оплат.");
-            return;
-        }
+        var paymentTypes = await _configurationService.GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
         
-        foreach (var paymentType in paymentTypeList)
-        {
-            if (!paymentType.IsEnabled)
-                continue;
-            
+        if (paymentTypes == null)
+            return;
+        
+        var dtos = paymentTypes
+            .Where(x => x.IsEnabled)
+            .Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
+    
+        foreach (var paymentType in dtos) 
             PaymentTypesDictionary.Add(paymentType.DisplayedName, (paymentType.BaseType, paymentType.DerivedType));
-        }
     }
 
     /// <summary>

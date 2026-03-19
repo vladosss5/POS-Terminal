@@ -129,6 +129,14 @@ public partial class App : Avalonia.Application
                     scripts.Add(settingsTableFillingScript);
             }
 
+            if (!await context.Users.AnyAsync())
+            {
+                var usersTableFillingScript = await ReadSqlScriptFromResourceAsync("FillUsersTable.sql");
+
+                if (usersTableFillingScript != null)
+                    scripts.Add(usersTableFillingScript);
+            }
+
             var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();
             var rowsAffected = 0;
             

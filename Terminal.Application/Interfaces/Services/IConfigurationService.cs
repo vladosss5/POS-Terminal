@@ -11,7 +11,7 @@ public interface IConfigurationService
     /// <param name="key">Ключ.</param>
     /// <param name="defaultValue"></param>
     /// <typeparam name="T">Тип для десериализации.</typeparam>
-    /// <returns></returns>
+    /// <returns>Десериализованный объект настройки.</returns>
     public Task<T?> GetValueAsync<T>(string key, T? defaultValue = default);
     
     /// <summary>
@@ -20,6 +20,5 @@ public interface IConfigurationService
     /// <param name="key">Ключ.</param>
     /// <param name="value">Значение.</param>
     /// <typeparam name="T">Тип для десериализации.</typeparam>
-    /// <returns></returns>
     public Task SetValueAsync<T>(string key, T value);
 }

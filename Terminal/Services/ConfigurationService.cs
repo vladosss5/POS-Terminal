@@ -95,6 +95,7 @@ public class ConfigurationService : IConfigurationService
     private async Task SaveToFileSystemAsync()
     {
         var directory = Path.GetDirectoryName(_configFilePath);
+        
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             Directory.CreateDirectory(directory);
 

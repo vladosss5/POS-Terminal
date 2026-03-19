@@ -431,10 +431,14 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     private async Task InitializePaymentTypes()
     {
         var paymentTypes = await _configurationService.GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
+        
+        if (paymentTypes == null)
+            return;
+        
         var dtos = paymentTypes
             .Where(x => x.IsEnabled)
             .Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
-        
+    
         foreach (var paymentType in dtos) 
             PaymentTypesDictionary.Add(paymentType.DisplayedName, (paymentType.BaseType, paymentType.DerivedType));
     }

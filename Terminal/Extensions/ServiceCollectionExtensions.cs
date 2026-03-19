@@ -45,7 +45,6 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<PrintingReceiptPageView>();
 
         collection.AddSingleton<SettingsMenuPageViewModel>();
-        collection.AddSingleton<SettingsMenuPageView>();
 
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
         

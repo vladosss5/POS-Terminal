@@ -10,18 +10,29 @@ using Terminal.Core.Models;
 
 namespace Terminal.ViewModels.Pages;
 
+/// <summary>
+/// Бизнес логика страницы настройки типов оплаты.
+/// </summary>
 public class PaymentTypesSettingsPageViewModel : PageViewModelBase
 {
+    /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
 
+    /// <inheritdoc cref="ISettingPaymentTypeMapper" />
     private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
 
+    /// <summary>
+    /// Коллекция типов оплаты.
+    /// </summary>
     public ObservableCollection<PaymentTypeDto> PaymentTypes
     {
         get;
         set => SetProperty(ref field, value);
     } = [];
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public PaymentTypesSettingsPageViewModel(
         ILogger<PageViewModelBase> logger, 
         IConfigurationService configurationService, 
@@ -35,15 +46,18 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
 
         _ = InitializeData();
     }
-
-    private async Task InitializeData()
+    
+    /// <summary>
+    /// Сменить статус активности у типа оплаты.
+    /// </summary>
+    /// <param name="paymentType">Dto типа оплаты.</param>
+    public async Task SwitchPaymentTypeStatus(PaymentTypeDto paymentType)
     {
-        var paymentTypesFromConfig = await _configurationService
-            .GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
+        var paymentTypeIndex = PaymentTypes.IndexOf(paymentType);
+        PaymentTypes[paymentTypeIndex].IsEnabled = !PaymentTypes[paymentTypeIndex].IsEnabled;
 
-        var dtos = paymentTypesFromConfig.Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
-        
-        PaymentTypes.AddRange(dtos);
+        var listSettingsPaymentType = PaymentTypes.Select(_settingPaymentTypeMapper.DtoToSettingPaymentType);
+        await _configurationService.SetValueAsync("PaymentTypes", listSettingsPaymentType);
     }
     
     /// <summary>
@@ -54,12 +68,16 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
         Navigation.GoBack();
     }
     
-    public async Task SwitchPaymentTypeStatus(PaymentTypeDto paymentType)
+    /// <summary>
+    /// Инициализировать данные.
+    /// </summary>
+    private async Task InitializeData()
     {
-        var paymentTypeIndex = PaymentTypes.IndexOf(paymentType);
-        PaymentTypes[paymentTypeIndex].IsEnabled = !PaymentTypes[paymentTypeIndex].IsEnabled;
+        var paymentTypesFromConfig = await _configurationService
+            .GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
 
-        var listSettingsPaymentType = PaymentTypes.Select(_settingPaymentTypeMapper.DtoToSettingPaymentType);
-        await _configurationService.SetValueAsync("PaymentTypes", listSettingsPaymentType);
+        var dtos = paymentTypesFromConfig.Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
+        
+        PaymentTypes.AddRange(dtos);
     }
 }

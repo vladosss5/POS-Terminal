@@ -21,12 +21,12 @@
                        Text="{Binding Title}" 
                        Classes="page-title"/>
             
-            <!-- <Button Grid.Column="1" HorizontalAlignment="Right" -->
-            <!--         Command="{Binding StepBack}" -->
-            <!--         MaxHeight="60" -->
-            <!--         Background="Transparent" CornerRadius="50"> -->
-            <!--     <Image Source="../../Assets/arrow-left.png"/> -->
-            <!-- </Button> -->
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60" Background="Transparent" CornerRadius="50"
+                    IsVisible="{Binding !Steps[0].IsActive}">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
         </Grid>
         
         <!-- Тело страницы -->

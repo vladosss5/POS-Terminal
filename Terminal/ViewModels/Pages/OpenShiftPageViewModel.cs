@@ -104,6 +104,18 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         Steps[0].CompleteStepCommand.ExecuteAsync(null);
     }
 
+    public void StepBack()
+    {
+        Steps[CurrentStepIndex].IsActive = false;
+        
+        CurrentStepIndex--;
+        Title = Steps[CurrentStepIndex].StepName;
+        
+        var prevStep = Steps[CurrentStepIndex];
+        prevStep.IsActive = true;
+        prevStep.IsCompleted = false;
+    }
+
     private void AddCharInPassword(string element)
     {
         Password += element;
@@ -128,10 +140,11 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     private async Task InitializeData()
     {
         Steps = [
-            new StepViewModelBase("Пользователи", OnStepCompleted),
-            new StepViewModelBase("Аутентификация", OnStepCompleted)
+            new StepViewModelBase("Кассиры", OnStepCompleted),
+            new StepViewModelBase("Пароль", OnStepCompleted)
         ];
 
+        Title = Steps[0].StepName;
         Steps[0].IsActive = true;
 
         await using var db = await _dbFactory.CreateDbContextAsync();

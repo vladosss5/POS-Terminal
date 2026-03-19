@@ -1,0 +1,69 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
+             x:Class="Terminal.Views.Pages.PaymentTypesSettingsPageView"
+             x:DataType="pages:PaymentTypesSettingsPageViewModel"
+             x:Name="ThisControl">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <!-- Тело -->
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl ItemsSource="{Binding PaymentTypes}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="1" Rows="0" 
+                                     HorizontalAlignment="Stretch" 
+                                     VerticalAlignment="Top" 
+                                     Margin="20"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border HorizontalAlignment="Stretch"
+                                Background="WhiteSmoke"
+                                BorderBrush="DarkGray"
+                                CornerRadius="20"
+                                Margin="3" Padding="10" >
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayedName}"
+                                           Classes="text-items-control" 
+                                           HorizontalAlignment="Left" 
+                                           VerticalAlignment="Center"/>
+                                
+                                <ToggleSwitch Grid.Column="1" OnContent="" OffContent=""
+                                              Command="{Binding Path=#ThisControl.((pages:PaymentTypesSettingsPageViewModel)DataContext).SwitchPaymentTypeStatus}"
+                                              CommandParameter="{Binding}"
+                                              IsChecked="{Binding IsEnabled, Mode=OneWay}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

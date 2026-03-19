@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Terminal.Android.Services;
+using Terminal.Android.Services.DisplayMode;
 using Terminal.Android.Services.Sunyard.SunyardCardReader;
 using Terminal.Android.Services.Sunyard.SunyardPrinter;
 using Terminal.Application.Interfaces.Services;
@@ -31,6 +32,7 @@ public static class AndroidServiceCollectionExtensions
         {
             collection.AddTransient<IReceiptPrintService, SunyardPrintService>();
             collection.AddTransient<ICardReaderService, SunyardCardReaderService>();
+            collection.AddSingleton<IDisplayModeSettingService, SunyardDisplayModeService>();
         }
     }
 }

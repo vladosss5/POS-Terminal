@@ -1,11 +1,14 @@
 ﻿using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using Android.Views;
 using Avalonia;
 using Avalonia.Android;
+using Com.Sunyard.Api.System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Devices;
 using Terminal.Android.Extensions;
+using Terminal.Android.Services.DisplayMode;
 using Terminal.Extensions;
 
 namespace Terminal.Android;
@@ -32,6 +35,13 @@ public class MainActivity : AvaloniaMainActivity<App>
             services.AddServicesForSunyard();
         
         App.Services = services.BuildServiceProvider();
+
+        var sdms = App.Services.GetRequiredService<IDisplayModeSettingService>();
+
+        if (!sdms.IsFullScreenMode)
+        {
+            sdms.EnterFullScreenModeAsync();
+        }
         
         base.OnCreate(savedInstanceState);
     }

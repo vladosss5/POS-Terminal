@@ -27,6 +27,14 @@ public class SettingsMenuPageViewModel : PageViewModelBase
         Title = "Настройки";
         AddItemsIntoMenu();
     }
+    
+    /// <summary>
+    /// Перейти к прошлому шагу.
+    /// </summary>
+    public void StepBack()
+    {
+        Navigation.GoBack();
+    }
 
     /// <summary>
     /// Создать кнопки главного меню.

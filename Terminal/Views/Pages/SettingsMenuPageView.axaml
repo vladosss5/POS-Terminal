@@ -8,7 +8,20 @@
              x:Class="Terminal.Views.Pages.SettingsMenuPageView">
     
     <Grid RowDefinitions="Auto, *">
-        <TextBlock Grid.Row="0" Text="{Binding Title}" Classes="page-title"/>
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0"  
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
         <ScrollViewer Grid.Row="1">
             <ItemsControl ItemsSource="{Binding MenuItems}">
                 <ItemsControl.ItemsPanel>

@@ -1,0 +1,110 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             xmlns:models="clr-namespace:Terminal.Core.Models;assembly=Terminal.Core"
+             xmlns:converters="clr-namespace:Terminal.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.OpenShiftPageView"
+             x:DataType="pages:OpenShiftPageViewModel"
+             x:Name="ThisUserControl">
+    
+    <UserControl.Resources>
+        <converters:PathToImageConverter x:Key="PathToImageConverter"/>
+    </UserControl.Resources>
+   
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <!-- <Button Grid.Column="1" HorizontalAlignment="Right" -->
+            <!--         Command="{Binding StepBack}" -->
+            <!--         MaxHeight="60" -->
+            <!--         Background="Transparent" CornerRadius="50"> -->
+            <!--     <Image Source="../../Assets/arrow-left.png"/> -->
+            <!-- </Button> -->
+        </Grid>
+        
+        <!-- Тело страницы -->
+        <ScrollViewer Grid.Row="1" Background="WhiteSmoke"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch">
+            <Panel>
+                <!-- Выбор учётной записи -->
+                <ItemsControl ItemsSource="{Binding Users}" 
+                              IsVisible="{Binding Steps[0].IsActive}" 
+                              Margin="10">
+                    
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="1"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).SelectUser}"
+                                CommandParameter="{Binding}" 
+                                HorizontalAlignment="Stretch" 
+                                CornerRadius="20"
+                                Margin="0,5,0,0" Padding="10" 
+                                Background="WhiteSmoke"
+                                BorderBrush="DarkGray">
+                                <TextBlock Text="{Binding Name}"/>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Ввод пароля -->
+                <Grid RowDefinitions="*, Auto"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch"
+                      IsVisible="{Binding Steps[1].IsActive}">
+                    
+                    <!-- Вывод введённого -->
+                    <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
+                        <TextBlock Text="{Binding PasswordChar}"
+                                   HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                   FontSize="60" TextWrapping="Wrap"
+                                   Background="Transparent" TextAlignment="Center"/>
+                    </Border>
+                    
+                    <!-- Кнопки ввода -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3" 
+                                             Rows="4"
+                                             HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Stretch"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:LoginButton">
+                                <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).ButtonClick}"
+                                        CommandParameter="{Binding}"
+                                        Classes="number-button">
+                                    <Panel>
+                                        <TextBlock Text="{Binding Content}" Classes="text-button"
+                                                   IsVisible="{Binding !ContentIsImage}"/>
+                                        
+                                        <Image Source="{Binding Content, Converter={StaticResource PathToImageConverter}}" 
+                                               IsVisible="{Binding ContentIsImage}"/>
+                                    </Panel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Panel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

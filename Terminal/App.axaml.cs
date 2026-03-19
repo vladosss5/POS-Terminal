@@ -57,7 +57,7 @@ public partial class App : Avalonia.Application
 
         // Указание на первую открываемую страницу.
         var navigationService = Services!.GetRequiredService<INavigationService>();
-        navigationService.NavigateTo<MainMenuPageViewModel>();
+        navigationService.NavigateTo<OpenShiftPageViewModel>();
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 

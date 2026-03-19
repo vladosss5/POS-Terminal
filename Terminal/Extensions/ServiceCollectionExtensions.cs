@@ -47,9 +47,12 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<SettingsMenuPageViewModel>();
 
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
+
+        collection.AddTransient<OpenShiftPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
+        collection.AddSingleton<PathToImageConverter>();
         
         // Мапперы
         collection.AddSingleton<ISettingPaymentTypeMapper, SettingPaymentTypeMapper>();

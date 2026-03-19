@@ -6,14 +6,6 @@
 public interface IConfigurationService
 {
     /// <summary>
-    /// Загрузить конфигурацию.
-    /// </summary>
-    /// <remarks>
-    /// Вызывается в конструкторе сервиса, но можно вызвать для принудительной загрузки.
-    /// </remarks>
-    public Task LoadAsync();
-
-    /// <summary>
     /// Получить значение по ключу.
     /// </summary>
     /// <param name="key">Ключ.</param>
@@ -30,10 +22,4 @@ public interface IConfigurationService
     /// <typeparam name="T">Тип для десериализации.</typeparam>
     /// <returns></returns>
     public Task SetValueAsync<T>(string key, T value);
-    
-    /// <summary>
-    /// Сохранить изменения в файл.
-    /// </summary>
-    /// <returns></returns>
-    public Task SaveAsync();
 }

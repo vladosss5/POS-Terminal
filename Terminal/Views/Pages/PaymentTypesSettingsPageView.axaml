@@ -10,8 +10,7 @@
     
     <UserControl.Styles>
         <Style Selector="TextBlock.text-items-control">
-            <Setter Property="Margin" Value="3"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="18"/>
         </Style>
     </UserControl.Styles>
     
@@ -45,14 +44,21 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border HorizontalAlignment="Stretch"
-                                Margin="5">
+                                Background="WhiteSmoke"
+                                BorderBrush="DarkGray"
+                                CornerRadius="20"
+                                Margin="3" Padding="10" >
                             <Grid ColumnDefinitions="*, Auto">
                                 <TextBlock Grid.Column="0" Text="{Binding DisplayedName}"
-                                           Classes="text-items-control" HorizontalAlignment="Left"/>
-                                <ToggleButton Grid.Column="1" 
+                                           Classes="text-items-control" 
+                                           HorizontalAlignment="Left" 
+                                           VerticalAlignment="Center"/>
+                                
+                                <ToggleSwitch Grid.Column="1" OnContent="" OffContent=""
                                               Command="{Binding Path=#ThisControl.((pages:PaymentTypesSettingsPageViewModel)DataContext).SwitchPaymentTypeStatus}"
                                               CommandParameter="{Binding}"
-                                              IsChecked="{Binding IsEnabled, Mode=OneWay}"/>
+                                              IsChecked="{Binding IsEnabled, Mode=OneWay}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

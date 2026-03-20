@@ -118,7 +118,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Типы оплаты.
     /// </summary>
-    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; } = new();
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -199,7 +203,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
-        InitializePaymentTypes();
+        _ = InitializePaymentTypes();
         _ = LoadDataAsync();
         
         IsProcessStarted = true;
@@ -438,9 +442,12 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         var dtos = paymentTypes
             .Where(x => x.IsEnabled)
             .Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
-    
-        foreach (var paymentType in dtos) 
-            PaymentTypesDictionary.Add(paymentType.DisplayedName, (paymentType.BaseType, paymentType.DerivedType));
+        
+        var newDictionary = dtos.ToDictionary(
+            paymentType => paymentType.DisplayedName, 
+            paymentType => (paymentType.BaseType, paymentType.DerivedType));
+
+        PaymentTypesDictionary = newDictionary;
     }
 
     /// <summary>

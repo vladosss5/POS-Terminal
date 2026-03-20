@@ -38,9 +38,7 @@ public class AuthService : IAuthService
             return false;
         
         if (!_hashService.VerifyPasswordWithMd5(password, user.UserPassword!))
-        {
             return false;
-        }
 
         CurrentUser = user;
 

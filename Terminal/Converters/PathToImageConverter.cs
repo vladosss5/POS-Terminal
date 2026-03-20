@@ -6,26 +6,32 @@ using Avalonia.Platform;
 
 namespace Terminal.Converters;
 
+/// <summary>
+/// Конвертор названия изображения в изображение из Assets.
+/// </summary>
 public class PathToImageConverter : IValueConverter
 {
+    /// <summary>
+    /// Конвертировать.
+    /// </summary>
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string path && !string.IsNullOrEmpty(path))
+        if (value is not string path || string.IsNullOrEmpty(path)) return null;
+        try
         {
-            try
-            {
-                var uri = new Uri($"avares://Terminal/Assets/{path}");
-                using var stream = AssetLoader.Open(uri);
-                return new Bitmap(stream);
-            }
-            catch
-            {
-                return null;
-            }
+            var uri = new Uri($"avares://Terminal/Assets/{path}");
+            using var stream = AssetLoader.Open(uri);
+            return new Bitmap(stream);
         }
-        return null;
+        catch
+        {
+            return null;
+        }
     }
 
+    /// <summary>
+    /// Конвертировать наоборот. Не реализовано.
+    /// </summary>
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }

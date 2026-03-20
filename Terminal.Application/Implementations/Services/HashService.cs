@@ -13,11 +13,9 @@ public class HashService : IHashService
         if (string.IsNullOrEmpty(input))
             return string.Empty;
 
-        using var md5 = MD5.Create();
-        
         var inputBytes = Encoding.UTF8.GetBytes(input);
-        var hashBytes = md5.ComputeHash(inputBytes);
-            
+        var hashBytes = MD5.HashData(inputBytes);
+
         return Convert.ToHexString(hashBytes).ToLower();
     }
 

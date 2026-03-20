@@ -170,11 +170,17 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         Navigation.NavigateTo<MainMenuPageViewModel>();
     }
 
+    /// <summary>
+    /// Удалить последний символ из пароля.
+    /// </summary>
     private void RemoveLastChar()
     {
         Password = Password[..^1];
     }
     
+    /// <summary>
+    /// Инициаизировать данные.
+    /// </summary>
     private async Task InitializeData()
     {
         Steps = [

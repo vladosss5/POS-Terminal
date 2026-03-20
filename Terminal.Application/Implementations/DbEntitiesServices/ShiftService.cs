@@ -64,7 +64,7 @@ public class ShiftService : IShiftService
         await using var db = await _dbFactory.CreateDbContextAsync();
 
         var lastShiftNumber = await db.Settings.FindAsync(SettingsKey.Shift);
-        var shiftKey = lastShiftNumber != null ? lastShiftNumber.Value++ : 1;
+        var shiftKey = lastShiftNumber != null ? ++lastShiftNumber.Value : 1;
         var shopKey = await _configurationService.GetValueAsync<int>("ShopKey");
         var operatorId = _authService.CurrentUser != null ? _authService.CurrentUser!.UserId : 0;
         

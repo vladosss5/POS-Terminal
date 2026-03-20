@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
@@ -21,7 +22,13 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IAuthService"/>
     private readonly IAuthService _authService;
+    
+    /// <inheritdoc cref="IShiftService"/>
+    private readonly IShiftService _shiftService;
 
+    /// <summary>
+    /// Выбранная учётная запись.
+    /// </summary>
     private User _selectedUser;
     
     /// <summary>
@@ -65,6 +72,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// </summary>
     public ObservableCollection<User> Users { get; set; } = [];
 
+    /// <summary>
+    /// Коллекция кнопок для авторизации.
+    /// </summary>
     public LoginButton[] LoginButtons { get; private set; }
 
 
@@ -74,15 +84,21 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     public OpenShiftPageViewModel(
         ILogger<PageViewModelBase> logger, 
         IDbContextFactory<DataContext> dbFactory, 
-        IAuthService authService) 
+        IAuthService authService, 
+        IShiftService shiftService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
         _authService = authService;
+        _shiftService = shiftService;
 
         _ = InitializeData();
     }
 
+    /// <summary>
+    /// Нажатие на кнопку.
+    /// </summary>
+    /// <param name="button">Кнопка на которую нажали.</param>
     public async Task ButtonClick(LoginButton button)
     {
         switch (button.Type)
@@ -99,12 +115,19 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         }
     }
     
+    /// <summary>
+    /// Выбрать учётную запись для входа.
+    /// </summary>
+    /// <param name="user">Учётная запись оператора.</param>
     public void SelectUser(User user)
     {
         _selectedUser = user;
         Steps[0].CompleteStepCommand.ExecuteAsync(null);
     }
 
+    /// <summary>
+    /// Переместиться на страницу назад.
+    /// </summary>
     public void StepBack()
     {
         Steps[CurrentStepIndex].IsActive = false;
@@ -117,11 +140,18 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         prevStep.IsCompleted = false;
     }
 
+    /// <summary>
+    /// Добваить символ к паролю.
+    /// </summary>
+    /// <param name="element">Символ.</param>
     private void AddCharInPassword(string element)
     {
         Password += element;
     }
 
+    /// <summary>
+    /// Пройти аутентификацию.
+    /// </summary>
     private async Task Authentication()
     {
         var authorizeIsSuccess = await _authService.LoginWithPasswordAsync(_selectedUser.Name!, Password);
@@ -131,6 +161,11 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Пароли не совпали").ShowAsync();
             return;
         }
+
+        var openedShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+        
+        if (openedShift == null)
+            await _shiftService.OpenShiftAsync();
         
         Navigation.NavigateTo<MainMenuPageViewModel>();
     }

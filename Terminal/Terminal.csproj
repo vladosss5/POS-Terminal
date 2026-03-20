@@ -13,6 +13,7 @@
     <ItemGroup>
         <EmbeddedResource Include="SQL\1_pos.terminal.sql" />
         <EmbeddedResource Include="SQL\FillSettingsTable.sql" />
+        <EmbeddedResource Include="SQL\FillUsersTable.sql" />
     </ItemGroup>
 
     <ItemGroup>

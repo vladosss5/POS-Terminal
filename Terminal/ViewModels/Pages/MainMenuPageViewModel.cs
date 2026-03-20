@@ -4,6 +4,7 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
@@ -21,6 +22,12 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
 
+    ///<inheritdoc cref="IAuthService"/>
+    private readonly IAuthService _authService;
+
+    ///<inheritdoc cref="IShiftService"/>
+    private readonly IShiftService _shiftService;
+
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -32,11 +39,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     public MainMenuPageViewModel(
         IFileExplorer fileExplorer, 
-        ILogger<MainMenuPageViewModel> logger) 
+        ILogger<MainMenuPageViewModel> logger, 
+        IAuthService authService, 
+        IShiftService shiftService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
         _logger = logger;
+        _authService = authService;
+        _shiftService = shiftService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -61,6 +72,22 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
         await MessageBoxManager.GetMessageBoxStandard("Успех", "Каталог скопирован!").ShowAsync();
     }
+    
+    /// <summary>
+    /// Закрыть смену.
+    /// </summary>
+    private async Task ShiftClose()
+    {
+        await _authService.LogoutAsync();
+
+        var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+        if (openShift != null)
+            await _shiftService.CloseShiftAsync(openShift);
+
+        Navigation.NavigateTo<OpenShiftPageViewModel>();
+    }
+    
 
     /// <summary>
     /// Создать кнопки главного меню.
@@ -90,7 +117,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Закрыть смену"
+                Title = "Закрыть смену",
+                Command = new AsyncRelayCommand(ShiftClose)
             },
             new MainMenuItemModel
             {

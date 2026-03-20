@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Implementations.Builders;
+using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Implementations.Mappers;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
@@ -47,9 +49,12 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<SettingsMenuPageViewModel>();
 
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
+
+        collection.AddTransient<OpenShiftPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
+        collection.AddSingleton<PathToImageConverter>();
         
         // Мапперы
         collection.AddSingleton<ISettingPaymentTypeMapper, SettingPaymentTypeMapper>();
@@ -61,6 +66,9 @@ public static class ServiceCollectionExtensions
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
         collection.AddTransient<ICardReaderService, CommonCardReaderService>();
+        collection.AddSingleton<IHashService, HashService>();
+        collection.AddSingleton<IAuthService, AuthService>();
+        collection.AddTransient<IShiftService, ShiftService>();
     }
     
     /// <summary>

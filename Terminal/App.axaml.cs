@@ -57,7 +57,7 @@ public partial class App : Avalonia.Application
 
         // Указание на первую открываемую страницу.
         var navigationService = Services!.GetRequiredService<INavigationService>();
-        navigationService.NavigateTo<MainMenuPageViewModel>();
+        navigationService.NavigateTo<OpenShiftPageViewModel>();
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
@@ -127,6 +127,14 @@ public partial class App : Avalonia.Application
 
                 if (settingsTableFillingScript != null) 
                     scripts.Add(settingsTableFillingScript);
+            }
+
+            if (!await context.Users.AnyAsync())
+            {
+                var usersTableFillingScript = await ReadSqlScriptFromResourceAsync("FillUsersTable.sql");
+
+                if (usersTableFillingScript != null)
+                    scripts.Add(usersTableFillingScript);
             }
 
             var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();

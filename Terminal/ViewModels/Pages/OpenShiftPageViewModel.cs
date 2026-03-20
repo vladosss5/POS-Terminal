@@ -19,8 +19,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
-    /// <inheritdoc cref="IHashService"/>
-    private readonly IHashService _hashService;
+    /// <inheritdoc cref="IAuthService"/>
+    private readonly IAuthService _authService;
 
     private User _selectedUser;
     
@@ -73,11 +73,12 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// </summary>
     public OpenShiftPageViewModel(
         ILogger<PageViewModelBase> logger, 
-        IDbContextFactory<DataContext> dbFactory, IHashService hashService) 
+        IDbContextFactory<DataContext> dbFactory, 
+        IAuthService authService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
-        _hashService = hashService;
+        _authService = authService;
 
         _ = InitializeData();
     }
@@ -123,7 +124,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
     private async Task Authentication()
     {
-        if (!_hashService.VerifyPasswordWithMd5(Password, _selectedUser.UserPassword!))
+        var authorizeIsSuccess = await _authService.LoginWithPasswordAsync(_selectedUser.Name!, Password);
+        
+        if (!authorizeIsSuccess)
         {
             await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Пароли не совпали").ShowAsync();
             return;

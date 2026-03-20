@@ -125,6 +125,11 @@ public class Selling
     /// Ключ персоны.
     /// </summary>
     public int? PersonKey { get; set; }
+    
+    /// <summary>
+    /// Имя оператора.
+    /// </summary>
+    [NotMapped] public string? PersonName { get; set; }
 
     /// <summary>
     /// ID приложения.

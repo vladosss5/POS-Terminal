@@ -41,6 +41,13 @@ public interface ISellingBuilder
     public void SetRequestedVolume(string volume, bool isCost);
 
     /// <summary>
+    /// Задать оператора.
+    /// </summary>
+    /// <param name="personKey">Ключ оператора.</param>
+    /// <param name="personName">Имя оператора.</param>
+    public void SetPersonKey(int personKey, string? personName);
+
+    /// <summary>
     /// Собрать итоговый объект процесса заправки.
     /// </summary>
     /// <returns>Модель процесса заправки.</returns>

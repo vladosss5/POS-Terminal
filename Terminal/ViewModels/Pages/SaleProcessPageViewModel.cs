@@ -48,6 +48,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="ISettingPaymentTypeMapper" />
     private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
+
+    /// <inheritdoc cref="IAuthService" />
+    private readonly IAuthService _authService;
     
     private readonly CultureInfo _russianCulture;
     
@@ -189,7 +192,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         ISalesReceiptMappingService receiptMappingService, 
         ICardReaderService cardReaderService, 
         IConfigurationService configurationService, 
-        ISettingPaymentTypeMapper settingPaymentTypeMapper) 
+        ISettingPaymentTypeMapper settingPaymentTypeMapper, 
+        IAuthService authService) 
         : base(logger)
     {
         _builder = builder;
@@ -200,6 +204,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _cardReaderService = cardReaderService;
         _configurationService = configurationService;
         _settingPaymentTypeMapper = settingPaymentTypeMapper;
+        _authService = authService;
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
@@ -484,6 +489,10 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             var currentNumber = chekNumberSetting.Value!.Value + 1;
             
             _builder.SetCheckNumber(currentNumber);
+            
+            if (_authService.CurrentUser != null) 
+                _builder.SetPersonKey(_authService.CurrentUser.UserId, _authService.CurrentUser.Name);
+            
             var selling = _builder.Build();
             await db.AddAsync(selling);
 

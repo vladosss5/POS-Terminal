@@ -37,8 +37,7 @@ public static class ServiceCollectionExtensions
         // View и ViewModel
         collection.AddTransient<MainViewModel>();
 
-        collection.AddSingleton<MainMenuPageView>();
-        collection.AddSingleton<MainMenuPageViewModel>();
+        collection.AddTransient<MainMenuPageViewModel>();
 
         collection.AddTransient<SaleProcessPageViewModel>();
         collection.AddTransient<SaleProcessPageView>();

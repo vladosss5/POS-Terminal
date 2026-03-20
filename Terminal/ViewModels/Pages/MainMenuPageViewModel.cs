@@ -32,7 +32,24 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// Коллекция пунктов главного меню.
     /// </summary>
     public ObservableCollection<MainMenuItemModel> MenuItems { get; } = new();
+
+    /// <summary>
+    /// Номер смены.
+    /// </summary>
+    public string ShiftNumber
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
     
+    /// <summary>
+    /// Показывать ли номер смены.
+    /// </summary>
+    public bool ShowShiftNumber 
+    { 
+        get; 
+        set => SetProperty(ref field, value); 
+    }
     
     /// <summary>
     /// Конструктор.
@@ -49,6 +66,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _authService = authService;
         _shiftService = shiftService;
         Title = "Главная";
+
+        _ = InitializeAsync();
 
         AddItemsIntoMenu();
     }
@@ -87,7 +106,17 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
         Navigation.NavigateTo<OpenShiftPageViewModel>();
     }
-    
+
+    private async Task InitializeAsync()
+    {
+        var shift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+        if (shift != null)
+        {
+            ShiftNumber = shift.ShiftKey.ToString();
+            ShowShiftNumber = true;
+        }
+    }
 
     /// <summary>
     /// Создать кнопки главного меню.

@@ -35,13 +35,6 @@ public class MainActivity : AvaloniaMainActivity<App>
             services.AddServicesForSunyard();
         
         App.Services = services.BuildServiceProvider();
-
-        var sdms = App.Services.GetRequiredService<IDisplayModeSettingService>();
-
-        if (!sdms.IsFullScreenMode)
-        {
-            sdms.EnterFullScreenModeAsync();
-        }
         
         base.OnCreate(savedInstanceState);
     }

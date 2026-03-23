@@ -4,6 +4,7 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
@@ -21,23 +22,52 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
 
+    ///<inheritdoc cref="IAuthService"/>
+    private readonly IAuthService _authService;
+
+    ///<inheritdoc cref="IShiftService"/>
+    private readonly IShiftService _shiftService;
+
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
     public ObservableCollection<MainMenuItemModel> MenuItems { get; } = new();
+
+    /// <summary>
+    /// Номер смены.
+    /// </summary>
+    public string ShiftNumber
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
     
+    /// <summary>
+    /// Показывать ли номер смены.
+    /// </summary>
+    public bool ShowShiftNumber 
+    { 
+        get; 
+        set => SetProperty(ref field, value); 
+    }
     
     /// <summary>
     /// Конструктор.
     /// </summary>
     public MainMenuPageViewModel(
         IFileExplorer fileExplorer, 
-        ILogger<MainMenuPageViewModel> logger) 
+        ILogger<MainMenuPageViewModel> logger, 
+        IAuthService authService, 
+        IShiftService shiftService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
         _logger = logger;
+        _authService = authService;
+        _shiftService = shiftService;
         Title = "Главная";
+
+        _ = InitializeAsync();
 
         AddItemsIntoMenu();
     }
@@ -60,6 +90,32 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
 
         await MessageBoxManager.GetMessageBoxStandard("Успех", "Каталог скопирован!").ShowAsync();
+    }
+    
+    /// <summary>
+    /// Закрыть смену.
+    /// </summary>
+    private async Task ShiftClose()
+    {
+        await _authService.LogoutAsync();
+
+        var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+        if (openShift != null)
+            await _shiftService.CloseShiftAsync(openShift);
+
+        Navigation.NavigateTo<OpenShiftPageViewModel>();
+    }
+
+    private async Task InitializeAsync()
+    {
+        var shift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+        if (shift != null)
+        {
+            ShiftNumber = shift.ShiftKey.ToString();
+            ShowShiftNumber = true;
+        }
     }
 
     /// <summary>
@@ -90,7 +146,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Закрыть смену"
+                Title = "Закрыть смену",
+                Command = new AsyncRelayCommand(ShiftClose)
             },
             new MainMenuItemModel
             {

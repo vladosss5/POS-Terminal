@@ -14,7 +14,7 @@ public class SalesReceiptMappingService : ISalesReceiptMappingService
         var checkNumber = selling.CheckNumber != null ? selling.CheckNumber.ToString()! : "Номер не определён";
         var terminalNumber = selling.TerminalKey != null ? selling.TerminalKey.ToString()! : "Неизвестный номер";
         var cardNumber = selling.IssuerCardId != null ? selling.IssuerCardId.Value.ToString() : "0";
-        var currentOperator = selling.PersonKey != null ? selling.PersonKey.ToString()! : "Неизвестный оператор";
+        var currentOperator = !string.IsNullOrEmpty(selling.PersonName) ? selling.PersonName : "Неизвестный оператор";
         
         var sellingPrice = selling.ShopCost ?? 0 / selling.Amount ?? 0;
         var discount = selling.ShopBaseCost ?? 0 - selling.ShopCost ?? 0;

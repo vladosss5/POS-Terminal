@@ -56,6 +56,13 @@ public class SellingBuilder : ISellingBuilder
     }
 
     /// <inheritdoc/>
+    public void SetPersonKey(int personKey, string? personName)
+    {
+        _selling.PersonName = personName;
+        _selling.PersonKey = personKey;
+    }
+
+    /// <inheritdoc/>
     public Selling Build()
     {
         _selling.TransactionDatetime = DateTime.Now;

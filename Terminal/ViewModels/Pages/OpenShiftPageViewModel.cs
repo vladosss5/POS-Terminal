@@ -44,8 +44,11 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         get;
         set
         {
-            if (SetProperty(ref field, value))
-                PasswordChar = new string('*', value.Length);
+            if (!SetProperty(ref field, value)) 
+                return;
+            
+            PasswordChar = new string('*', value.Length);
+            PasswordIsEmpty = string.IsNullOrEmpty(field);
         }
     }
 
@@ -55,8 +58,17 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     public string PasswordChar
     {
         get;
-        set => SetProperty(ref field, value);
+        private set => SetProperty(ref field, value);
     }
+
+    /// <summary>
+    /// Пароль пустой?
+    /// </summary>
+    public bool PasswordIsEmpty
+    {
+        get; 
+        private set => SetProperty(ref field, value);
+    } = true;
     
     /// <summary>
     /// Коллекция шагов авторизации.

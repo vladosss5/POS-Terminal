@@ -1,21 +1,18 @@
 ﻿using Android.App;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
 using Avalonia;
 using Avalonia.Android;
-using Com.Sunyard.Api.System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Devices;
 using Terminal.Android.Extensions;
-using Terminal.Android.Services.DisplayMode;
 using Terminal.Extensions;
 
 namespace Terminal.Android;
 
 [Activity(
     Label = "Terminal.Android",
-    Theme = "@style/MyTheme.NoActionBar",
+    Theme = "@style/Theme.AppCompat.DayNight.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]

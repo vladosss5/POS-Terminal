@@ -1,4 +1,5 @@
 ﻿using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
 namespace Terminal.Application.Implementations.Services;
@@ -20,5 +21,5 @@ public class CommonCardReaderService : ICardReaderService
         throw new NotImplementedException();
     }
 
-    public event EventHandler<string>? StatusChanged;
+    public event EventHandler<CardReaderStatus>? StatusChanged;
 }

@@ -1,4 +1,5 @@
-﻿using Terminal.Core.Models;
+﻿using Terminal.Core.Enums;
+using Terminal.Core.Models;
 
 namespace Terminal.Application.Interfaces.Services;
 
@@ -20,5 +21,5 @@ public interface ICardReaderService : IDisposable
     /// <summary>
     /// Событие изменения статуса.
     /// </summary>
-    event EventHandler<string>? StatusChanged;
+    event EventHandler<CardReaderStatus>? StatusChanged;
 }

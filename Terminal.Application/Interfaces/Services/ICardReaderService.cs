@@ -20,5 +20,5 @@ public interface ICardReaderService : IDisposable
     /// <summary>
     /// Событие изменения статуса.
     /// </summary>
-    event EventHandler<string>? StatusChanged;
+    event EventHandler<CardReaderStatus>? StatusChanged;
 }

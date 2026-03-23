@@ -44,7 +44,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// <summary>
     /// Событие, возникающее при изменении статуса операции считывания.
     /// </summary>
-    public event EventHandler<string>? StatusChanged;
+    public event EventHandler<CardReaderStatus>? StatusChanged;
 
     /// <summary>
     /// Конструктор.
@@ -64,11 +64,12 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     {
         try
         {
-            OnStatusChanged("Connecting to reader...");
+            OnStatusChanged(CardReaderStatus.Connecting);
             await ConnectAsync(cancellationToken).ConfigureAwait(false);
+
             CheckConnection();
 
-            OnStatusChanged("Please bring card near the reader...");
+            OnStatusChanged(CardReaderStatus.WaitingCard);
 
             var tcs = new TaskCompletionSource<CardReadResult>();
 
@@ -93,19 +94,19 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
 
             var result = await tcs.Task.ConfigureAwait(false);
 
-            OnStatusChanged(result.IsSuccess ? "Card read successfully" : $"Failed: {result.ErrorMessage}");
+            OnStatusChanged(result.IsSuccess ? CardReaderStatus.SuccessfullyRead : CardReaderStatus.ErrorRead);
 
             return result;
         }
         catch (OperationCanceledException)
         {
-            OnStatusChanged("Operation cancelled");
+            OnStatusChanged(CardReaderStatus.OperationCancelled);
             return CardReadResult.Cancelled();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during card reading");
-            OnStatusChanged("Internal error");
+            OnStatusChanged(CardReaderStatus.InternalError);
             return CardReadResult.HardwareError(ex.Message);
         }
         finally
@@ -210,9 +211,11 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
         throw new InvalidOperationException("Card reader is not connected.");
     }
 
-    private void OnStatusChanged(string status)
+    private void OnStatusChanged(CardReaderStatus status)
     {
-        _logger.LogDebug("Reader status: {Status}", status);
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug($"Reader status: {status}");
+        
         StatusChanged?.Invoke(this, status);
     }
 

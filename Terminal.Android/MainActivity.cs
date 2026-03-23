@@ -12,7 +12,7 @@ namespace Terminal.Android;
 
 [Activity(
     Label = "Terminal.Android",
-    Theme = "@style/MyTheme.NoActionBar",
+    Theme = "@style/Theme.AppCompat.DayNight.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
     ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]

@@ -34,7 +34,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Значение таймера по умолчанию.
     /// </summary>
-    private readonly int _defaultRemainingSeconds = 30;
+    private readonly int _defaultRemainingSeconds;
     
     /// <summary>
     /// Делегат для обработки нажатия Enter.
@@ -141,13 +141,19 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory, 
         IAuthService authService, 
         IShiftService shiftService, 
-        ICardReaderService cardReaderService) 
+        ICardReaderService cardReaderService, 
+        IConfigurationService configurationService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
         _authService = authService;
         _shiftService = shiftService;
         _cardReaderService = cardReaderService;
+        
+        _defaultRemainingSeconds = Task.Run(() => 
+                configurationService.GetValueAsync<int>("SecondsAuthenticationCanceled"))
+            .GetAwaiter()
+            .GetResult();
 
         _ = InitializeData();
     }

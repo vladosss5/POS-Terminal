@@ -1,2 +1,2 @@
 ﻿insert into users (userid, terminalkey, name, cardnumber, usertype, userpassword, issuerid, organisationid, ecardnumber) values 
-(38, null, 'Оператор', 0, 1, 'B59C67BF196A4758191E42F76670CEBA', null, null, null)
+(38, null, 'Оператор', 77310317, 1, 'B59C67BF196A4758191E42F76670CEBA', null, null, null)

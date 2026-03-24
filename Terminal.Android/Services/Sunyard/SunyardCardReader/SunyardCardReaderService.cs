@@ -17,19 +17,15 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     private readonly ILogger<SunyardCardReaderService> _logger;
     private readonly Context _context;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
-    private readonly string _servicePackage = "com.sunyard.deviceservice";
-    private readonly string _serviceAction = "com.sunyard.api.device_service";
     
+    private const string ServicePackage = "com.sunyard.deviceservice";
+    private const string ServiceAction = "com.sunyard.api.device_service";
+
     private IDeviceService? _deviceService;
     private IRFCardReader? _rfReader;
     private SunyardServiceConnection? _serviceConnection;
     private bool _isConnected;
-    private readonly object _lock = new();
-
-    /// <summary>
-    /// Возвращает true, если сервис подключён к системному сервису Sunyard и считыватель доступен.
-    /// </summary>
-    public bool IsConnected => _isConnected;
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// Событие, возникающее при изменении состояния подключения к считывателю.
@@ -155,8 +151,8 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
                 }
             });
 
-        var intent = new Intent(_serviceAction);
-        intent.SetPackage(_servicePackage);
+        var intent = new Intent(ServiceAction);
+        intent.SetPackage(ServicePackage);
         
         if (!_context.BindService(intent, _serviceConnection, Bind.AutoCreate))
         {

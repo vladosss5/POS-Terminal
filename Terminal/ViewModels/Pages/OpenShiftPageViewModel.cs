@@ -328,21 +328,12 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
                 {
                     await AuthenticationWithCard(cardResult.Card!.Uid);
                 }
-                else if (cardResult.ErrorType == CardReaderErrorType.Timeout)
-                {
-                    await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Вышло время ожидания").ShowAsync();
-                    Navigation.NavigateTo<OpenShiftPageViewModel>();
-                }
-                else if (cardResult.ErrorMessage != null)
+                else if (cardResult.ErrorMessage != null && cardResult.ErrorType != CardReaderErrorType.Timeout)
                 {
                     await MessageBoxManager.GetMessageBoxStandard("Ошибка", cardResult.ErrorMessage).ShowAsync();
                     StartParallelInput();
                 }
             }
-        }
-        catch(OperationCanceledException)
-        {
-            // Ignore
         }
         catch (Exception e)
         {
@@ -406,7 +397,11 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             
             if (RemainingSeconds <= 0 && !cancellationToken.IsCancellationRequested)
             {
-                _inputCancellationTokenSource?.Cancel();
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                {
+                    await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Вышло время ожидания").ShowAsync();
+                    Navigation.NavigateTo<OpenShiftPageViewModel>();
+                });
             }
         }
         catch (OperationCanceledException)
@@ -421,7 +416,10 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     private void ResetInputTimer()
     {
         _timeoutCancellationTokenSource?.Cancel();
+        _timeoutCancellationTokenSource?.Dispose();
+        
         _timeoutCancellationTokenSource = new CancellationTokenSource();
+        
         RemainingSeconds = _defaultRemainingSeconds;
         
         _ = StartCountdownTimer(_timeoutCancellationTokenSource.Token);

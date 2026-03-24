@@ -70,10 +70,16 @@
                     
                     <!-- Вывод введённого -->
                     <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
-                        <TextBlock Text="{Binding PasswordChar}"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                                   FontSize="60" TextWrapping="Wrap"
-                                   Background="Transparent" TextAlignment="Center"/>
+                        <Panel>
+                            <TextBlock Text="Ведите пароль или приложите карту" IsVisible="{Binding PasswordIsEmpty}"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                       FontSize="30" TextWrapping="Wrap"
+                                       Background="Transparent" TextAlignment="Center"/>
+                            <TextBlock Text="{Binding PasswordChar}" IsVisible="{Binding !PasswordIsEmpty}"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                                       FontSize="60" TextWrapping="Wrap"
+                                       Background="Transparent" TextAlignment="Center"/>                            
+                        </Panel>
                     </Border>
                     
                     <!-- Кнопки ввода -->

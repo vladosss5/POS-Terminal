@@ -17,19 +17,15 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     private readonly ILogger<SunyardCardReaderService> _logger;
     private readonly Context _context;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
-    private readonly string _servicePackage = "com.sunyard.deviceservice";
-    private readonly string _serviceAction = "com.sunyard.api.device_service";
     
+    private const string ServicePackage = "com.sunyard.deviceservice";
+    private const string ServiceAction = "com.sunyard.api.device_service";
+
     private IDeviceService? _deviceService;
     private IRFCardReader? _rfReader;
     private SunyardServiceConnection? _serviceConnection;
     private bool _isConnected;
-    private readonly object _lock = new();
-
-    /// <summary>
-    /// Возвращает true, если сервис подключён к системному сервису Sunyard и считыватель доступен.
-    /// </summary>
-    public bool IsConnected => _isConnected;
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// Событие, возникающее при изменении состояния подключения к считывателю.
@@ -44,7 +40,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// <summary>
     /// Событие, возникающее при изменении статуса операции считывания.
     /// </summary>
-    public event EventHandler<string>? StatusChanged;
+    public event EventHandler<CardReaderStatus>? StatusChanged;
 
     /// <summary>
     /// Конструктор.
@@ -64,11 +60,12 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     {
         try
         {
-            OnStatusChanged("Connecting to reader...");
+            OnStatusChanged(CardReaderStatus.Connecting);
             await ConnectAsync(cancellationToken).ConfigureAwait(false);
+
             CheckConnection();
 
-            OnStatusChanged("Please bring card near the reader...");
+            OnStatusChanged(CardReaderStatus.WaitingCard);
 
             var tcs = new TaskCompletionSource<CardReadResult>();
 
@@ -93,19 +90,19 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
 
             var result = await tcs.Task.ConfigureAwait(false);
 
-            OnStatusChanged(result.IsSuccess ? "Card read successfully" : $"Failed: {result.ErrorMessage}");
+            OnStatusChanged(result.IsSuccess ? CardReaderStatus.SuccessfullyRead : CardReaderStatus.ErrorRead);
 
             return result;
         }
         catch (OperationCanceledException)
         {
-            OnStatusChanged("Operation cancelled");
+            OnStatusChanged(CardReaderStatus.OperationCancelled);
             return CardReadResult.Cancelled();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during card reading");
-            OnStatusChanged("Internal error");
+            OnStatusChanged(CardReaderStatus.InternalError);
             return CardReadResult.HardwareError(ex.Message);
         }
         finally
@@ -154,8 +151,8 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
                 }
             });
 
-        var intent = new Intent(_serviceAction);
-        intent.SetPackage(_servicePackage);
+        var intent = new Intent(ServiceAction);
+        intent.SetPackage(ServicePackage);
         
         if (!_context.BindService(intent, _serviceConnection, Bind.AutoCreate))
         {
@@ -210,9 +207,11 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
         throw new InvalidOperationException("Card reader is not connected.");
     }
 
-    private void OnStatusChanged(string status)
+    private void OnStatusChanged(CardReaderStatus status)
     {
-        _logger.LogDebug("Reader status: {Status}", status);
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug($"Reader status: {status}");
+        
         StatusChanged?.Invoke(this, status);
     }
 

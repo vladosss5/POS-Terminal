@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models.Settings;
 
@@ -21,6 +22,8 @@ public class ConfigurationService : IConfigurationService
     /// Путь к конфигурации в файловой системе.
     /// </summary>
     private readonly string _configFilePath;
+
+    private readonly ILogger<ConfigurationService> _logger;
     
     /// <summary>
     /// Настройки сериализации.
@@ -49,8 +52,9 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService()
+    public ConfigurationService(ILogger<ConfigurationService> logger)
     {
+        _logger = logger;
         var baseDirectory = OperatingSystem.IsAndroid() 
             ? Environment.GetFolderPath(Environment.SpecialFolder.Personal) 
             : AppContext.BaseDirectory;
@@ -136,9 +140,9 @@ public class ConfigurationService : IConfigurationService
             var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
             File.WriteAllText(_configFilePath, json);
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            // Логирование ошибки при необходимости
+            _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
         }
     }
 

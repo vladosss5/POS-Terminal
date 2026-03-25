@@ -18,7 +18,11 @@ public class CommonCardReaderService : ICardReaderService
         int timeoutSeconds = 30, 
         CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return Task.Run(() =>
+        {
+            Task.Delay(timeoutSeconds, cancellationToken);
+            return new CardReadResult{};
+        }, cancellationToken);
     }
 
     public event EventHandler<CardReaderStatus>? StatusChanged;

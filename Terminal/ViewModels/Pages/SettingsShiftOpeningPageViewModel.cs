@@ -50,16 +50,15 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
         
         _configurationService = configurationService;
         
-        _ = InitializeDataAsync();
+        InitializeData();
     }
 
     /// <summary>
     /// Инициализировать данные.
     /// </summary>
-    private async Task InitializeDataAsync()
+    private void InitializeData()
     {
-        var timeOutValue = await _configurationService
-            .GetValueAsync<int>("SecondsAuthenticationCanceled");
+        var timeOutValue = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
         SecondsAuthenticationCanceled = new TimeoutOption { Seconds = timeOutValue };
         TimeoutValues.Add(SecondsAuthenticationCanceled);
@@ -69,8 +68,8 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
     /// Сохранить выбор времени ожидания ввода пароля.
     /// </summary>
     /// <param name="value">Кол-во секунд.</param>
-    private async Task SaveSecondsAuthenticationCanceledAsync(int value)
+    private async Task SaveSecondsAuthenticationCanceledAsync(short value)
     {
-        await _configurationService.SetValueAsync("SecondsAuthenticationCanceled", value);
+        _configurationService.CurrentSetting.SecondsAuthenticationCanceled = value;
     }
 }

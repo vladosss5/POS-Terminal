@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -44,7 +45,7 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _settingPaymentTypeMapper = settingPaymentTypeMapper;
 
-        _ = InitializeData();
+        InitializeData();
     }
     
     /// <summary>
@@ -57,7 +58,7 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
         PaymentTypes[paymentTypeIndex].IsEnabled = !PaymentTypes[paymentTypeIndex].IsEnabled;
 
         var listSettingsPaymentType = PaymentTypes.Select(_settingPaymentTypeMapper.DtoToSettingPaymentType);
-        await _configurationService.SetValueAsync("PaymentTypes", listSettingsPaymentType);
+        _configurationService.CurrentSetting.PaymentTypes = listSettingsPaymentType.ToList();
     }
     
     /// <summary>
@@ -71,10 +72,9 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
     /// <summary>
     /// Инициализировать данные.
     /// </summary>
-    private async Task InitializeData()
+    private void InitializeData()
     {
-        var paymentTypesFromConfig = await _configurationService
-            .GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
+        var paymentTypesFromConfig = _configurationService.CurrentSetting.PaymentTypes;
 
         var dtos = paymentTypesFromConfig.Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
         

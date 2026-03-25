@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Terminal.Core.Models;
+namespace Terminal.Core.Models.Settings;
 
 /// <summary>
 /// Модель конфигурации типа оплаты.

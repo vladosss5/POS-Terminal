@@ -8,7 +8,7 @@ public record struct TimeoutOption
     /// <summary>
     /// Кол-во секунд.
     /// </summary>
-    public int Seconds { get; set; }
+    public short Seconds { get; set; }
     
     /// <summary>
     /// Св-во для показа секунд.

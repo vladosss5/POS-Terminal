@@ -149,11 +149,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _authService = authService;
         _shiftService = shiftService;
         _cardReaderService = cardReaderService;
-        
-        _defaultRemainingSeconds = Task.Run(() => 
-                configurationService.GetValueAsync<int>("SecondsAuthenticationCanceled"))
-            .GetAwaiter()
-            .GetResult();
+
+        _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
         _ = InitializeData();
     }

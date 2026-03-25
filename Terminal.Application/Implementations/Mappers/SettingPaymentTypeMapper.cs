@@ -1,6 +1,7 @@
 ﻿using Terminal.Application.Interfaces.Mappers;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 
 namespace Terminal.Application.Implementations.Mappers;
 

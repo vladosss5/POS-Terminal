@@ -14,7 +14,7 @@ using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -439,7 +439,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     private async Task InitializePaymentTypes()
     {
-        var paymentTypes = await _configurationService.GetValueAsync<List<SettingPaymentType>>("PaymentTypes");
+        var paymentTypes = _configurationService.CurrentSetting.PaymentTypes;
         
         if (paymentTypes == null)
             return;

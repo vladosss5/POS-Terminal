@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Models.Settings;
 
 namespace Terminal.Services;
 
@@ -22,126 +22,154 @@ public class ConfigurationService : IConfigurationService
     /// Путь к конфигурации в файловой системе.
     /// </summary>
     private readonly string _configFilePath;
+
+    private readonly ILogger<ConfigurationService> _logger;
     
     /// <summary>
     /// Настройки сериализации.
     /// </summary>
-    private readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+    private readonly JsonSerializerOptions _jsonOptions = new() 
+    { 
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true 
+    };
 
     /// <summary>
-    /// Словарь настроек приложения.
+    /// Флаг, указывающий, что настройки загружены.
     /// </summary>
-    private Dictionary<string, JsonElement>? _config = new();
+    private bool _isLoaded;
     
-    private readonly Lazy<Task> _initialization;
+    /// <summary>
+    /// Объект для синхронизации потоков.
+    /// </summary>
+    private readonly Lock _lock = new();
 
+    /// <summary>
+    /// Внутреннее поле для хранения настроек.
+    /// </summary>
+    private SettingsModel? _currentSetting;
+    
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService()
+    public ConfigurationService(ILogger<ConfigurationService> logger)
     {
-        _configFilePath = GetConfigFilePath();
-        
-        _initialization = new Lazy<Task>(LoadAsync);
-    }
-    
-    /// <inheritdoc/>
-    public async Task<T?> GetValueAsync<T>(string key, T? defaultValue = default)
-    {
-        await _initialization.Value;
-        
-        if (_config!.TryGetValue(key, out var value))
-            return value.Deserialize<T>() ?? defaultValue;
-        
-        return defaultValue;
-    }
-    
-    /// <inheritdoc/>
-    public async Task SetValueAsync<T>(string key, T value)
-    {
-        await _initialization.Value;
-        
-        var jsonElement = JsonSerializer.SerializeToElement(value);
-        _config![key] = jsonElement;
-
-        await SaveToFileSystemAsync();
-    }
-    
-    /// <summary>
-    /// Загрузить конфигурацию из файла.
-    /// </summary>
-    private async Task LoadAsync()
-    {
-        if (!File.Exists(_configFilePath))
-        {
-            await CopyConfigFromResourcesAsync();
-        }
-        
-        if (File.Exists(_configFilePath))
-        {
-            var jsonFromFile = await File.ReadAllTextAsync(_configFilePath);
-            _config = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonFromFile);
-        }
-        else
-        {
-            _config = new Dictionary<string, JsonElement>();
-            await SaveToFileSystemAsync();
-        }
-    }
-    
-    /// <summary>
-    /// Сохранить конфигурацию в файловую систему для последующей работы.
-    /// </summary>
-    private async Task SaveToFileSystemAsync()
-    {
-        var directory = Path.GetDirectoryName(_configFilePath);
-        
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            Directory.CreateDirectory(directory);
-
-        var json = JsonSerializer.Serialize(_config, _jsonOptions);
-        await File.WriteAllTextAsync(_configFilePath, json);
-    }
-    
-    /// <summary>
-    /// Получить путь к фалу конфигурации из сборки.
-    /// </summary>
-    /// <returns>Путь к файлу.</returns>
-    private static string GetConfigFilePath()
-    {
+        _logger = logger;
         var baseDirectory = OperatingSystem.IsAndroid() 
             ? Environment.GetFolderPath(Environment.SpecialFolder.Personal) 
             : AppContext.BaseDirectory;
 
-        return Path.Combine(baseDirectory, ConfigFileName);
+        _configFilePath = Path.Combine(baseDirectory, ConfigFileName);
+    }
+
+    public SettingsModel CurrentSetting
+    {
+        get
+        {
+            if (!_isLoaded)
+                LoadSettings();
+
+            return _currentSetting ?? new SettingsModel();
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _currentSetting = value;
+                _isLoaded = true;
+                SaveSettingsToFile();
+            }
+        }
+    }
+
+
+    
+    /// <summary>
+    /// Загрузить настройки из файла.
+    /// </summary>
+    private void LoadSettings()
+    {
+        lock (_lock)
+        {
+            if (_isLoaded)
+                return;
+            
+            try
+            {
+                if (!File.Exists(_configFilePath))
+                {
+                    CopyConfigFromResources();
+                }
+                
+                if (File.Exists(_configFilePath))
+                {
+                    var jsonFromFile = File.ReadAllText(_configFilePath);
+                    _currentSetting = JsonSerializer.Deserialize<SettingsModel>(jsonFromFile, _jsonOptions);
+                }
+                
+                _currentSetting ??= new SettingsModel();
+                
+                _currentSetting.PaymentTypes ??= [];
+                _currentSetting.Organisation ??= new SettingOrganisation();
+                
+                _isLoaded = true;
+            }
+            catch (Exception)
+            {
+                _currentSetting = new SettingsModel();
+                _isLoaded = true;
+            }
+        }
     }
     
     /// <summary>
+    /// Сохранить настройки в файл.
+    /// </summary>
+    private void SaveSettingsToFile()
+    {
+        if (_currentSetting == null)
+            return;
+        
+        try
+        {
+            var directory = Path.GetDirectoryName(_configFilePath);
+            
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            
+            var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
+            File.WriteAllText(_configFilePath, json);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+        }
+    }
+
+    /// <summary>
     /// Скопировать файл конфигурации из ресурсов в файловую систему.
     /// </summary>
-    private async Task CopyConfigFromResourcesAsync()
+    private void CopyConfigFromResources()
     {
         Stream? stream = null;
     
         var assembly = typeof(ConfigurationService).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();
     
-        var resourceName = resourceNames.FirstOrDefault(r => 
+        var resourceName = Array.Find(resourceNames, r => 
             r.EndsWith(ConfigFileName, StringComparison.OrdinalIgnoreCase));
     
         if (resourceName != null)
-        {
             stream = assembly.GetManifestResourceStream(resourceName);
-        }
-    
-        if (stream != null)
-        {
-            var directory = Path.GetDirectoryName(_configFilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
 
-            await using var fileStream = File.Create(_configFilePath);
-            await stream.CopyToAsync(fileStream);
-        }
+        if (stream == null) 
+            return;
+        
+        var directory = Path.GetDirectoryName(_configFilePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+
+        using var fileStream = File.Create(_configFilePath);
+        stream.CopyTo(fileStream);
     }
 }

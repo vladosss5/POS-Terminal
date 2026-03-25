@@ -1,4 +1,5 @@
 ﻿using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 
 namespace Terminal.Application.Interfaces.Mappers;
 

@@ -35,7 +35,7 @@ public class ShiftService : IShiftService
     /// <inheritdoc/>
     public async Task<Shift?> GetOpenedShiftOrDefaultAsync()
     {
-        var shopKey = await _configurationService.GetValueAsync<int>("ShopKey");
+        var shopKey = _configurationService.CurrentSetting.ShopKey;
         
         await using var db = await _dbFactory.CreateDbContextAsync();
 
@@ -65,7 +65,7 @@ public class ShiftService : IShiftService
 
         var lastShiftNumber = await db.Settings.FindAsync(SettingsKey.Shift);
         var shiftKey = lastShiftNumber != null ? ++lastShiftNumber.Value : 1;
-        var shopKey = await _configurationService.GetValueAsync<int>("ShopKey");
+        var shopKey = _configurationService.CurrentSetting.ShopKey;
         var operatorId = _authService.CurrentUser != null ? _authService.CurrentUser!.UserId : 0;
         
         var newShift = new Shift
@@ -93,7 +93,7 @@ public class ShiftService : IShiftService
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         
-        var shopKey = await _configurationService.GetValueAsync<int>("ShopKey");
+        var shopKey = _configurationService.CurrentSetting.ShopKey;
         var operatorId = _authService.CurrentUser != null ? _authService.CurrentUser!.UserId : 0;
         
         var closingShift = new Shift

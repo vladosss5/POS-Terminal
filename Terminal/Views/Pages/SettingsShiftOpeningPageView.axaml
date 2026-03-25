@@ -1,0 +1,59 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.SettingsShiftOpeningPageView"
+             x:DataType="pages:SettingsShiftOpeningPageViewModel"
+             x:Name="ThisUserControl">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto, *">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                   Text="{Binding Title}"
+                   Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding GoBackCommand}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <Border HorizontalAlignment="Stretch"
+                        Background="WhiteSmoke"
+                        BorderBrush="DarkGray"
+                        CornerRadius="20"
+                        Margin="3" Padding="10">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Grid.Column="0" Text="Ожидание ввода пароля"
+                                   Classes="text-items-control" 
+                                   HorizontalAlignment="Left" 
+                                   VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1" 
+                                  ItemsSource="{Binding TimeoutValues}"
+                                  SelectedItem="{Binding SecondsAuthenticationCanceled}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                                  BorderBrush="Transparent">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayName}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

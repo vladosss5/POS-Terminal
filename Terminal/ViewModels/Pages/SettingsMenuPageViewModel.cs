@@ -49,6 +49,14 @@ public class SettingsMenuPageViewModel : PageViewModelBase
                 {
                     Navigation.NavigateTo<PaymentTypesSettingsPageViewModel>();
                 })
+            },
+            new SettingsMenuItemModel
+            {
+                Title = "Аутентификация",
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<SettingsShiftOpeningPageViewModel>();
+                })
             }
         ]);
     }

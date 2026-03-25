@@ -34,22 +34,15 @@ public static class ServiceCollectionExtensions
     {
         collection.AddSingleton<IConfigurationService, ConfigurationService>();
         
-        // View и ViewModel
+        // ViewModels
         collection.AddTransient<MainViewModel>();
-
         collection.AddTransient<MainMenuPageViewModel>();
-
         collection.AddTransient<SaleProcessPageViewModel>();
-        collection.AddTransient<SaleProcessPageView>();
-
         collection.AddTransient<PrintingReceiptPageViewModel>();
-        collection.AddTransient<PrintingReceiptPageView>();
-
         collection.AddSingleton<SettingsMenuPageViewModel>();
-
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
-
         collection.AddTransient<OpenShiftPageViewModel>();
+        collection.AddTransient<SettingsShiftOpeningPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

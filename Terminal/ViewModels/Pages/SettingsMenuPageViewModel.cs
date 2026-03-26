@@ -57,6 +57,14 @@ public class SettingsMenuPageViewModel : PageViewModelBase
                 {
                     Navigation.NavigateTo<SettingsShiftOpeningPageViewModel>();
                 })
+            },
+            new SettingsMenuItemModel
+            {
+                Title = "Печать",
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<SettingsPrintPageViewModel>();
+                })
             }
         ]);
     }

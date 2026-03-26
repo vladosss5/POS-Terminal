@@ -1,0 +1,103 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.SettingsPrintPageView"
+             x:DataType="pages:SettingsPrintPageViewModel"
+             x:Name="ThisUserControl">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style Selector="ToggleSwitch.setting-switcher">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="OnContent" Value=""/>
+            <Setter Property="OffContent" Value=""/>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto, *">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}"
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding GoBackCommand}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <Border HorizontalAlignment="Stretch"
+                        Background="WhiteSmoke"
+                        BorderBrush="DarkGray"
+                        CornerRadius="20"
+                        Margin="10" Padding="10">
+                    <StackPanel >
+                        <TextBlock Text="Копирование чеков" Margin="0,0,0,10"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Топливный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Separator Background="LightGray" HorizontalAlignment="Stretch"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Дисконтный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Separator Background="LightGray" HorizontalAlignment="Stretch"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Платёжный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Separator Background="LightGray" HorizontalAlignment="Stretch"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Ведомственный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <Border HorizontalAlignment="Stretch"
+                        Background="WhiteSmoke"
+                        BorderBrush="DarkGray"
+                        CornerRadius="20"
+                        Margin="10" Padding="10">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Отчёты" Margin="0,0,0,10"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоговое кол-во" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоговая скидка" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоги эмитентов" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Делить эмитент" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Делить по топливу" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

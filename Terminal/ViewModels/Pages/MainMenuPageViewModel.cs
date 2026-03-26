@@ -174,7 +174,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Title = "Настройки",
                 Command = new RelayCommand(delegate
                 {
-                    Navigation.NavigateTo<SettingsMenuPageViewModel>();
+                    Navigation.NavigateTo<AdminLoginPageViewModel>();
                 })
             },
             new MainMenuItemModel

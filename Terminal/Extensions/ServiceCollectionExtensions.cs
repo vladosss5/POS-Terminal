@@ -43,6 +43,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
         collection.AddTransient<OpenShiftPageViewModel>();
         collection.AddTransient<SettingsShiftOpeningPageViewModel>();
+        collection.AddTransient<AdminLoginPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

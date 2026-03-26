@@ -33,7 +33,7 @@ public class SettingsMenuPageViewModel : PageViewModelBase
     /// </summary>
     public void StepBack()
     {
-        Navigation.GoBack();
+        Navigation.NavigateTo<MainMenuPageViewModel>();
     }
 
     /// <summary>

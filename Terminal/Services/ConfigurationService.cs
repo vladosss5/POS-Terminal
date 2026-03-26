@@ -31,7 +31,9 @@ public class ConfigurationService : IConfigurationService
     private readonly JsonSerializerOptions _jsonOptions = new() 
     { 
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true 
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
     };
 
     /// <summary>

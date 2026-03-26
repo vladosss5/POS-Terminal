@@ -332,6 +332,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
                 }
             }
         }
+        catch(OperationCanceledException)
+        {}
         catch (Exception e)
         {
             Logger.LogError(e, "Ошибка при ожидании ввода");

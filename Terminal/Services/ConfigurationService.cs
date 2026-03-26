@@ -98,10 +98,7 @@ public class ConfigurationService : IConfigurationService
             
             try
             {
-                if (!File.Exists(_configFilePath))
-                {
-                    CopyConfigFromResources();
-                }
+                CopyConfigFromResources();
                 
                 if (File.Exists(_configFilePath))
                 {

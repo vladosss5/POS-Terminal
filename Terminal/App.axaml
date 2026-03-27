@@ -7,12 +7,13 @@
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
     
     <Application.Styles>
+        <FluentTheme />
+        <Style Selector=":is(TopLevel)">
+            <Setter Property="FontFamily" Value="Roboto" />
+        </Style>
+        
         <!-- Заголовок страницы -->
         <Style Selector="TextBlock.page-title">
             <Setter Property="FontSize" Value="30"/>

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" />
+      <PackageReference Include="Moq" />
+      <PackageReference Include="NUnit" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="ViewModels\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Terminal.Application\Terminal.Application.csproj" />
+      <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
+      <ProjectReference Include="..\Terminal.Data\Terminal.Data.csproj" />
+      <ProjectReference Include="..\Terminal.Desktop\Terminal.Desktop.csproj" />
+      <ProjectReference Include="..\Terminal\Terminal.csproj" />
+    </ItemGroup>
+
+</Project>

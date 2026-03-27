@@ -8,14 +8,10 @@
              x:DataType="pages:MainMenuPageViewModel">
     
     <Grid RowDefinitions="Auto, *">
-        <Grid Grid.Row="0" ColumnDefinitions="*, *" HorizontalAlignment="Stretch">
-            <TextBlock Grid.Column="0" Text="{Binding Title}" Classes="page-title"/>
-            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                <TextBlock Text="Смена № " IsVisible="{Binding ShowShiftNumber}" Classes="text-button"/>
-                <TextBlock Text="{Binding ShiftNumber}" Classes="text-button"/>
-            </StackPanel>
-        </Grid>
+        <!-- Заголовок -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}" Classes="page-title"/>
         
+        <!-- Тело страницы -->
         <ScrollViewer Grid.Row="1">
             <ItemsControl ItemsSource="{Binding MenuItems}">
                 <ItemsControl.ItemsPanel>
@@ -23,7 +19,7 @@
                         <UniformGrid Columns="2" Rows="0" 
                                      HorizontalAlignment="Center" 
                                      VerticalAlignment="Stretch" 
-                                     Margin="20"/>
+                                     Margin="10"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 

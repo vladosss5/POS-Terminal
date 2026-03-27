@@ -22,6 +22,7 @@
             <Setter Property="OnContent" Value=""/>
             <Setter Property="OffContent" Value=""/>
             <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Command" Value="{Binding Path=#ThisUserControl.((pages:SettingsPrintPageViewModel)DataContext).SaveCommand}"/>
         </Style>
         
         <Style Selector="Separator.default-separator">
@@ -66,25 +67,29 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Топливный чек" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ResourceCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Дисконтный чек" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.DiscountCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Платёжный чек" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.PaymentCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Ведомственный чек" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.StatementCopy}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -95,25 +100,29 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Бонусная программа" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.BonusProgram}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Сумма чека" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.Sum}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Блок продаж" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.Payment}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Цена" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ShowPrice}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -124,31 +133,36 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоговое кол-во" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.TotalAmount}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоговая скидка" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.TotalDiscount}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоги эмитентов" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                                          <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить эмитент" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить по топливу" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -159,7 +173,9 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Удалять корректировки" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>  
+                                          <!-- IsChecked="{Binding SettingsModel.re}"/>   -->
+                            <!-- ХЗ. требует уточнения-->
                         </Grid>
                     </StackPanel>
                 </Border>

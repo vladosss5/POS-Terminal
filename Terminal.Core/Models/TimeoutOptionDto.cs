@@ -3,7 +3,7 @@
 /// <summary>
 /// Варианты времени ожидания.
 /// </summary>
-public record struct TimeoutOption
+public record struct TimeoutOptionDto
 {
     /// <summary>
     /// Кол-во секунд.

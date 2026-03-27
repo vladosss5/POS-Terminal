@@ -23,8 +23,11 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
         get;
         set
         {
-            if (SetProperty(ref field, value))
-                _configurationService.CurrentSetting.SecondsAuthenticationCanceled = value.Seconds;
+            if (!SetProperty(ref field, value))
+                return;
+                
+            _configurationService.CurrentSetting.SecondsAuthenticationCanceled = value.Seconds;
+            _configurationService.SaveSettingsToFile();
         } 
     }
 
@@ -52,8 +55,11 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
         get;
         set
         {
-            if (SetProperty(ref field, value))
-                _configurationService.CurrentSetting.LoadMode = (int)value;
+            if (!SetProperty(ref field, value))
+                return;
+            
+            _configurationService.CurrentSetting.LoadMode = (int)value;
+            _configurationService.SaveSettingsToFile();
         }
     }
     

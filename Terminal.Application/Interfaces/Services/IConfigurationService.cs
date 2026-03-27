@@ -11,4 +11,9 @@ public interface IConfigurationService
     /// Текущие настройки приложения.
     /// </summary>
     public SettingsModel CurrentSetting { get; set; }
+
+    /// <summary>
+    /// Сохранить изменения конфигурации в файл.
+    /// </summary>
+    public void SaveSettingsToFile();
 }

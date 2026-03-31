@@ -99,9 +99,7 @@ public class ConfigurationService : IConfigurationService
             try
             {
                 if (!File.Exists(_configFilePath))
-                {
                     CopyConfigFromResources();
-                }
                 
                 if (File.Exists(_configFilePath))
                 {
@@ -127,7 +125,7 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Сохранить настройки в файл.
     /// </summary>
-    private void SaveSettingsToFile()
+    public void SaveSettingsToFile()
     {
         if (_currentSetting == null)
             return;

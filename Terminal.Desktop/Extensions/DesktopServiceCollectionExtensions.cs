@@ -17,5 +17,6 @@ public static class DesktopServiceCollectionExtensions
     {
         collection.AddScoped<IFileExplorer, FileExplorer>();
         collection.AddSingleton<IReceiptPrintService, DesktopPrintService>();
+        collection.AddSingleton<IDeviceInfoService, DesktopDeviceInfoService>();
     }
 }

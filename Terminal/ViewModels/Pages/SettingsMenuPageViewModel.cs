@@ -33,7 +33,7 @@ public class SettingsMenuPageViewModel : PageViewModelBase
     /// </summary>
     public void StepBack()
     {
-        Navigation.GoBack();
+        Navigation.NavigateTo<MainMenuPageViewModel>();
     }
 
     /// <summary>
@@ -56,6 +56,14 @@ public class SettingsMenuPageViewModel : PageViewModelBase
                 Command = new RelayCommand(delegate
                 {
                     Navigation.NavigateTo<SettingsShiftOpeningPageViewModel>();
+                })
+            },
+            new SettingsMenuItemModel
+            {
+                Title = "Печать",
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<SettingsPrintPageViewModel>();
                 })
             }
         ]);

@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
 namespace Terminal.ViewModels.Pages;
@@ -17,26 +18,50 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
     /// <summary>
     /// Выбранный вариант времени ожидания ввода пароля.
     /// </summary>
-    public TimeoutOption SecondsAuthenticationCanceled 
+    public TimeoutOptionDto SecondsAuthenticationCanceled 
     {
         get;
         set
         {
-            if (SetProperty(ref field, value))
-                SaveSecondsAuthenticationCanceled(value.Seconds);
+            if (!SetProperty(ref field, value))
+                return;
+                
+            _configurationService.CurrentSetting.SecondsAuthenticationCanceled = value.Seconds;
+            _configurationService.SaveSettingsToFile();
         } 
     }
 
     /// <summary>
     /// Варианты времени ожидания ввода пароля.
     /// </summary>
-    public HashSet<TimeoutOption> TimeoutValues { get; } = 
+    public HashSet<TimeoutOptionDto> TimeoutValues { get; } = 
     [
         new() { Seconds = 10 },
         new() { Seconds = 15 },
         new() { Seconds = 30 },
         new() { Seconds = 60 }
     ];
+    
+    /// <summary>
+    /// Варианты аутентификации при открытии смены.
+    /// </summary>
+    public AuthorizeType[] LoadModes { get; set; } = Enum.GetValues<AuthorizeType>();
+
+    /// <summary>
+    /// Выбранный вариант аутентификации.
+    /// </summary>
+    public AuthorizeType SelectedAuthorizeType
+    {
+        get;
+        set
+        {
+            if (!SetProperty(ref field, value))
+                return;
+            
+            _configurationService.CurrentSetting.AuthorizeType = (int)value;
+            _configurationService.SaveSettingsToFile();
+        }
+    }
     
     /// <summary>
     /// Конструктор.
@@ -60,16 +85,9 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
     {
         var timeOutValue = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
-        SecondsAuthenticationCanceled = new TimeoutOption { Seconds = timeOutValue };
+        SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = timeOutValue };
         TimeoutValues.Add(SecondsAuthenticationCanceled);
-    }
 
-    /// <summary>
-    /// Сохранить выбор времени ожидания ввода пароля.
-    /// </summary>
-    /// <param name="value">Кол-во секунд.</param>
-    private void SaveSecondsAuthenticationCanceled(short value)
-    {
-        _configurationService.CurrentSetting.SecondsAuthenticationCanceled = value;
+        SelectedAuthorizeType = (AuthorizeType)_configurationService.CurrentSetting.AuthorizeType;
     }
 }

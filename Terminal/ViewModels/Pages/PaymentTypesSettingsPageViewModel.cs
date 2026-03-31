@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
@@ -7,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models;
-using Terminal.Core.Models.Settings;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -59,6 +57,7 @@ public class PaymentTypesSettingsPageViewModel : PageViewModelBase
 
         var listSettingsPaymentType = PaymentTypes.Select(_settingPaymentTypeMapper.DtoToSettingPaymentType);
         _configurationService.CurrentSetting.PaymentTypes = listSettingsPaymentType.ToList();
+        _configurationService.SaveSettingsToFile();
     }
     
     /// <summary>

@@ -22,6 +22,7 @@ public static class AndroidServiceCollectionExtensions
             collection.AddSingleton(global::Android.App.Application.Context);
             collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
             collection.AddTransient<IReceiptPrintService, AndroidPrintService>();
+            collection.AddSingleton<IDeviceInfoService, AndroidDeviceInfoService>();
         }
 
         /// <summary>

@@ -100,7 +100,7 @@ public class SettingsShiftOpeningPageViewModelTests
     public void SecondsAuthenticationCanceled_WhenSet_SavesValueToConfigurationService()
     {
         // Arrange
-        var newTimeout = new TimeoutOption { Seconds = 45 };
+        var newTimeout = new TimeoutOptionDto { Seconds = 45 };
             
         // Act
         _viewModel!.SecondsAuthenticationCanceled = newTimeout;
@@ -115,7 +115,7 @@ public class SettingsShiftOpeningPageViewModelTests
     {
         // Arrange
         var initialValue = _viewModel!.SecondsAuthenticationCanceled.Seconds;
-        var sameTimeout = new TimeoutOption { Seconds = initialValue };
+        var sameTimeout = new TimeoutOptionDto { Seconds = initialValue };
             
         // Reset mock to track calls
         _configurationServiceMock!.Invocations.Clear();
@@ -131,7 +131,7 @@ public class SettingsShiftOpeningPageViewModelTests
     public void SecondsAuthenticationCanceled_WhenSet_UpdatesPropertyAndNotifiesChange()
     {
         // Arrange
-        var newTimeout = new TimeoutOption { Seconds = 60 };
+        var newTimeout = new TimeoutOptionDto { Seconds = 60 };
         bool propertyChangedRaised = false;
             
         _viewModel!.PropertyChanged += (_, args) =>
@@ -185,7 +185,7 @@ public class SettingsShiftOpeningPageViewModelTests
     public void SecondsAuthenticationCanceled_WithVariousValues_SavesCorrectly(short seconds)
     {
         // Arrange
-        var newTimeout = new TimeoutOption { Seconds = seconds };
+        var newTimeout = new TimeoutOptionDto { Seconds = seconds };
             
         // Act
         _viewModel!.SecondsAuthenticationCanceled = newTimeout;
@@ -222,7 +222,7 @@ public class SettingsShiftOpeningPageViewModelTests
             _loggerMock!.Object,
             _configurationServiceMock!.Object)
         {
-            SecondsAuthenticationCanceled = new TimeoutOption { Seconds = customTimeout }
+            SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = customTimeout }
         };
 
         var viewModel2 = new SettingsShiftOpeningPageViewModel(
@@ -259,7 +259,7 @@ public class SettingsShiftOpeningPageViewModelTests
         };
             
         // Act
-        _viewModel.SecondsAuthenticationCanceled = new TimeoutOption { Seconds = 20 };
+        _viewModel.SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = 20 };
             
         // Assert
         Assert.That(propertyName, Is.EqualTo(nameof(SettingsShiftOpeningPageViewModel.SecondsAuthenticationCanceled)));
@@ -272,7 +272,7 @@ public class SettingsShiftOpeningPageViewModelTests
         var originalCollection = _viewModel!.TimeoutValues;
             
         // Попытка изменить коллекцию должна работать (HashSet можно изменять)
-        Assert.That(originalCollection, Is.InstanceOf<HashSet<TimeoutOption>>());
+        Assert.That(originalCollection, Is.InstanceOf<HashSet<TimeoutOptionDto>>());
             
         // Проверяем, что коллекция инициализирована и содержит элементы
         Assert.That(originalCollection, Is.Not.Empty);

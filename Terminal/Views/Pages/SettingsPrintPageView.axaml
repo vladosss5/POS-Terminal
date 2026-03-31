@@ -115,7 +115,7 @@
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Блок продаж" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.Payment}"/>
+                                          IsChecked="{Binding SettingsModel.SaleBlock}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
@@ -147,22 +147,22 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоги эмитентов" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
-                                          <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ReportTotal}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить эмитент" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
-                            <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ReportDivide}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить по топливу" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
-                            <!-- IsChecked="{Binding SettingsModel.}"/> -->  <!-- ХЗ. требует уточнения -->
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.DivideFuels}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -173,9 +173,8 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Удалять корректировки" Classes="text-items-control"/>
-                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>  
-                                          <!-- IsChecked="{Binding SettingsModel.re}"/>   -->
-                            <!-- ХЗ. требует уточнения-->
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.RemoteUpdate}"/>
                         </Grid>
                     </StackPanel>
                 </Border>

@@ -352,8 +352,8 @@ public class SettingsModel
     /// <summary>
     /// Разделение отчета.
     /// </summary>
-    [JsonPropertyName("ReportDevide")]
-    public bool ReportDevide { get; set; }
+    [JsonPropertyName("ReportDivide")]
+    public bool ReportDivide { get; set; }
     
     /// <summary>
     /// Организация в отчете.
@@ -370,40 +370,40 @@ public class SettingsModel
     /// <summary>
     /// Разделение топлива.
     /// </summary>
-    [JsonPropertyName("DevideFuels")]
-    public bool DevideFuels { get; set; }
+    [JsonPropertyName("DivideFuels")]
+    public bool DivideFuels { get; set; }
     
-    // Incass
+    // Incas
     
     /// <summary>
     /// Автоматическая инкассация.
     /// </summary>
-    [JsonPropertyName("IncassAuto")]
-    public bool IncassAuto { get; set; }
+    [JsonPropertyName("IncasAuto")]
+    public bool IncasAuto { get; set; }
     
     /// <summary>
     /// Ожидание инкассации.
     /// </summary>
-    [JsonPropertyName("IncassWait")]
-    public int IncassWait { get; set; }
+    [JsonPropertyName("IncasWait")]
+    public int IncasWait { get; set; }
     
     /// <summary>
     /// Демонстрационный режим инкассации.
     /// </summary>
-    [JsonPropertyName("IncassDemon")]
-    public bool IncassDemon { get; set; }
+    [JsonPropertyName("IncasDemon")]
+    public bool IncasDemon { get; set; }
     
     /// <summary>
     /// Таймаут инкассации.
     /// </summary>
-    [JsonPropertyName("IncassTimeout")]
-    public int IncassTimeout { get; set; }
+    [JsonPropertyName("IncasTimeout")]
+    public int IncasTimeout { get; set; }
     
     /// <summary>
     /// Расписание инкассации.
     /// </summary>
-    [JsonPropertyName("IncassTimetable")]
-    public string? IncassTimetable { get; set; }
+    [JsonPropertyName("IncasTimetable")]
+    public string? IncasTimetable { get; set; }
     
     // Digits
     

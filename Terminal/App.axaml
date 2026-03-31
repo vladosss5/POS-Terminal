@@ -1,18 +1,24 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:Terminal"
+             xmlns:converters="clr-namespace:Terminal.Converters"
              x:Class="Terminal.App"
              RequestedThemeVariant="Light">
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+    
+    <Application.Resources>
+        <converters:EnumFriendlyNameConverter x:Key="EnumFriendlyNameConverter"/>
+    </Application.Resources>
     
     <Application.Styles>
+        <FluentTheme />
+        <Style Selector=":is(TopLevel)">
+            <Setter Property="FontFamily" Value="Roboto" />
+        </Style>
+        
         <!-- Заголовок страницы -->
         <Style Selector="TextBlock.page-title">
             <Setter Property="FontSize" Value="30"/>

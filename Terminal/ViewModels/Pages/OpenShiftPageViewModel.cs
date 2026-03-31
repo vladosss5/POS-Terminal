@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="ICardReaderService"/>
     private readonly ICardReaderService _cardReaderService;
+
+    /// <inheritdoc cref="IConfigurationService"/>
+    private readonly IConfigurationService _configurationService;
 
     /// <summary>
     /// Значение таймера по умолчанию.
@@ -114,6 +118,21 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// True, если включён любой тип авторизации.
+    /// </summary>
+    private bool IsAnyAuthorizeType { get; set; }
+    
+    /// <summary>
+    /// True, если включён тип авторизации по паролю.
+    /// </summary>
+    private bool IsPasswordAuthorizeType { get; set; }
+
+    /// <summary>
+    /// True, если включён тип авторизации по карте.
+    /// </summary>
+    private bool IsMifareCardAuthorizeType { get; set; }
+    
+    /// <summary>
     /// Коллекция шагов авторизации.
     /// </summary>
     public ObservableCollection<StepViewModelBase> Steps
@@ -132,6 +151,16 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// </summary>
     public LoginButton[] LoginButtons { get; private set; }
 
+    /// <summary>
+    /// Сообщение в окне пароля.
+    /// </summary>
+    public string MessageInPreview { get; set; }
+    
+    /// <summary>
+    /// Показывать ли кнопки пароля.
+    /// </summary>
+    public bool ShowButtons { get; set; }
+
 
     /// <summary>
     /// Конструктор.
@@ -149,6 +178,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _authService = authService;
         _shiftService = shiftService;
         _cardReaderService = cardReaderService;
+        _configurationService = configurationService;
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -161,6 +191,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <param name="button">Кнопка на которую нажали.</param>
     public async Task ButtonClick(LoginButton button)
     {
+        if (IsMifareCardAuthorizeType)
+            return;
+        
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();
         
@@ -210,10 +243,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="element">Символ.</param>
-    private void AddCharInPassword(string element)
-    {
-        Password += element;
-    }
+    private void AddCharInPassword(string element) => Password += element;
 
     /// <summary>
     /// Пройти аутентификацию.
@@ -307,18 +337,36 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     {
         try
         {
-            var passwordTask = WaitForPasswordInputAsync(cancellationToken);
-            var cardTask = WaitForCardInputAsync(cancellationToken);
+            Task<string>? passwordTask = null;
+            Task<CardReadResult>? cardTask = null;
+            
+            
+            var tasks = new List<Task>();
 
-            var completedTask = await Task.WhenAny(passwordTask, cardTask);
+            if (IsAnyAuthorizeType || IsPasswordAuthorizeType)
+            {
+                passwordTask = WaitForPasswordInputAsync(cancellationToken);
+                tasks.Add(passwordTask);
+            }
+            
+            if (IsAnyAuthorizeType || IsMifareCardAuthorizeType)
+            {
+                cardTask = WaitForCardInputAsync(cancellationToken);
+                tasks.Add(cardTask);
+            }
+            
+            if (tasks.Count == 0) 
+                return;
+
+            var completedTask = await Task.WhenAny(tasks);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (completedTask == passwordTask)
+            if (passwordTask != null && completedTask == passwordTask)
             {
                 await passwordTask;
             }
-            else if (completedTask == cardTask)
+            else if (cardTask != null && completedTask == cardTask)
             {
                 var cardResult = await cardTask;
                 if (cardResult.IsSuccess)
@@ -481,6 +529,25 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             new() { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new() { Content = "enter.png", ContentIsImage = true, Type = LoginButtonTypes.Enter }
         ];
+
+        switch (_configurationService.CurrentSetting.AuthorizeType)
+        {
+            case (int)AuthorizeType.Any:
+                IsAnyAuthorizeType = true;
+                ShowButtons = true;
+                MessageInPreview = "Приложите карту или введите пароль";
+                break;
+            case (int)AuthorizeType.Password:
+                IsPasswordAuthorizeType = true;
+                ShowButtons = true;
+                MessageInPreview = "Введите пароль";
+                break;
+            case (int)AuthorizeType.MifareCard:
+                IsMifareCardAuthorizeType = true;
+                ShowButtons = false;
+                MessageInPreview = "Приложите карту";
+                break;
+        }
     }
     
     /// <summary>

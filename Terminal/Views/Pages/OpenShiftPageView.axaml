@@ -71,7 +71,7 @@
                     <!-- Вывод введённого -->
                     <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
                         <Panel>
-                            <TextBlock Text="Ведите пароль или приложите карту" IsVisible="{Binding PasswordIsEmpty}"
+                            <TextBlock Text="{Binding MessageInPreview}" IsVisible="{Binding PasswordIsEmpty}"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Center"
                                        FontSize="30" TextWrapping="Wrap"
                                        Background="Transparent" TextAlignment="Center"/>
@@ -83,7 +83,7 @@
                     </Border>
                     
                     <!-- Кнопки ввода -->
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}">
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}" IsVisible="{Binding ShowButtons}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="3" 

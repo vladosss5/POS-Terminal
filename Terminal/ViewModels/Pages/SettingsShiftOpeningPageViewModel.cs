@@ -45,12 +45,12 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
     /// <summary>
     /// Варианты аутентификации при открытии смены.
     /// </summary>
-    public LoadMode[] LoadModes { get; set; } = Enum.GetValues<LoadMode>();
+    public AuthorizeType[] LoadModes { get; set; } = Enum.GetValues<AuthorizeType>();
 
     /// <summary>
-    /// Выбраный вариант аутентификации.
+    /// Выбранный вариант аутентификации.
     /// </summary>
-    public LoadMode SelectedLoadMode
+    public AuthorizeType SelectedAuthorizeType
     {
         get;
         set
@@ -58,7 +58,7 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value))
                 return;
             
-            _configurationService.CurrentSetting.LoadMode = (int)value;
+            _configurationService.CurrentSetting.AuthorizeType = (int)value;
             _configurationService.SaveSettingsToFile();
         }
     }
@@ -88,6 +88,6 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
         SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = timeOutValue };
         TimeoutValues.Add(SecondsAuthenticationCanceled);
 
-        SelectedLoadMode = (LoadMode)_configurationService.CurrentSetting.LoadMode;
+        SelectedAuthorizeType = (AuthorizeType)_configurationService.CurrentSetting.AuthorizeType;
     }
 }

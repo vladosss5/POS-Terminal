@@ -3,23 +3,23 @@
 /// <summary>
 /// Типы аутентификации при открытии смены.
 /// </summary>
-public enum LoadMode
+public enum AuthorizeType
 {
     /// <summary>
-    /// Только картой.
+    /// Любым из способов.
     /// </summary>
-    [FriendlyName("По карте")]
-    Card,
+    [FriendlyName("Пароль или карта")]
+    Any = 0,
     
     /// <summary>
     /// Только по паролю.
     /// </summary>
     [FriendlyName("По паролю")]
-    Password,
+    Password = 1,
     
     /// <summary>
-    /// Любым из способов.
+    /// Только картой.
     /// </summary>
-    [FriendlyName("Пароль или карта")]
-    Any
+    [FriendlyName("По карте")]
+    MifareCard = 2
 }

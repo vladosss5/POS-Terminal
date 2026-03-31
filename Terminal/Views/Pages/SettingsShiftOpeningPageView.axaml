@@ -46,7 +46,7 @@
                             
                             <ComboBox Grid.Column="1" Classes="selector-box"
                                       ItemsSource="{Binding LoadModes}"
-                                      SelectedItem="{Binding SelectedLoadMode}">
+                                      SelectedItem="{Binding SelectedAuthorizeType}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Converter={StaticResource EnumFriendlyNameConverter}}"/>

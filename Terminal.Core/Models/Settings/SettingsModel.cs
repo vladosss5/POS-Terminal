@@ -441,7 +441,7 @@ public class SettingsModel
     /// Режим загрузки.
     /// </summary>
     [JsonPropertyName("LoadMode")]
-    public int LoadMode { get; set; }
+    public int AuthorizeType { get; set; }
     
     /// <summary>
     /// Синхронизация времени.

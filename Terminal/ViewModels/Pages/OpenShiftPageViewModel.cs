@@ -35,6 +35,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
 
+    /// <inheritdoc cref="IMessageBoxService"/>
+    private readonly IMessageBoxService _messageBoxService;
+
     /// <summary>
     /// Значение таймера по умолчанию.
     /// </summary>
@@ -171,7 +174,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         IAuthService authService, 
         IShiftService shiftService, 
         ICardReaderService cardReaderService, 
-        IConfigurationService configurationService) 
+        IConfigurationService configurationService, 
+        IMessageBoxService messageBoxService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
@@ -179,6 +183,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _shiftService = shiftService;
         _cardReaderService = cardReaderService;
         _configurationService = configurationService;
+        _messageBoxService = messageBoxService;
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -252,7 +257,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     {
         if (string.IsNullOrEmpty(Password))
         {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Введите пароль").ShowAsync();
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Введите пароль");
             StartParallelInput();
             return;
         }
@@ -264,7 +269,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         
         if (!authorizeIsSuccess)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Пароли не совпали").ShowAsync();
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Пароли не совпали");
             Password = string.Empty;
             StartParallelInput();
             return;
@@ -287,7 +292,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         
         if (!authorizeIsSuccess)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Карта не зарегистрирована").ShowAsync();
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Карта не зарегистрирована");
             StartParallelInput();
             return;
         }
@@ -375,7 +380,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
                 }
                 else if (cardResult.ErrorMessage != null && cardResult.ErrorType != CardReaderErrorType.Timeout)
                 {
-                    await MessageBoxManager.GetMessageBoxStandard("Ошибка", cardResult.ErrorMessage).ShowAsync();
+                    await _messageBoxService.ShowMessageBoxAsync("Ошибка", cardResult.ErrorMessage);
                     StartParallelInput();
                 }
             }
@@ -385,7 +390,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         catch (Exception e)
         {
             Logger.LogError(e, "Ошибка при ожидании ввода");
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", $"Произошла ошибка: {e.Message}").ShowAsync();
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", $"Произошла ошибка: {e.Message}");
         }
         finally
         {
@@ -446,7 +451,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             {
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Вышло время ожидания").ShowAsync();
+                    await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Вышло время ожидания");
                     Navigation.NavigateTo<OpenShiftPageViewModel>();
                 });
             }

@@ -27,6 +27,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     ///<inheritdoc cref="IShiftService"/>
     private readonly IShiftService _shiftService;
+    
+    /// <inheritdoc cref="IMessageBoxService"/>
+    private readonly IMessageBoxService _messageBoxService;
 
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -41,13 +44,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IFileExplorer fileExplorer, 
         ILogger<MainMenuPageViewModel> logger, 
         IAuthService authService, 
-        IShiftService shiftService) 
+        IShiftService shiftService, 
+        IMessageBoxService messageBoxService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
         _logger = logger;
         _authService = authService;
         _shiftService = shiftService;
+        _messageBoxService = messageBoxService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -70,7 +75,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _logger.LogInformation("Вызвано копирование");
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
 
-        await MessageBoxManager.GetMessageBoxStandard("Успех", "Каталог скопирован!").ShowAsync();
+        await _messageBoxService.ShowMessageBoxAsync("Успех", "Каталог скопирован!");
     }
     
     /// <summary>

@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.Testing.Platform.Services;
 using Moq;
 using NUnit.Framework;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
@@ -15,6 +16,7 @@ namespace Terminal.IntegrationTests.PagesTests;
 public class OpenShiftPageTests : IntegrationTestsBase
 {
     private OpenShiftPageViewModel? _openShiftPageViewModel;
+    private IAuthService? _authService;
 
     private const string Password = "1432";
 
@@ -25,7 +27,7 @@ public class OpenShiftPageTests : IntegrationTestsBase
         UserPassword = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(Password)))
     };
 
-    [OneTimeSetUp]
+    [SetUp]
     public async Task InitField()
     {
         var db = await DbFactory!.CreateDbContextAsync();
@@ -33,8 +35,10 @@ public class OpenShiftPageTests : IntegrationTestsBase
         await db.AddAsync(_existingOperator);
         await db.SaveChangesAsync();
         
-        _openShiftPageViewModel = Services!.GetRequiredService<OpenShiftPageViewModel>();
+        _openShiftPageViewModel = TestScope!.ServiceProvider.GetRequiredService<OpenShiftPageViewModel>();
         _openShiftPageViewModel.OnActivated(NavigationMock!.Object);
+        
+        _authService = TestScope!.ServiceProvider.GetRequiredService<IAuthService>();
     }
         
     [Test]
@@ -62,9 +66,12 @@ public class OpenShiftPageTests : IntegrationTestsBase
         
         
         // Assert
-        NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Once);
-        var authService = Services!.GetRequiredService<IAuthService>();
-        Assert.That(authService.CurrentUser, Is.Not.Null);
+        NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Once); // Проверка перехода страницы.
+        Assert.That(_authService!.CurrentUser, Is.Not.Null); // Проверка сохранения аутентифицированного оператора.
+        
+        var shiftService = TestScope!.ServiceProvider.GetRequiredService<IShiftService>();
+        var shift = await shiftService.GetOpenedShiftOrDefaultAsync();
+        Assert.That(shift, Is.Not.Null); // Проверка открытия смены.
     }
     
     [Test]
@@ -97,7 +104,6 @@ public class OpenShiftPageTests : IntegrationTestsBase
         
         // Assert
         NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Never);
-        var authService = Services!.GetRequiredService<IAuthService>();
-        Assert.That(authService.CurrentUser, Is.Null);
+        Assert.That(_authService!.CurrentUser, Is.Null);
     }
 }

@@ -10,37 +10,70 @@ namespace Terminal.IntegrationTests;
 
 public abstract class IntegrationTestsBase
 {
-    protected IServiceProvider? Services;
+    private IServiceProvider? _services;
+    
+    protected IServiceScope? TestScope;
     protected IDbContextFactory<DataContext>? DbFactory;
     protected Mock<INavigationService>? NavigationMock;
     
+    private Mock<IMessageBoxService>? _messageBoxMock;
+    
     [OneTimeSetUp]
-    public async Task Init()
+    public async Task OneTimeSetUp()
     {
         var serviceCollection = new ServiceCollection();
         
-        serviceCollection.RegisterCommonServices();
+        NavigationMock = new Mock<INavigationService>();
+        _messageBoxMock = new Mock<IMessageBoxService>();
+        
+        serviceCollection.RegisterCommonServices(NavigationMock, _messageBoxMock);
         serviceCollection.AddDataContext();
         
-        Services = serviceCollection.BuildServiceProvider();
-        DbFactory = Services.GetRequiredService<IDbContextFactory<DataContext>>();
-        NavigationMock = Services!.GetRequiredService<Mock<INavigationService>>();
+        _services = serviceCollection.BuildServiceProvider();
+        DbFactory = _services.GetRequiredService<IDbContextFactory<DataContext>>();
         
-        await EnsureDatabaseCreatedAndMigrated();
-
-        await using var context = await DbFactory.CreateDbContextAsync();
-        await ExecuteSqlAsync(context);
+        await CreateDatabaseSchema();
+        await SeedInitialData();
     }
     
-    private async Task EnsureDatabaseCreatedAndMigrated()
+    [SetUp]
+    public async Task SetUp()
+    {
+        TestScope = _services!.CreateScope();
+        
+        NavigationMock!.Reset();
+        _messageBoxMock!.Reset();
+        
+        await CleanTestDataAsync();
+    }
+    
+    [TearDown]
+    public void TearDown()
+    {
+        TestScope?.Dispose();
+        TestScope = null;
+    }
+    
+    private async Task CreateDatabaseSchema()
     {
         await using var context = await DbFactory!.CreateDbContextAsync();
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
     }
 
-    private async Task ExecuteSqlAsync(DataContext context)
+    private async Task CleanTestDataAsync()
     {
+        await using var context = await DbFactory!.CreateDbContextAsync();
+        
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM selling");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM users");
+        await context.Database.ExecuteSqlRawAsync("DELETE FROM sqlite_sequence");
+    }
+
+    private async Task SeedInitialData()
+    {
+        await using var context = await DbFactory!.CreateDbContextAsync();
+        
         List<string> scripts = [];
 
         if (!await context.ResourceCodes.AnyAsync())
@@ -67,7 +100,7 @@ public abstract class IntegrationTestsBase
                 scripts.Add(usersTableFillingScript);
         }
 
-        var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();
+        var sqlExecutor = _services!.GetRequiredService<ISqlExecutor>();
         
         foreach (var script in scripts)
             await sqlExecutor.ExecuteNonQueryAsync(script);

@@ -21,7 +21,10 @@ namespace Terminal.IntegrationTests;
 
 public static class TestServiceProvider
 {
-    public static void RegisterCommonServices(this IServiceCollection collection)
+    public static void RegisterCommonServices(
+        this IServiceCollection collection, 
+        Mock<INavigationService> navigationMock, 
+        Mock<IMessageBoxService> messageMock)
     {
         collection.AddLogging(builder =>
         {
@@ -55,14 +58,17 @@ public static class TestServiceProvider
         // Сервисы логики
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         
-        collection.AddSingleton(_ => new Mock<INavigationService>().Object);
-        collection.AddSingleton(new Mock<INavigationService>());
+        collection.AddSingleton(messageMock.Object);
+        collection.AddSingleton(messageMock);
+
+        collection.AddSingleton(navigationMock.Object);
+        collection.AddSingleton(navigationMock);
         
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
         collection.AddTransient<ICardReaderService, CommonCardReaderService>();
-        collection.AddSingleton<IHashService, HashService>();
-        collection.AddSingleton<IAuthService, AuthService>();
+        collection.AddScoped<IHashService, HashService>();
+        collection.AddScoped<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
     }
     

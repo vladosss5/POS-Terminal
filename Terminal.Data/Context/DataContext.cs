@@ -136,4 +136,18 @@ public partial class DataContext : DbContext
 
         return fullPath;
     }
+
+    /// <summary>
+    /// Получить строку подключения к terminal.db при интеграционном тестировании.
+    /// </summary>
+    /// <returns>Строка подключения к БД</returns>
+    public static string GetTestingDbPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dbFolder = Path.Combine(appData, "IntegrationTests", "Terminal");
+        Directory.CreateDirectory(dbFolder);
+        var fullPath = Path.Combine(dbFolder, "terminal.db");
+        
+        return fullPath;
+    }
 }

@@ -55,6 +55,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ISalesReceiptMappingService, SalesReceiptMappingService>();
         
         // Сервисы логики
+        collection.AddTransient<IMessageBoxService, MessageBoxService>();
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();

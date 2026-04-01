@@ -15,6 +15,7 @@ public abstract class IntegrationTestsBase
     protected IServiceScope? TestScope;
     protected IDbContextFactory<DataContext>? DbFactory;
     protected Mock<INavigationService>? NavigationMock;
+    protected Mock<ICardReaderService>? CardReaderMock;
     
     private Mock<IMessageBoxService>? _messageBoxMock;
     
@@ -25,8 +26,9 @@ public abstract class IntegrationTestsBase
         
         NavigationMock = new Mock<INavigationService>();
         _messageBoxMock = new Mock<IMessageBoxService>();
+        CardReaderMock = new Mock<ICardReaderService>();
         
-        serviceCollection.RegisterCommonServices(NavigationMock, _messageBoxMock);
+        serviceCollection.RegisterCommonServices(NavigationMock, _messageBoxMock, CardReaderMock);
         serviceCollection.AddDataContext();
         
         _services = serviceCollection.BuildServiceProvider();
@@ -43,6 +45,7 @@ public abstract class IntegrationTestsBase
         
         NavigationMock!.Reset();
         _messageBoxMock!.Reset();
+        CardReaderMock!.Reset();
         
         await CleanTestDataAsync();
     }

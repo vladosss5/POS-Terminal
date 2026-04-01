@@ -19,11 +19,13 @@ public class OpenShiftPageTests : IntegrationTestsBase
     private IAuthService? _authService;
 
     private const string Password = "1432";
+    private const int CardNumber = 77310317;
 
     private readonly User _existingOperator = new()
     {
         UserId = 1,
         Name = $"operator_1",
+        CardNumber = CardNumber,
         UserPassword = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(Password)))
     };
 
@@ -34,7 +36,9 @@ public class OpenShiftPageTests : IntegrationTestsBase
         
         await db.AddAsync(_existingOperator);
         await db.SaveChangesAsync();
-        
+
+        TestScope!.ServiceProvider.GetRequiredService<IConfigurationService>().CurrentSetting
+            .SecondsAuthenticationCanceled = 3;
         _openShiftPageViewModel = TestScope!.ServiceProvider.GetRequiredService<OpenShiftPageViewModel>();
         _openShiftPageViewModel.OnActivated(NavigationMock!.Object);
         
@@ -105,5 +109,25 @@ public class OpenShiftPageTests : IntegrationTestsBase
         // Assert
         NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Never);
         Assert.That(_authService!.CurrentUser, Is.Null);
+    }
+
+    [Test]
+    public async Task LoginByCard_CorrectCardNumber()
+    {
+        // Arrange
+        CardReaderMock!.Setup(x => x.ReadCardAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CardReadResult.Success(new CardInfo(Convert.ToString(CardNumber, 16), CardType.MifareClassic1K, [])));
+        
+        // Act
+        _openShiftPageViewModel!.SelectUser(_existingOperator);
+        await Task.Delay(3000);
+
+        // Assert
+        NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Once); // Проверка перехода страницы.
+        Assert.That(_authService!.CurrentUser, Is.Not.Null); // Проверка сохранения аутентифицированного оператора.
+        
+        var shiftService = TestScope!.ServiceProvider.GetRequiredService<IShiftService>();
+        var shift = await shiftService.GetOpenedShiftOrDefaultAsync();
+        Assert.That(shift, Is.Not.Null); // Проверка открытия смены.
     }
 }

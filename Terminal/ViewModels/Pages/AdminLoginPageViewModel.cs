@@ -20,6 +20,9 @@ public class AdminLoginPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IHashService _hashService;
     
+    /// <inheritdoc cref="IMessageBoxService"/>
+    private readonly IMessageBoxService _messageBoxService;
+    
     /// <summary>
     /// Значение таймера по умолчанию.
     /// </summary>
@@ -75,11 +78,13 @@ public class AdminLoginPageViewModel : PageViewModelBase
     public AdminLoginPageViewModel(
         ILogger<PageViewModelBase> logger,
         IConfigurationService configurationService, 
-        IHashService hashService) 
+        IHashService hashService, 
+        IMessageBoxService messageBoxService) 
         : base(logger)
     {
         _configurationService = configurationService;
         _hashService = hashService;
+        _messageBoxService = messageBoxService;
 
         _defaultRemainingSeconds = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -125,7 +130,7 @@ public class AdminLoginPageViewModel : PageViewModelBase
         }
         else
         {
-            await MessageBoxManager.GetMessageBoxStandard("Ошибка", "Неверный пароль").ShowAsync();
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Неверный пароль");
             Navigation.NavigateTo<MainMenuPageViewModel>();
         }
     }

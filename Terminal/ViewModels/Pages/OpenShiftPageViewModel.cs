@@ -7,7 +7,6 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
@@ -62,6 +61,11 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Выбранная учётная запись.
     /// </summary>
     private User _selectedUser;
+
+    /// <summary>
+    /// Счётчик кол-ва попыток авторизации по карте.
+    /// </summary>
+    private int _counterReadAttempts;
     
     /// <summary>
     /// Индекс текущего шага.
@@ -377,6 +381,10 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
                 if (cardResult.IsSuccess)
                 {
                     await AuthenticationWithCard(cardResult.Card!.Uid);
+                }
+                else if (cardResult.ErrorType == CardReaderErrorType.Hardware)
+                {
+                    throw new OperationCanceledException();
                 }
                 else if (cardResult.ErrorMessage != null && cardResult.ErrorType != CardReaderErrorType.Timeout)
                 {

@@ -130,4 +130,31 @@ public class OpenShiftPageTests : IntegrationTestsBase
         var shift = await shiftService.GetOpenedShiftOrDefaultAsync();
         Assert.That(shift, Is.Not.Null); // Проверка открытия смены.
     }
+    
+    [Test]
+    public void LoginByCard_IncorrectCardNumber()
+    {
+        // Arrange
+        var attempts = 0;
+        const int maxAttempts = 1;
+
+        CardReaderMock!.Setup(x => x.ReadCardAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                attempts++;
+                return attempts >= maxAttempts 
+                    ? CardReadResult.HardwareError("") 
+                    : CardReadResult.Success(new CardInfo(
+                        Convert.ToString(CardNumber + 1, 16), 
+                        CardType.MifareClassic1K, 
+                        []));
+            });
+
+        // Act
+        _openShiftPageViewModel!.SelectUser(_existingOperator);
+
+        // Assert
+        NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Never);
+        Assert.That(_authService!.CurrentUser, Is.Null);
+    }
 }

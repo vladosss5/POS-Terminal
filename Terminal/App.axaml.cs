@@ -156,7 +156,7 @@ public partial class App : Avalonia.Application
     /// <summary>
     /// Получение SQl из ресурсов проекта.
     /// </summary>
-    private async Task<string?> ReadSqlScriptFromResourceAsync(string scriptName)
+    public static async Task<string?> ReadSqlScriptFromResourceAsync(string scriptName)
     {
         var assembly = typeof(App).Assembly;
         var resourceNames = assembly.GetManifestResourceNames();

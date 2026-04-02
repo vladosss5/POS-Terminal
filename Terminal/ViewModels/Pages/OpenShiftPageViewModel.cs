@@ -61,11 +61,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Выбранная учётная запись.
     /// </summary>
     private User _selectedUser;
-
-    /// <summary>
-    /// Счётчик кол-ва попыток авторизации по карте.
-    /// </summary>
-    private int _counterReadAttempts;
     
     /// <summary>
     /// Индекс текущего шага.

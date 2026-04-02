@@ -14,7 +14,6 @@ using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
-using Terminal.Core.Models.Settings;
 using Terminal.Data.Context;
 using Terminal.ViewModels.Items;
 
@@ -62,11 +61,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Сообщения о типах кол-ва.
     /// </summary>
-    private string[] _amountMessages = new []
-    {
+    private readonly string[] _amountMessages =
+    [
         "Указывается кол-во в ₽",
         "Указывается кол-во в литрах"
-    };
+    ];
     
     /// <summary>
     /// Токен отмены считывания карты.
@@ -169,17 +168,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
                 _amountFuel = d;
         }
     }
-
-    
-    /// <summary>
-    /// Строковая информация по карте.
-    /// </summary>
-    public string CardInfo
-    {
-        get;
-        private set => SetProperty(ref field, value);
-    }
-    
 
     /// <summary>
     /// Конструктор.
@@ -299,64 +287,58 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Добавить символ в предпросмотр кол-ва.
+    /// Добавить символы в предпросмотр кол-ва.
     /// </summary>
-    /// <param name="item">Символ.</param>
-    public void AddCharInAmountPreview(string item)
+    /// <param name="symbols">Символ.</param>
+    public void AddCharInAmountPreview(string symbols)
     {
-        if (item == "00")
+        foreach (var symbol in symbols)
         {
-            AddCharInAmountPreview("0");
-            AddCharInAmountPreview("0");
-            return;
-        }
-        
-        string current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
-        int maxDecimals = IsAmountMoney ? 2 : 3;
+            var current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
+            var maxDecimals = IsAmountMoney ? 2 : 3;
 
-        int dotIndex = current.IndexOf(",", StringComparison.Ordinal);
+            var dotIndex = current.IndexOf(',');
         
-        if (dotIndex >= 0 && item != ",")
-        {
-            int decimalsAfterDot = current.Length - dotIndex - 1;
+            if (dotIndex >= 0 && symbol != ',')
+            {
+                var decimalsAfterDot = current.Length - dotIndex - 1;
             
-            if (decimalsAfterDot >= maxDecimals) 
+                if (decimalsAfterDot >= maxDecimals) 
+                    return;
+            }
+        
+            if (symbol == ',' && current.Contains(symbol))
                 return;
+
+            if (current == "0" && symbol == ',')
+                current = "0";
+
+            string newValue;
+
+            if (current == "0" && symbol != ',')
+                newValue = symbol.ToString();
+            else
+                newValue = current + symbol;
+        
+            if (newValue.Length > 14) 
+                return;
+
+            if (IsAmountMoney)
+                AmountMoneyPreview = newValue;
+            else
+                AmountFuelPreview = newValue;
         }
-        
-        if (item == "," && current.Contains(item))
-            return;
-
-        if (current == "0" && item == ",")
-            current = "0";
-        
-        var newValue = current == "0" && item != ","
-            ? item
-            : current + item;
-        
-        if (newValue.Length > 14) 
-            return;
-
-        if (IsAmountMoney)
-            AmountMoneyPreview = newValue;
-        else
-            AmountFuelPreview = newValue;
     }
 
     /// <summary>
     /// Удалить последний символ из предпросмотра кол-ва.
     /// </summary>
-    ///
     public void DeleteLastCharFromPreview()
     {
         if (IsAmountMoney)
-        {
-            AmountMoneyPreview = DeleteLastChar(AmountMoneyPreview);
-        }
+            AmountMoneyPreview = AmountMoneyPreview.Length > 1 ? AmountMoneyPreview[..^1] : "0";
         else
-        {
-            AmountFuelPreview = DeleteLastChar(AmountFuelPreview);
-        }
+            AmountFuelPreview = AmountFuelPreview.Length > 1 ? AmountFuelPreview[..^1] : "0";
     }
 
     /// <summary>
@@ -503,27 +485,13 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
             await PrintReceiptAsync(selling);
             
-            Navigation.GoBack();    
+            Navigation.GoBack();
         }
         catch (Exception ex)
         {
             _logger.LogError($"Ошибка: {ex.Message},\n {ex.InnerException}, \n {ex.StackTrace}" );
             await ShowMessage("Ошибка!", $"{ex.Message}, {ex.InnerException}");
         }
-    }
-    
-    private string DeleteLastChar(string str) 
-    {
-        if (str.Length > 1)
-        {
-            str = str[..^1];
-        }
-        else
-        {
-            str = "0";
-        }
-
-        return str;
     }
 
     /// <summary>
@@ -545,7 +513,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!result.IsSuccess)
                 return;
 
-            CardInfo = result.Card!.Uid;
             Steps[3].CompleteStepCommand.Execute(null);
         }
         catch (Exception e)

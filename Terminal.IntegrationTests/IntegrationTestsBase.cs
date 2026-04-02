@@ -14,21 +14,21 @@ public abstract class IntegrationTestsBase
     
     protected IServiceScope? TestScope;
     protected IDbContextFactory<DataContext>? DbFactory;
-    protected Mock<INavigationService>? NavigationMock;
-    protected Mock<ICardReaderService>? CardReaderMock;
+    protected readonly Mock<INavigationService> NavigationMock = new();
+    protected readonly Mock<ICardReaderService> CardReaderMock = new();
+    protected Mock<IReceiptPrintService> ReceiptPrintMock = new();
     
-    private Mock<IMessageBoxService>? _messageBoxMock;
+    private readonly Mock<IMessageBoxService> _messageBoxMock = new();
     
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
         var serviceCollection = new ServiceCollection();
         
-        NavigationMock = new Mock<INavigationService>();
-        _messageBoxMock = new Mock<IMessageBoxService>();
-        CardReaderMock = new Mock<ICardReaderService>();
+        serviceCollection.RegisterCommonServices(
+            NavigationMock, _messageBoxMock, 
+            CardReaderMock, ReceiptPrintMock);
         
-        serviceCollection.RegisterCommonServices(NavigationMock, _messageBoxMock, CardReaderMock);
         serviceCollection.AddDataContext();
         
         _services = serviceCollection.BuildServiceProvider();

@@ -23,8 +23,9 @@ public static class TestServiceProvider
 {
     public static void RegisterCommonServices(this IServiceCollection collection,
         Mock<INavigationService> navigationMock,
-        Mock<IMessageBoxService> messageMock, 
-        Mock<ICardReaderService> cardReaderMock)
+        Mock<IMessageBoxService> messageMock,
+        Mock<ICardReaderService> cardReaderMock, 
+        Mock<IReceiptPrintService> receiptPrintMock)
     {
         collection.AddLogging(builder =>
         {
@@ -66,6 +67,9 @@ public static class TestServiceProvider
         
         collection.AddSingleton(cardReaderMock.Object);
         collection.AddSingleton(cardReaderMock);
+
+        collection.AddSingleton(receiptPrintMock.Object);
+        collection.AddSingleton(receiptPrintMock);
         
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();

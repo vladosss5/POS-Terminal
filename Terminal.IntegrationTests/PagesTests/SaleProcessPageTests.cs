@@ -14,7 +14,7 @@ public class SaleProcessPageTests : IntegrationTestsBase
     private SaleProcessPageViewModel? _saleProcessPageViewModel;
 
     [SetUp]
-    public new void SetUp()
+    public void InitField()
     {
         _saleProcessPageViewModel = TestScope!.ServiceProvider.GetRequiredService<SaleProcessPageViewModel>();
         _saleProcessPageViewModel.OnActivated(NavigationMock.Object);

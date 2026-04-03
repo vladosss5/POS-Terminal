@@ -1,11 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
 
@@ -31,6 +32,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IMessageBoxService"/>
     private readonly IMessageBoxService _messageBoxService;
 
+    /// <inheritdoc cref="IReceiptPrintService"/>
+    private readonly IReceiptPrintService _receiptPrintService;
+
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -45,7 +49,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         ILogger<MainMenuPageViewModel> logger, 
         IAuthService authService, 
         IShiftService shiftService, 
-        IMessageBoxService messageBoxService) 
+        IMessageBoxService messageBoxService, 
+        IReceiptPrintService receiptPrintService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -53,6 +58,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _authService = authService;
         _shiftService = shiftService;
         _messageBoxService = messageBoxService;
+        _receiptPrintService = receiptPrintService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -92,7 +98,22 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
         Navigation.NavigateTo<OpenShiftPageViewModel>();
     }
+    
+    /// <summary>
+    /// Напечатать промежуточный отчёт за смену.
+    /// </summary>
+    /// <param name="arg"></param>
+    /// <returns></returns>
+    private async Task PrintInterimReport(CancellationToken arg)
+    {
+        var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
 
+        if (openShift == null)
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
+
+        await _receiptPrintService.PrintShiftReportAsync(openShift!, ShiftReportType.Interim);
+    }
+    
     /// <summary>
     /// Создать кнопки главного меню.
     /// </summary>
@@ -142,7 +163,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Пром. отчёт"
+                Title = "Пром. отчёт",
+                Command = new AsyncRelayCommand(PrintInterimReport)
             },
             new MainMenuItemModel
             {

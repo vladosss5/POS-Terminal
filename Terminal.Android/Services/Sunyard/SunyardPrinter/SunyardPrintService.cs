@@ -8,6 +8,7 @@ using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
@@ -135,6 +136,11 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         }
         _logger.LogInformation($"Чек отпечатан");
         return await tcs.Task;
+    }
+
+    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    {
+        throw new NotImplementedException();
     }
 
     private async Task ConnectAsync()

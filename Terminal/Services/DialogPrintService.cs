@@ -7,7 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Views.DialogWindows;
@@ -17,7 +17,7 @@ namespace Terminal.Services;
 /// <summary>
 /// Реализация печати чеков через диалоговое окно.
 /// </summary>
-public class DialogPrintService : IReceiptPrintService
+public class DialogPrintService
 {
     /// <summary>
     /// Ширина страницы.
@@ -29,6 +29,8 @@ public class DialogPrintService : IReceiptPrintService
     /// </summary>
     private readonly ILogger<DialogPrintService> _logger;
 
+    private StringBuilder _stringBuilder = new();
+
     /// <summary>
     /// Конструктор.
     /// </summary>
@@ -38,32 +40,20 @@ public class DialogPrintService : IReceiptPrintService
         _logger = logger;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Вывести чек о продаже в диалоговом окне.
+    /// </summary>
+    /// <param name="salesReceipt">Чек о продаже.</param>
+    /// <returns>Результат печати.</returns>
     public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
         try
         {
-            var receiptText = FormatReceiptText(salesReceipt);
+            _stringBuilder = new StringBuilder();
+            
+            var receiptText = FormatSalesReceiptText(salesReceipt);
 
-            bool result;
-            
-            if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                var dialog = new ReceiptPreviewDialogWindow(receiptText);
-                result = await dialog.ShowModalDialog(desktop.MainWindow!);
-            }
-            else
-            {
-                await MessageBoxManager.GetMessageBoxStandard(
-                        "Чек",
-                        receiptText,
-                        ButtonEnum.Ok,
-                        Icon.None,
-                        WindowStartupLocation.CenterOwner)
-                    .ShowAsync();
-                result = true;
-            }
-            
+            var result = await ShowTextDialog(receiptText);
             
             return new PrintResult
             {
@@ -85,64 +75,141 @@ public class DialogPrintService : IReceiptPrintService
     }
 
     /// <summary>
+    /// Вывести отчёт за смену.
+    /// </summary>
+    /// <param name="shift">Целевая смена.</param>
+    /// <param name="reportType">Тип отчёта: промежуточный или итоговый.</param>
+    /// <returns>Результат печати.</returns>
+    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    {
+        try
+        {
+            _stringBuilder = new StringBuilder();
+            
+            var receiptText = FormatShiftReportText(shift, reportType);
+            
+            var result = await ShowTextDialog(receiptText);
+            
+            return new PrintResult
+            {
+                Success = result,
+                Status = result ? PrinterStatus.Ready : PrinterStatus.Unknown,
+                ErrorMessage = result ? null : "Печать отменена пользователем"
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Ошибка при показе диалога печати");
+            return new PrintResult
+            {
+                Success = false,
+                ErrorMessage = e.Message,
+                Status = PrinterStatus.Unknown
+            };
+        }
+    }
+
+    private string FormatShiftReportText(Shift shift, ShiftReportType reportType)
+    {
+        var culture = new CultureInfo("ru-RU");
+        
+        var title = reportType switch
+        {
+            ShiftReportType.Interim => "Пром. отчёт",
+            ShiftReportType.Final => "Итоговый отчёт",
+            _ => ""
+        };
+
+        AppendLineWidth(title);
+        
+        AppendKeyValueLine("Номер смены:", shift.ShiftShopKey.ToString());
+        AppendKeyValueLine("Начало:", shift.ShiftDate.ToString());
+        AppendKeyValueLine("Конец:", DateTime.Now.ToString());
+        
+        
+        return _stringBuilder.ToString();
+    }
+
+    /// <summary>
     /// Получить форматированный текст чека.
     /// </summary>
     /// <param name="receipt">Чек о покупке.</param>
     /// <returns>Текст чека.</returns>
-    private string FormatReceiptText(SalesReceipt receipt)
+    private string FormatSalesReceiptText(SalesReceipt receipt)
     {
         var culture = new CultureInfo("ru-RU");
-        var sb = new StringBuilder();
 
-        AppendKeyValueLine(ref sb, "Чек", $"#{receipt.Number}");
-        AppendLineWidth(ref sb);
-        AppendKeyValueLine(ref sb, "Терминал:", receipt.TerminalNumber);
-        AppendKeyValueLine(ref sb, "Дата:", receipt.TransactionDateTime.ToString(culture));
+        AppendKeyValueLine("Чек", $"#{receipt.Number}");
+        AppendLineWidth();
+        AppendKeyValueLine("Терминал:", receipt.TerminalNumber);
+        AppendKeyValueLine("Дата:", receipt.TransactionDateTime.ToString(culture));
 
         if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
         {
-            AppendKeyValueLine(ref sb, "Карта", receipt.CardNumber!);
-            AppendKeyValueLine(ref sb, "Карта сокр", receipt.CardNumber!);
+            AppendKeyValueLine("Карта", receipt.CardNumber!);
+            AppendKeyValueLine("Карта сокр", receipt.CardNumber!);
         }
-        AppendLineWidth(ref sb, "Продажа");
-        AppendKeyValueLine(ref sb, receipt.ResourceName, $"= {receipt.Amount.ToString(culture)}");
-        AppendKeyValueLine(ref sb, receipt.PricePerUnit.ToString(culture), $"= {receipt.SellingPrice.ToString(culture)}");
+        AppendLineWidth("Продажа");
+        AppendKeyValueLine(receipt.ResourceName, $"= {receipt.Amount.ToString(culture)}");
+        AppendKeyValueLine(receipt.PricePerUnit.ToString(culture), $"= {receipt.SellingPrice.ToString(culture)}");
         
-        AppendKeyValueLine(ref sb, "Скидка", $"= {receipt.Discount.ToString(culture)}");
-        AppendKeyValueLine(ref sb, "Итого", $"= {receipt.TotalPrice.ToString(culture)}");
+        AppendKeyValueLine("Скидка", $"= {receipt.Discount.ToString(culture)}");
+        AppendKeyValueLine("Итого", $"= {receipt.TotalPrice.ToString(culture)}");
         
         if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
         {
-            AppendLineWidth(ref sb, "Инфо по кошелькам");
+            AppendLineWidth("Инфо по кошелькам");
         }
 
-        AppendLineWidth(ref sb);
-        sb.AppendLine($"Оператор {receipt.Operator}");
-        AppendLineWidth(ref sb);
+        AppendLineWidth();
+        _stringBuilder.AppendLine($"Оператор {receipt.Operator}");
+        AppendLineWidth();
         
-        return sb.ToString();
+        return _stringBuilder.ToString();
     }
 
     /// <summary>
     /// Вставить линию типа ключ-значение.
     /// </summary>
-    /// <param name="sb">Изменяемый строитель строки.</param>
     /// <param name="key">Ключ.</param>
     /// <param name="value">Значение.</param>
-    private static void AppendKeyValueLine(ref StringBuilder sb, string key, string value)
+    private void AppendKeyValueLine(string key, string value)
     {
         var spacer = new string(' ', PageWidth - key.Length - value.Length);
-        sb.AppendLine(key + spacer + value);
+        _stringBuilder.AppendLine(key + spacer + value);
     }
 
     /// <summary>
     /// Ставить линию растянутую по ширине.
     /// </summary>
-    /// <param name="sb">Изменяемый строитель строки.</param>
     /// <param name="text">Опциональный текст в строке.</param>
-    private static void AppendLineWidth(ref StringBuilder sb, string text = "")
+    private void AppendLineWidth(string text = "")
     {
         var spacer = new string('-', (PageWidth - text.Length) / 2);
-        sb.AppendLine(spacer + text + spacer);
+        _stringBuilder.AppendLine(spacer + text + spacer);
+    }
+    
+    /// <summary>
+    /// Показать диалоговое окно с текстом.
+    /// </summary>
+    /// <param name="text">Текст для вывода.</param>
+    /// <returns>Успешность вывода.</returns>
+    private static async Task<bool> ShowTextDialog(string text)
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var dialog = new ReceiptPreviewDialogWindow(text);
+            return await dialog.ShowModalDialog(desktop.MainWindow!);
+        }
+
+        await MessageBoxManager.GetMessageBoxStandard(
+                "Чек",
+                text,
+                ButtonEnum.Ok,
+                Icon.None,
+                WindowStartupLocation.CenterOwner)
+            .ShowAsync();
+        
+        return true;
     }
 }

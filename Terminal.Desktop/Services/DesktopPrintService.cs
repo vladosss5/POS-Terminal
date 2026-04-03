@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.DbEntities;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Services;
 
@@ -26,5 +28,11 @@ public class DesktopPrintService : IReceiptPrintService
     public async Task<PrintResult> PrintSalesReceiptAsync(SalesReceipt salesReceipt)
     {
         return await _dialogPrintService.PrintSalesReceiptAsync(salesReceipt);
+    }
+
+    /// <inheritdoc/>
+    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    {
+        return await _dialogPrintService.PrintShiftReportAsync(shift, reportType);
     }
 }

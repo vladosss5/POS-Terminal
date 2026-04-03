@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,16 +78,18 @@ public class DialogPrintService
     /// <summary>
     /// Вывести отчёт за смену.
     /// </summary>
-    /// <param name="shift">Целевая смена.</param>
+    /// <param name="salesReportData"></param>
+    /// <param name="shift"></param>
     /// <param name="reportType">Тип отчёта: промежуточный или итоговый.</param>
     /// <returns>Результат печати.</returns>
-    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    public async Task<PrintResult> PrintShiftReportAsync(List<SalesReportResult> salesReportData,
+        Shift shift, ShiftReportType reportType)
     {
         try
         {
             _stringBuilder = new StringBuilder();
             
-            var receiptText = FormatShiftReportText(shift, reportType);
+            var receiptText = FormatShiftReportText(salesReportData, shift, reportType);
             
             var result = await ShowTextDialog(receiptText);
             
@@ -109,7 +112,7 @@ public class DialogPrintService
         }
     }
 
-    private string FormatShiftReportText(Shift shift, ShiftReportType reportType)
+    private string FormatShiftReportText(List<SalesReportResult> salesReportData, Shift shift, ShiftReportType reportType)
     {
         var culture = new CultureInfo("ru-RU");
         
@@ -122,10 +125,24 @@ public class DialogPrintService
 
         AppendLineWidth(title);
         
-        AppendKeyValueLine("Номер смены:", shift.ShiftShopKey.ToString());
-        AppendKeyValueLine("Начало:", shift.ShiftDate.ToString());
-        AppendKeyValueLine("Конец:", DateTime.Now.ToString());
-        
+        AppendKeyValueLine("Номер смены:", shift.ShiftShopKey.ToString(culture));
+        AppendKeyValueLine("Начало:", shift.ShiftDate != null ? shift.ShiftDate!.Value.ToString(culture) : "");
+        AppendKeyValueLine("Конец:", DateTime.Now.ToString(culture));
+
+        foreach (var saleData in salesReportData)
+        {
+            AppendLineWidth(saleData.N);
+            
+            AppendTextInCenter("Продажи");
+            AppendKeyValueLine("Ко-во", saleData.A.ToString(culture));
+            AppendKeyValueLine("Сумма баз.", saleData.SBC.ToString(culture));
+            AppendKeyValueLine("Сумма скид.", saleData.SC.ToString(culture));
+            
+            AppendTextInCenter("Возвраты");
+            AppendKeyValueLine("Ко-во", saleData.AR.ToString(culture));
+            AppendKeyValueLine("Сумма баз.", saleData.SBCR.ToString(culture));
+            AppendKeyValueLine("Сумма скид.", saleData.SCR.ToString(culture));
+        }
         
         return _stringBuilder.ToString();
     }
@@ -186,6 +203,12 @@ public class DialogPrintService
     private void AppendLineWidth(string text = "")
     {
         var spacer = new string('-', (PageWidth - text.Length) / 2);
+        _stringBuilder.AppendLine(spacer + text + spacer);
+    }
+
+    private void AppendTextInCenter(string text)
+    {
+        var spacer = new string(' ', (PageWidth - text.Length) / 2);
         _stringBuilder.AppendLine(spacer + text + spacer);
     }
     

@@ -122,7 +122,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         if (openShift == null)
             await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
 
-        await _receiptPrintService.PrintShiftReportAsync(openShift!, ShiftReportType.Interim);
+        var reportData = await GetReportAsync([0, 3], [0, 1], 6765,-1, false, arg);
+        
+        await _receiptPrintService.PrintShiftReportAsync(reportData, openShift!, ShiftReportType.Interim);
     }
     
     /// <summary>

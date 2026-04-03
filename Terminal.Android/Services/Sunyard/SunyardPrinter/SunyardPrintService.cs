@@ -138,7 +138,9 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
-    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    public async Task<PrintResult> PrintShiftReportAsync(List<SalesReportResult> salesReportData,
+        Shift shift,
+        ShiftReportType reportType)
     {
         throw new NotImplementedException();
     }

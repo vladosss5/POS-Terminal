@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
@@ -31,8 +32,9 @@ public class DesktopPrintService : IReceiptPrintService
     }
 
     /// <inheritdoc/>
-    public async Task<PrintResult> PrintShiftReportAsync(Shift shift, ShiftReportType reportType)
+    public async Task<PrintResult> PrintShiftReportAsync(List<SalesReportResult> salesReportData,
+        Shift shift, ShiftReportType reportType)
     {
-        return await _dialogPrintService.PrintShiftReportAsync(shift, reportType);
+        return await _dialogPrintService.PrintShiftReportAsync(salesReportData, shift, reportType);
     }
 }

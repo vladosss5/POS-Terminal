@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using Terminal.Core.DbEntities;
-using Terminal.Data;
-using Terminal.Data.Mappings;
+using Terminal.Core.Models;
 
 namespace Terminal.Data.Context;
 
@@ -111,12 +107,19 @@ public partial class DataContext : DbContext
     /// <inheritdoc cref="User"/>
     public virtual DbSet<User> Users { get; set; }
     
+    /// <inheritdoc cref="SalesReportResult"/>
+    public DbSet<SalesReportResult> SalesReportResults { get; set; }
+    
     /// <summary>
     /// Конфигурирование маппинга моделей в таблицы.
     /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DataContext).Assembly);
+     
+        modelBuilder.Entity<SalesReportResult>()
+            .HasNoKey()
+            .ToView(null);
         
         OnModelCreatingPartial(modelBuilder);
     }

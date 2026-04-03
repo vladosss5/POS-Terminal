@@ -16,6 +16,8 @@
         <EmbeddedResource Include="SQL\1_pos.terminal.sql" />
         <EmbeddedResource Include="SQL\FillSettingsTable.sql" />
         <EmbeddedResource Include="SQL\FillUsersTable.sql" />
+        <None Remove="SQL\report.sql" />
+        <EmbeddedResource Include="SQL\report.sql" />
     </ItemGroup>
 
     <ItemGroup>

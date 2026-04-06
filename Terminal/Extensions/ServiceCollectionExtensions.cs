@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<SettingsShiftOpeningPageViewModel>();
         collection.AddTransient<AdminLoginPageViewModel>();
         collection.AddTransient<SettingsPrintPageViewModel>();
+        collection.AddTransient<InitialSetupPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

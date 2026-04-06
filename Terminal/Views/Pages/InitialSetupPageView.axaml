@@ -1,0 +1,59 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
+             x:Class="Terminal.Views.Pages.InitialSetupPageView"
+             x:DataType="pages:InitialSetupPageViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="Border.group-setting">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="BorderBrush" Value="DarkGray"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Margin" Value="10,5,10,5"/>
+        </Style>
+        
+        <Style Selector="Separator.default-separator">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Margin" Value="10"></Setter>
+        </Style>
+        
+        <Style Selector="TextBox.Number">
+            <Setter Property="UseFloatingWatermark" Value="True"/>
+            <Setter Property="BorderBrush" Value="LightGray"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="FontSize" Value="30"></Setter>
+        </Style>
+    </UserControl.Styles>
+    
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <TextBlock Grid.Row="0" 
+                   Text="{Binding Title}" 
+                   Classes="page-title"/>
+        
+        <!-- Тело страницы -->
+        <ScrollViewer Grid.Row="1"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch">
+            <Grid RowDefinitions="Auto, *">
+                <Border Grid.Row="1" Classes="group-setting" VerticalAlignment="Top">
+                    <StackPanel  VerticalAlignment="Top">
+                        
+                            <TextBox Watermark="Номер эмитента" Text="{Binding IssuerNumber}"
+                                     Classes="Number"/>
+                    
+                            <TextBox Watermark="Номер терминала" Text="{Binding TerminalNumber}"
+                                     Classes="Number"/>
+                    </StackPanel>
+                </Border>
+                <Button Grid.Row="1" Content="Сохранить"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

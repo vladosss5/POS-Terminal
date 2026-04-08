@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<SettingsShiftOpeningPageViewModel>();
         collection.AddTransient<AdminLoginPageViewModel>();
         collection.AddTransient<SettingsPrintPageViewModel>();
+        collection.AddTransient<InitialSetupPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
@@ -72,8 +73,7 @@ public static class ServiceCollectionExtensions
     public static void AddDataContext(this IServiceCollection collection)
     {
         var dbPath = DataContext.GetDefaultDbPath();
-        
-        string? dir = Path.GetDirectoryName(dbPath);
+        var dir = Path.GetDirectoryName(dbPath);
         
         if (dir != null)
             Directory.CreateDirectory(dir);
@@ -88,6 +88,18 @@ public static class ServiceCollectionExtensions
                 .EnableDetailedErrors()
                 .LogTo(Console.WriteLine, LogLevel.Information);
 #endif
+        });
+
+        
+        var paramDbPath = ParamDbContext.GetDefaultDbPath();
+        var paramDbDir = Path.GetDirectoryName(paramDbPath);
+        
+        if (paramDbDir != null)
+            Directory.CreateDirectory(paramDbDir);
+
+        collection.AddDbContextFactory<ParamDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={paramDbPath}");
         });
     }
 

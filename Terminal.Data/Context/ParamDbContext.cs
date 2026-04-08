@@ -8,9 +8,15 @@ namespace Terminal.Data.Context;
 /// </summary>
 public partial class ParamDbContext : DbContext
 {
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public ParamDbContext()
     { }
     
+    /// <summary>
+    /// Конструктор с параметрами.
+    /// </summary>
     public ParamDbContext(DbContextOptions<ParamDbContext> options) : base(options)
     { }
     

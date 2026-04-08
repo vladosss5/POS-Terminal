@@ -55,10 +55,7 @@ public partial class App : Avalonia.Application
         
         await InitializeDatabaseAsync();
 
-        // Указание на первую открываемую страницу.
-        var navigationService = Services!.GetRequiredService<INavigationService>();
-
-        await OpenFirstPage(navigationService);
+        await OpenFirstPage();
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
@@ -156,8 +153,12 @@ public partial class App : Avalonia.Application
         }
     }
 
-    private static async Task OpenFirstPage(INavigationService navigationService)
+    /// <summary>
+    /// Открытие первой страницы в зависимости от настройки.
+    /// </summary>
+    private static async Task OpenFirstPage()
     {
+        var navigationService = Services!.GetRequiredService<INavigationService>();
         var paramDbFactory = Services!.GetRequiredService<IDbContextFactory<ParamDbContext>>();
         await using var db = await paramDbFactory.CreateDbContextAsync();
 

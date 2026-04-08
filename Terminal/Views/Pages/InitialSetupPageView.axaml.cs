@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;

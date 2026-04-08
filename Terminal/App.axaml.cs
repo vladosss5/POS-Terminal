@@ -55,9 +55,7 @@ public partial class App : Avalonia.Application
         
         await InitializeDatabaseAsync();
 
-        // Указание на первую открываемую страницу.
-        var navigationService = Services!.GetRequiredService<INavigationService>();
-        navigationService.NavigateTo<OpenShiftPageViewModel>();
+        await OpenFirstPage();
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
@@ -105,10 +103,12 @@ public partial class App : Avalonia.Application
     {
         try
         {
-            var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
-
-            await using var context = await factory.CreateDbContextAsync();
+            var paramDbFactory = Services!.GetRequiredService<IDbContextFactory<ParamDbContext>>();
+            await using var paramDb = await paramDbFactory.CreateDbContextAsync();
+            await paramDb.Database.MigrateAsync();
             
+            var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
+            await using var context = await factory.CreateDbContextAsync();
             await context.Database.MigrateAsync();
             
             List<string> scripts = [];
@@ -151,6 +151,29 @@ public partial class App : Avalonia.Application
         {
             Logger?.LogError($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Открытие первой страницы в зависимости от настройки.
+    /// </summary>
+    private static async Task OpenFirstPage()
+    {
+        var navigationService = Services!.GetRequiredService<INavigationService>();
+        var paramDbFactory = Services!.GetRequiredService<IDbContextFactory<ParamDbContext>>();
+        await using var db = await paramDbFactory.CreateDbContextAsync();
+
+        if (db.Params.Any())
+        {
+            var isInstalledParam = await db.Params.FirstOrDefaultAsync(x => x.Name == "IsInstalled");
+
+            if (isInstalledParam is { Value: "1" })
+            {
+                navigationService.NavigateTo<OpenShiftPageViewModel>();
+                return;
+            }
+        }
+        
+        navigationService.NavigateTo<InitialSetupPageViewModel>();
     }
     
     /// <summary>

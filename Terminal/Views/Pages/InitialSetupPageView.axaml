@@ -11,7 +11,7 @@
         <Style Selector="Border.group-setting">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="DarkGray"/>
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="Margin" Value="10,5,10,5"/>
@@ -23,7 +23,7 @@
         </Style>
         
         <Style Selector="TextBox.Number">
-            <Setter Property="UseFloatingWatermark" Value="True"/>
+            <Setter Property="UseFloatingWatermark" Value="False"/>
             <Setter Property="BorderBrush" Value="LightGray"/>
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="FontSize" Value="30"></Setter>
@@ -39,19 +39,18 @@
         <!-- Тело страницы -->
         <ScrollViewer Grid.Row="1"
                       HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Stretch">
+                      VerticalAlignment="Stretch"
+                      Margin="{Binding SafeArea}">
             <Grid RowDefinitions="Auto, *">
-                <Border Grid.Row="1" Classes="group-setting" VerticalAlignment="Top">
-                    <StackPanel  VerticalAlignment="Top">
-                        
-                            <TextBox Watermark="Номер эмитента" Text="{Binding IssuerNumber}"
-                                     Classes="Number"/>
+                <StackPanel Grid.Row="0" Margin="10" Spacing="10" VerticalAlignment="Top">
                     
-                            <TextBox Watermark="Номер терминала" Text="{Binding TerminalNumber}"
-                                     Classes="Number"/>
-                    </StackPanel>
-                </Border>
-                <Button Grid.Row="1" Content="Сохранить"
+                        <TextBox Watermark="Номер эмитента" Text="{Binding IssuerNumber}"
+                                 Classes="Number"/>
+                
+                        <TextBox Watermark="Номер терминала" Text="{Binding TerminalNumber}"
+                                 Classes="Number"/>
+                </StackPanel>
+                <Button Grid.Row="1" Content="Сохранить" Command="{Binding SaveSetupAsync}"
                         VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
             </Grid>
         </ScrollViewer>

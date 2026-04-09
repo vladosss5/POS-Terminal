@@ -78,18 +78,15 @@ public class DialogPrintService
     /// <summary>
     /// Вывести отчёт за смену.
     /// </summary>
-    /// <param name="salesReportData"></param>
-    /// <param name="shift"></param>
-    /// <param name="reportType">Тип отчёта: промежуточный или итоговый.</param>
+    /// <param name="reportData"></param>
     /// <returns>Результат печати.</returns>
-    public async Task<PrintResult> PrintShiftReportAsync(List<SalesReportResult> salesReportData,
-        Shift shift, ShiftReportType reportType)
+    public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         try
         {
             _stringBuilder = new StringBuilder();
             
-            var receiptText = FormatShiftReportText(salesReportData, shift, reportType);
+            var receiptText = FormatShiftReportText(reportData);
             
             var result = await ShowTextDialog(receiptText);
             
@@ -112,37 +109,52 @@ public class DialogPrintService
         }
     }
 
-    private string FormatShiftReportText(List<SalesReportResult> salesReportData, Shift shift, ShiftReportType reportType)
+    private string FormatShiftReportText(ShiftReportDataDto reportData)
     {
         var culture = new CultureInfo("ru-RU");
         
-        var title = reportType switch
+        var title = reportData.ReportType switch
         {
             ShiftReportType.Interim => "Пром. отчёт",
             ShiftReportType.Final => "Итоговый отчёт",
             _ => ""
         };
-
+        
+        AppendLineWidth();
+        AppendKeyValueLine("Чек", "#" + reportData.ReceiptNumber);
+        AppendLineWidth();
+        
+        AppendTextInCenter();
         AppendLineWidth(title);
         
-        AppendKeyValueLine("Номер смены:", shift.ShiftShopKey.ToString(culture));
-        AppendKeyValueLine("Начало:", shift.ShiftDate != null ? shift.ShiftDate!.Value.ToString(culture) : "");
+        AppendKeyValueLine("Эмитент", reportData.IssuerNumber);
+        AppendKeyValueLine("Терминал", "#" + reportData.TerminalNumber);
+        AppendKeyValueLine("Номер смены:", reportData.Shift.ShiftShopKey.ToString(culture));
+        AppendKeyValueLine("Начало:", reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(culture) : "");
         AppendKeyValueLine("Конец:", DateTime.Now.ToString(culture));
 
-        foreach (var saleData in salesReportData)
+        foreach (var saleData in reportData.SalesList)
         {
-            AppendLineWidth(saleData.N);
+            AppendLineWidth(saleData.N ?? "");
             
             AppendTextInCenter("Продажи");
-            AppendKeyValueLine("Ко-во", saleData.A.ToString(culture));
-            AppendKeyValueLine("Сумма баз.", saleData.SBC.ToString(culture));
-            AppendKeyValueLine("Сумма скид.", saleData.SC.ToString(culture));
+            AppendKeyValueLine("Ко-во", saleData.A != null ? saleData.A.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString(culture) : "0");
             
             AppendTextInCenter("Возвраты");
-            AppendKeyValueLine("Ко-во", saleData.AR.ToString(culture));
-            AppendKeyValueLine("Сумма баз.", saleData.SBCR.ToString(culture));
-            AppendKeyValueLine("Сумма скид.", saleData.SCR.ToString(culture));
+            AppendKeyValueLine("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString(culture) : "0");
         }
+
+        AppendTextInCenter();
+        _stringBuilder.AppendLine($"Оператор: {reportData.OperatorName}");
+        AppendLineWidth();
+        AppendTextInCenter();
+        AppendTextInCenter();
+        AppendLineWidth();
+        AppendTextInCenter("Подпись");
         
         return _stringBuilder.ToString();
     }
@@ -206,7 +218,11 @@ public class DialogPrintService
         _stringBuilder.AppendLine(spacer + text + spacer);
     }
 
-    private void AppendTextInCenter(string text)
+    /// <summary>
+    /// Добавить текст по центру.
+    /// </summary>
+    /// <param name="text">Опциональный текст в строке.</param>
+    private void AppendTextInCenter(string text = "")
     {
         var spacer = new string(' ', (PageWidth - text.Length) / 2);
         _stringBuilder.AppendLine(spacer + text + spacer);

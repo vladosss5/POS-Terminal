@@ -32,9 +32,8 @@ public class DesktopPrintService : IReceiptPrintService
     }
 
     /// <inheritdoc/>
-    public async Task<PrintResult> PrintShiftReportAsync(List<SalesReportResult> salesReportData,
-        Shift shift, ShiftReportType reportType)
+    public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
-        return await _dialogPrintService.PrintShiftReportAsync(salesReportData, shift, reportType);
+        return await _dialogPrintService.PrintShiftReportAsync(reportData);
     }
 }

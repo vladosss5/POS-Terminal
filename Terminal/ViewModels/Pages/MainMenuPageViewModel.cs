@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -34,6 +35,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     ///<inheritdoc cref="IShiftService"/>
     private readonly IShiftService _shiftService;
+
+    private readonly IConfigurationService _configurationService;
     
     /// <inheritdoc cref="IMessageBoxService"/>
     private readonly IMessageBoxService _messageBoxService;
@@ -43,6 +46,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
+    
+    /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
+    private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
 
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -60,7 +66,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IShiftService shiftService, 
         IMessageBoxService messageBoxService, 
         IReceiptPrintService receiptPrintService, 
-        IDbContextFactory<DataContext> dbFactory) 
+        IDbContextFactory<DataContext> dbFactory, 
+        IDbContextFactory<ParamDbContext> paramDbFactory, 
+        IConfigurationService configurationService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -70,6 +78,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _messageBoxService = messageBoxService;
         _receiptPrintService = receiptPrintService;
         _dbFactory = dbFactory;
+        _paramDbFactory = paramDbFactory;
+        _configurationService = configurationService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -120,11 +130,61 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
 
         if (openShift == null)
+        {
             await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
-
-        var reportData = await GetReportAsync([0, 3], [0, 1], 6765,-1, false, arg);
+            return;
+        }
         
-        await _receiptPrintService.PrintShiftReportAsync(reportData, openShift!, ShiftReportType.Interim);
+        await using var paramDb = await _paramDbFactory.CreateDbContextAsync(arg);
+        var issuerNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "IssuerId", cancellationToken: arg);
+        
+        var divideByIssuers = _configurationService.CurrentSetting.ReportDivide;
+        var paymentTypes = _configurationService.CurrentSetting.ReportPaymentTypes!
+            .Split(',')
+            .Select(x => Convert.ToInt32(x));
+
+        var sales = await GetReportAsync(
+            paymentTypes: paymentTypes,
+            issuerList: [Convert.ToInt32(issuerNumber!.Value)], 
+            shiftKey: openShift.ShiftKey ?? 0,
+            elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber.Value), 
+            devideOrg: false, 
+            cancellationToken: arg);
+
+        var receiptNumber = await GetNumberLastReceipt(arg);
+        
+        var terminalNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "SerialNO111", cancellationToken: arg);
+        var operatorName = _authService.CurrentUser?.Name;
+
+        var reportData = new ShiftReportDataDto
+        {
+            ReceiptNumber = receiptNumber,
+            IssuerNumber = issuerNumber != null ? issuerNumber.Value : "undefined",
+            TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
+            Shift = openShift,
+            SalesList = sales,
+            OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
+        };
+
+        await _receiptPrintService.PrintShiftReportAsync(reportData);
+    }
+
+    private async Task<int> GetNumberLastReceipt(CancellationToken arg)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(arg);
+        var chekNumberSetting = await db.Settings.FirstOrDefaultAsync(x => x.SettingsKey == SettingsKey.Sale, cancellationToken: arg);
+
+        if (chekNumberSetting == null)
+            return 1;
+            
+        var currentNumber = chekNumberSetting.Value!.Value + 1;
+        
+        chekNumberSetting.Value = currentNumber;
+        db.Update(chekNumberSetting);
+            
+        await db.SaveChangesAsync(arg);
+
+        return currentNumber;
     }
     
     /// <summary>
@@ -206,8 +266,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     private async Task<List<SalesReportResult>> GetReportAsync(
-        IEnumerable<int> paymentTypes, IEnumerable<int> issuerList, 
-        int shiftKey, int elseIssuer, bool devideOrg,
+        IEnumerable<int> paymentTypes, 
+        IEnumerable<int> issuerList, 
+        int shiftKey, 
+        int elseIssuer, 
+        bool devideOrg,
         CancellationToken cancellationToken = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);

@@ -19,10 +19,7 @@ public interface IReceiptPrintService
     /// <summary>
     /// Напечатать отчёт за смену.
     /// </summary>
-    /// <param name="salesReportData"></param>
-    /// <param name="shift"></param>
-    /// <param name="reportType">Тип отчёта.</param>
+    /// <param name="reportData"></param>
     /// <returns>Результат печати.</returns>
-    public Task<PrintResult> PrintShiftReportAsync(
-        List<SalesReportResult> salesReportData, Shift shift, ShiftReportType reportType);
+    public Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData);
 }

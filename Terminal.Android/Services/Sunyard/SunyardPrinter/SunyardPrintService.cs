@@ -6,11 +6,15 @@ using Android.Content;
 using Android.OS;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Services.NavigationService;
+using Terminal.ViewModels.Pages;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 
@@ -31,6 +35,9 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// Доступ к глобальной информации о среде приложения.
     /// </summary>
     private readonly Context _context;
+
+    /// <inheritdoc cref="INavigationService" />
+    private readonly INavigationService _navigationService;
     
     private SunyardPrintListener? _currentPrintListener;
     private IDeviceService? _deviceService;
@@ -59,10 +66,11 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// </summary>
     public SunyardPrintService(
         Context context,
-        ILogger<SunyardPrintService> logger)
+        ILogger<SunyardPrintService> logger, INavigationService navigationService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger;
+        _navigationService = navigationService;
     }
     
     /// <inheritdoc/>
@@ -140,7 +148,12 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
 
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
-        throw new NotImplementedException();
+        var shiftReportPage = App.Services!.GetRequiredService<ShiftReportPageViewModel>();
+        shiftReportPage.ReceiptText = TextReportGenerator.FormatShiftReportText(reportData);
+        
+        _navigationService.NavigateTo<ShiftReportPageViewModel>();
+
+        return new PrintResult();
     }
 
     private async Task ConnectAsync()

@@ -43,6 +43,7 @@
     <ItemGroup>
         <EmbeddedResource Include="appsettings.json">
             <LogicalName>appsettings.json</LogicalName>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </EmbeddedResource>
     </ItemGroup>
 

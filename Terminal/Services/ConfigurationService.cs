@@ -98,7 +98,7 @@ public class ConfigurationService : IConfigurationService
             
             try
             {
-                if (!File.Exists(_configFilePath))
+                if (!File.Exists(_configFilePath) || IsDebugBuild())
                     CopyConfigFromResources();
                 
                 if (File.Exists(_configFilePath))
@@ -108,7 +108,6 @@ public class ConfigurationService : IConfigurationService
                 }
                 
                 _currentSetting ??= new SettingsModel();
-                
                 _currentSetting.PaymentTypes ??= [];
                 _currentSetting.Organisation ??= new SettingOrganisation();
                 
@@ -171,5 +170,14 @@ public class ConfigurationService : IConfigurationService
 
         using var fileStream = File.Create(_configFilePath);
         stream.CopyTo(fileStream);
+    }
+    
+    private static bool IsDebugBuild()
+    {
+#if DEBUG
+        return true;
+#else
+        return false;
+#endif
     }
 }

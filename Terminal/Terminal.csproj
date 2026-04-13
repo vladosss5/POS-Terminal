@@ -52,10 +52,4 @@
       <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
       <ProjectReference Include="..\Terminal.Data\Terminal.Data.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <None Update="appsettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
 </Project>

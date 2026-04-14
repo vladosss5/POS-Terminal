@@ -8,8 +8,9 @@
 
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
-        <AvaloniaXaml Remove="App.axaml" />
+        <AvaloniaResource Include="Assets\Fonts\**" />
         <AvaloniaResource Include="App.axaml" />
+        <AvaloniaXaml Remove="App.axaml" />
     </ItemGroup>
 
     <ItemGroup>

@@ -11,8 +11,8 @@
         <ScrollViewer Grid.Row="0">
             <TextBlock Text="{Binding ReceiptText}" 
                        HorizontalAlignment="Center"
-                       FontFamily="Courier New"
-                       FontSize="12"
+                       FontFamily="{StaticResource HaskligMedium}"
+                       FontSize="14"
                        TextWrapping="Wrap"/>
         </ScrollViewer>
         <Grid Grid.Row="1" ColumnDefinitions="*, *">

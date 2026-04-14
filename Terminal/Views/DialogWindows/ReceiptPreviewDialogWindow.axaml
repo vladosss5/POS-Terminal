@@ -12,7 +12,7 @@
     <ScrollViewer>
         <TextBlock Text="{Binding ReceiptText}" 
                    HorizontalAlignment="Center"
-                   FontFamily="Courier New"
+                   FontFamily="{StaticResource HaskligMedium}"
                    FontSize="12"
                    TextWrapping="Wrap"/>
     </ScrollViewer>

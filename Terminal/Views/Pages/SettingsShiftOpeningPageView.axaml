@@ -18,7 +18,7 @@
                     Command="{Binding GoBackCommand}"
                     MaxHeight="60"
                     Background="Transparent" CornerRadius="50">
-                <Image Source="../../Assets/arrow-left.png"/>
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
             </Button>
         </Grid>
         

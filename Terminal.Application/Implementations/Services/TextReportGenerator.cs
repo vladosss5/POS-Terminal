@@ -16,6 +16,8 @@ public static class TextReportGenerator
     
     public static string FormatShiftReportText(ShiftReportDataDto reportData)
     {
+        _stringBuilder = new StringBuilder();
+        
         var culture = new CultureInfo("ru-RU");
 
         var title = reportData.ReportType switch
@@ -89,7 +91,7 @@ public static class TextReportGenerator
         return _stringBuilder.ToString();
     }
 
-    public static void PrintOperationsOnIssuer(
+    private static void PrintOperationsOnIssuer(
         string issuerName, 
         IEnumerable<SalesReportResult> operations,
         bool isPrintTotal)
@@ -154,6 +156,8 @@ public static class TextReportGenerator
     /// <returns>Текст чека.</returns>
     public static string FormatSalesReceiptText(SalesReceipt receipt)
     {
+        _stringBuilder = new StringBuilder();
+        
         var culture = new CultureInfo("ru-RU");
 
         AppendKeyValueLine("Чек", $"#{receipt.Number}");

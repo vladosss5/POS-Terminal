@@ -31,7 +31,7 @@ public interface ISellingBuilder
     /// Задать номер чека.
     /// </summary>
     /// <param name="number">Номер.</param>
-    public void SetCheckNumber(int number);
+    public Task SetCheckNumber();
 
     /// <summary>
     /// Задать запрошенный объём топлива/денег.
@@ -46,6 +46,16 @@ public interface ISellingBuilder
     /// <param name="personKey">Ключ оператора.</param>
     /// <param name="personName">Имя оператора.</param>
     public void SetPersonKey(int personKey, string? personName);
+
+    /// <summary>
+    /// Установить номер смены.
+    /// </summary>
+    public Task SetShiftNumber();
+
+    /// <summary>
+    /// Установить номер терминала.
+    /// </summary>
+    public Task SetTerminalNumber();
 
     /// <summary>
     /// Собрать итоговый объект процесса заправки.

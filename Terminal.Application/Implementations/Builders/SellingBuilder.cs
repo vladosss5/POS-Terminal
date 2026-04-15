@@ -1,7 +1,11 @@
 ﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Builders;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
+using Terminal.Data.Context;
 
 namespace Terminal.Application.Implementations.Builders;
 
@@ -10,6 +14,28 @@ public class SellingBuilder : ISellingBuilder
 {
     /// <inheritdoc cref="Selling" />
     private readonly Selling _selling = new();
+
+    /// <inheritdoc cref="IShiftService" />
+    private readonly IShiftService _shiftService;
+    
+    /// Фабрика создающая <inheritdoc cref="DataContext"/>
+    private readonly IDbContextFactory<DataContext> _dbFactory;
+    
+    /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
+    private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
+
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    public SellingBuilder(
+        IShiftService shiftService,
+        IDbContextFactory<DataContext> dbFactory, 
+        IDbContextFactory<ParamDbContext> paramDbFactory)
+    {
+        _shiftService = shiftService;
+        _dbFactory = dbFactory;
+        _paramDbFactory = paramDbFactory;
+    }
 
     public void SetPaymentTypes(BasePaymentType baseType, DerivedPaymentType derivedType)
     {
@@ -33,9 +59,20 @@ public class SellingBuilder : ISellingBuilder
     }
     
     /// <inheritdoc/>
-    public void SetCheckNumber(int number)
+    public async Task SetCheckNumber()
     {
-        _selling.CheckNumber = number;
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
+        if (chekNumberSetting == null)
+            return;
+
+        chekNumberSetting.Value++;
+        
+        _selling.CheckNumber = chekNumberSetting.Value;
+        
+        db.Update(chekNumberSetting);
+        await db.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
@@ -60,6 +97,21 @@ public class SellingBuilder : ISellingBuilder
     {
         _selling.PersonName = personName;
         _selling.PersonKey = personKey;
+    }
+
+    /// <inheritdoc/>
+    public async Task SetShiftNumber()
+    {
+        var shift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+        _selling.ShiftKey = shift!.ShiftKey;
+    }
+
+    /// <inheritdoc/>
+    public async Task SetTerminalNumber()
+    {
+        await using var paramDb = await _paramDbFactory.CreateDbContextAsync();
+        var terminalNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "SerialNO111");
+        _selling.TerminalKey = Convert.ToInt64(terminalNumber!.Value);
     }
 
     /// <inheritdoc/>

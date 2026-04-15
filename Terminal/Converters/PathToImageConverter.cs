@@ -19,7 +19,7 @@ public class PathToImageConverter : IValueConverter
         if (value is not string path || string.IsNullOrEmpty(path)) return null;
         try
         {
-            var uri = new Uri($"avares://Terminal/Assets/{path}");
+            var uri = new Uri($"avares://Terminal/Assets/Icons/{path}");
             using var stream = AssetLoader.Open(uri);
             return new Bitmap(stream);
         }

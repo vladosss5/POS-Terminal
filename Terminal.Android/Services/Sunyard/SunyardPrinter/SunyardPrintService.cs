@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
@@ -14,6 +15,7 @@ using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Services.NavigationService;
+using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
@@ -66,7 +68,8 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// </summary>
     public SunyardPrintService(
         Context context,
-        ILogger<SunyardPrintService> logger, INavigationService navigationService)
+        ILogger<SunyardPrintService> logger, 
+        INavigationService navigationService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger;
@@ -148,14 +151,202 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
 
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
-        var shiftReportPage = App.Services!.GetRequiredService<ShiftReportPageViewModel>();
-        shiftReportPage.ReceiptText = TextReportGenerator.FormatShiftReportText(reportData);
+        var receiptText = TextReportGenerator.FormatShiftReportText(reportData);
+        var logger = App.Services!.GetRequiredService<ILogger<PageViewModelBase>>();
         
-        _navigationService.NavigateTo<ShiftReportPageViewModel>();
-
-        return new PrintResult();
+        var tcs = new TaskCompletionSource<PrintResult>();
+        
+        var shiftReportPage = new ShiftReportPageViewModel(
+            logger, 
+            receiptText, 
+            async void () =>
+            {
+                try
+                {
+                    var result = await ExecutePrintShiftReportAsync(reportData);
+                    tcs.TrySetResult(result);
+                    _navigationService.GoBack();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e.Message);
+                }
+            },
+            () => 
+            {
+                tcs.TrySetResult(new PrintResult { Success = false, ErrorMessage = "Печать отменена" });
+                _navigationService.GoBack();
+            }
+        );
+        
+        _navigationService.NavigateToInstancePage(shiftReportPage);
+        
+        return await tcs.Task;
     }
 
+    private async Task<PrintResult> ExecutePrintShiftReportAsync(ShiftReportDataDto reportData)
+    {
+        await ConnectAsync();
+        CheckConnection();
+        
+        var status = await GetStatusAsync();
+        if (status != PrinterStatus.Ready)
+        {
+            _logger.LogWarning($"Printer not ready: {status}");
+            return new PrintResult { Success = false, ErrorMessage = $"Printer not ready: {status}" };
+        }
+        
+        var tcs = new TaskCompletionSource<PrintResult>();
+        var cultureRu = new CultureInfo("ru-RU");
+
+        try
+        {
+            _printer!.SetGray(10);
+            
+            AddLineWidthText();
+            AddKeyValueText("Чек", reportData.ReceiptNumber.ToString(cultureRu));
+            AddLineWidthText();
+            
+            var title = reportData.ReportType switch
+            {
+                ShiftReportType.Interim => "Пром. отчёт",
+                ShiftReportType.Final => "Итоговый отчёт",
+                _ => ""
+            };
+            AddLineWidthText(title);
+            
+            AddKeyValueText("Эмитент", reportData.IssuerNumber);
+            AddKeyValueText("Терминал", "#" + reportData.TerminalNumber);
+            AddKeyValueText("Номер смены:", reportData.Shift.ShiftShopKey.ToString(cultureRu));
+            AddKeyValueText("Начало:",
+                reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(cultureRu) : "");
+            AddKeyValueText("Конец:", DateTime.Now.ToString(cultureRu));
+            AddLineWidthText();
+            
+            var issuersCount = reportData.SalesList
+                .Select(x => x.ICI)
+                .GroupBy(x => x!.Value)
+                .Count();
+            
+            PrintOperationsOnIssuer(
+                $"Эмитент {reportData.IssuerNumber}",
+                reportData.SalesList.Where(x => x.ICI!.Value == Convert.ToInt32(reportData.IssuerNumber)),
+                issuersCount > 1,
+                cultureRu);
+
+            if (issuersCount > 1)
+                PrintOperationsOnIssuer(
+                    $"Другие эмитенты",
+                    reportData.SalesList.Where(x => x.ICI!.Value != Convert.ToInt32(reportData.IssuerNumber)),
+                    true,
+                    cultureRu);
+            
+            var totalData = new
+            {
+                TotalBaseCost = reportData.SalesList.Sum(x => x.SBC ?? 0),
+                TotalSC = reportData.SalesList.Sum(x => x.SC ?? 0),
+                TotalSBCR = reportData.SalesList.Sum(x => x.SBCR ?? 0),
+                TotalSCR = reportData.SalesList.Sum(x => x.SCR ?? 0)
+            };
+            
+            AddLineWidthText("Итого в чеке");
+            AddCenteredText("Итого продаж");
+            AddKeyValueText("Сумма баз.", totalData.TotalBaseCost.ToString(cultureRu));
+            AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString(cultureRu));
+
+            AddCenteredText("Итого возвратов");
+            AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString(cultureRu));
+            AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString(cultureRu));
+
+            AddCenteredText("Всего продаж");
+            AddKeyValueText("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString(cultureRu));
+            AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString(cultureRu));
+
+            AddCenteredText();
+            AddLeftText($"Оператор: {reportData.OperatorName}");
+            AddLineWidthText();
+            _printer.FeedLine(2);
+            AddLineWidthText();
+            AddCenteredText("Подпись");
+            
+            _printer.FeedLine(6);
+            _printer.CutPaper();
+
+            _logger.LogInformation($"Чек составлен. Старт печати");
+            _currentPrintListener = new SunyardPrintListener(tcs, _logger);
+            _printer.StartPrint(_currentPrintListener);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка: {ex.Message}, {ex.StackTrace}");
+            tcs.TrySetException(ex);
+        }
+        finally
+        {
+            Disconnect();
+        }
+        _logger.LogInformation($"Чек отпечатан");
+        return await tcs.Task;
+    }
+
+    private void PrintOperationsOnIssuer(
+        string issuerName,
+        IEnumerable<SalesReportResult> operations,
+        bool isPrintTotal,
+        CultureInfo culture)
+    {
+        AddCenteredText(issuerName);
+
+        var salesReportResults = operations as SalesReportResult[] ?? operations.ToArray();
+        
+        foreach (var saleData in salesReportResults)
+        {
+            var resourceName = !string.IsNullOrEmpty(saleData.N) ? saleData.N! : "undefined";
+            AddLineWidthText(resourceName);
+
+            AddCenteredText("Продажи");
+            AddKeyValueText("Ко-во", saleData.A != null ? saleData.A.Value.ToString(culture) : "0");
+            AddKeyValueText("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString(culture) : "0");
+            AddKeyValueText("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString(culture) : "0");
+
+            AddCenteredText("Возвраты");
+            AddKeyValueText("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString(culture) : "0");
+            AddKeyValueText("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString(culture) : "0");
+            AddKeyValueText("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString(culture) : "0");
+
+            AddCenteredText($"Итого по {resourceName}");
+            AddKeyValueText("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString(culture));
+            AddKeyValueText("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString(culture));
+            AddKeyValueText("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString(culture));
+        }
+
+        AddLineWidthText();
+        
+        if (!isPrintTotal) return;
+        
+        var totalData = new
+        {
+            TotalSBC = salesReportResults.Sum(x => x.SBC ?? 0),
+            TotalSC = salesReportResults.Sum(x => x.SC ?? 0),
+            TotalSBCR = salesReportResults.Sum(x => x.SBCR ?? 0),
+            TotalSCR = salesReportResults.Sum(x => x.SCR ?? 0)
+        };
+
+        AddCenteredText("Итого продаж");
+        AddKeyValueText("Сумма баз.", totalData.TotalSBC.ToString(culture));
+        AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString(culture));
+
+        AddCenteredText("Итого возвратов");
+        AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString(culture));
+        AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString(culture));
+
+        AddCenteredText("Всего продаж");
+        AddKeyValueText("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString(culture));
+        AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString(culture));
+
+        AddLineWidthText();
+    }
+    
     private async Task ConnectAsync()
     {
         if (_isConnected) return;
@@ -263,7 +454,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// Добавляет текст с выравниванием по центру в очередь печати.
     /// </summary>
     /// <param name="text">Текст для печати.</param>
-    private void AddCenteredText(string text)
+    private void AddCenteredText(string text = "")
     {
         var bundle = new Bundle();
         bundle.PutInt("font", IPrintConstant.IFontSize.Normal);
@@ -277,8 +468,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <param name="text">Текст в середине линии.</param>
     private void AddLineWidthText(string text = "")
     {
-        const int widthPage = 48;
-        
+        var widthPage = string.IsNullOrWhiteSpace(text) ? 55 : 45;
         var spacer = new string('-', (widthPage - text.Length) / 2);
         var inputText = spacer + text + spacer;
 

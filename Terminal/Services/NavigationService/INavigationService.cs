@@ -11,30 +11,36 @@ public interface INavigationService
     /// <summary>
     /// Текущая страница
     /// </summary>
-    PageViewModelBase CurrentPage { get; }
+    public PageViewModelBase CurrentPage { get; }
     
     /// <summary>
     /// Событие изменения страницы
     /// </summary>
-    event EventHandler<PageViewModelBase>? PageChanged;
+    public event EventHandler<PageViewModelBase>? PageChanged;
     
     /// <summary>
     /// Перейти на указанную страницу
     /// </summary>
-    void NavigateTo<T>() where T : PageViewModelBase;
+    public void NavigateTo<T>() where T : PageViewModelBase;
     
     /// <summary>
     /// Перейти на указанную страницу с параметрами
     /// </summary>
-    void NavigateTo<T>(Action<T> configure) where T : PageViewModelBase;
+    public void NavigateTo<T>(Action<T> configure) where T : PageViewModelBase;
+
+    /// <summary>
+    /// Перейти к конкретному экземпляру страницы.
+    /// </summary>
+    /// <param name="page"></param>
+    public void NavigateToInstancePage(PageViewModelBase page);
     
     /// <summary>
     /// Вернуться назад (если есть история)
     /// </summary>
-    void GoBack();
+    public void GoBack();
     
     /// <summary>
     /// Можно ли вернуться назад
     /// </summary>
-    bool CanGoBack { get; }
+    public bool CanGoBack { get; }
 }

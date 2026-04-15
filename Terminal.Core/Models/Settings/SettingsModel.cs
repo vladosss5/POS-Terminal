@@ -350,7 +350,7 @@ public class SettingsModel
     public int ReportItems { get; set; }
     
     /// <summary>
-    /// Разделение отчета.
+    /// Делить ли итоговый отчёт по эмитентам.
     /// </summary>
     [JsonPropertyName("ReportDivide")]
     public bool ReportDivide { get; set; }
@@ -372,6 +372,12 @@ public class SettingsModel
     /// </summary>
     [JsonPropertyName("DivideFuels")]
     public bool DivideFuels { get; set; }
+    
+    /// <summary>
+    /// Типы оплаты учитываемые в итоговом отчёте.
+    /// </summary>
+    [JsonPropertyName("ReportPaymentTypes")]
+    public string? ReportPaymentTypes { get; set; }
     
     // Incas
     

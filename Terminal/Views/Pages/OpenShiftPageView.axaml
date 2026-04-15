@@ -25,7 +25,7 @@
                     Command="{Binding StepBack}"
                     MaxHeight="60" Background="Transparent" CornerRadius="50"
                     IsVisible="{Binding !Steps[0].IsActive}">
-                <Image Source="../../Assets/arrow-left.png"/>
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
             </Button>
         </Grid>
         

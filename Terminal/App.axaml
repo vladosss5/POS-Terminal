@@ -11,6 +11,7 @@
     
     <Application.Resources>
         <converters:EnumFriendlyNameConverter x:Key="EnumFriendlyNameConverter"/>
+        <FontFamily x:Key="HaskligMedium">avares://Terminal/Assets/Fonts/Hasklig-Medium.ttf#Hasklig</FontFamily>
     </Application.Resources>
     
     <Application.Styles>

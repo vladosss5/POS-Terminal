@@ -59,7 +59,12 @@ public class NavigationService : INavigationService
         var page = _serviceProvider.GetRequiredService<T>();
         NavigateToPage(page);
     }
-    
+
+    ///<inheritdoc/>
+    public void NavigateToInstancePage(PageViewModelBase page)
+    {
+        NavigateToPage(page);
+    }
     
     ///<inheritdoc/>
     public void NavigateTo<T>(Action<T> configure) where T : PageViewModelBase

@@ -19,7 +19,7 @@
                     Command="{Binding StepBack}"
                     MaxHeight="60"
                     Background="Transparent" CornerRadius="50">
-                <Image Source="../../Assets/arrow-left.png"/>
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
             </Button>
         </Grid>
         
@@ -108,9 +108,9 @@
                                 Command="{Binding SwitchAmount}">
                             <Panel MaxHeight="70">
                                 <Image IsVisible="{Binding IsAmountMoney}"
-                                       Source="../../Assets/fuel.png"/>
+                                       Source="../../Assets/Icons/fuel.png"/>
                                 <Image IsVisible="{Binding !IsAmountMoney}"
-                                       Source="../../Assets/ruble.png"/>
+                                       Source="../../Assets/Icons/ruble.png"/>
                             </Panel>
                         </Button>
 
@@ -120,14 +120,14 @@
                                 Holding="OnButtonHolding"
                                 Gestures.IsHoldWithMouseEnabled="True"
                                 Gestures.IsHoldingEnabled="True">
-                            <Image Source="../../Assets/backspace.png"/>
+                            <Image Source="../../Assets/Icons/backspace.png"/>
                         </Button>
 
                         <Button Grid.Row="2" Grid.RowSpan="2" Grid.Column="3"
                                 Classes="number-button"
                                 Command="{Binding SetAmount}"
                                 CornerRadius="20">
-                            <Image Source="../../Assets/enter.png"/>
+                            <Image Source="../../Assets/Icons/enter.png"/>
                         </Button>
                     </Grid>
                 </Grid>
@@ -160,7 +160,7 @@
                     <TextBlock Grid.Row="0" Text="Поднесите карту" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     
-                    <Image Grid.Row="1" Source="../../Assets/read-card.png"/>
+                    <Image Grid.Row="1" Source="../../Assets/Icons/read-card.png"/>
                     
                     <Button Grid.Row="2" Command="{Binding ProcessCardForPaymentAsync}"
                             HorizontalAlignment="Center" Margin="20">

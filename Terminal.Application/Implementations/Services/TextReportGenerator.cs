@@ -5,6 +5,9 @@ using Terminal.Core.Models;
 
 namespace Terminal.Application.Implementations.Services;
 
+/// <summary>
+/// Генератор текста чеков.
+/// </summary>
 public static class TextReportGenerator
 {
     /// <summary>
@@ -12,8 +15,16 @@ public static class TextReportGenerator
     /// </summary>
     private const int PageWidth = 48;
     
+    /// <summary>
+    /// Строитель строки.
+    /// </summary>
     private static StringBuilder _stringBuilder = new();
     
+    /// <summary>
+    /// Получить текст сменного отчёта.
+    /// </summary>
+    /// <param name="reportData">Данные отчёта.</param>
+    /// <returns>Текст отчёта.</returns>
     public static string FormatShiftReportText(ShiftReportDataDto reportData)
     {
         _stringBuilder = new StringBuilder();
@@ -91,16 +102,21 @@ public static class TextReportGenerator
         return _stringBuilder.ToString();
     }
 
-    private static void PrintOperationsOnIssuer(
-        string issuerName, 
-        IEnumerable<SalesReportResult> operations,
-        bool isPrintTotal)
+    /// <summary>
+    /// Напечатать продажи по эмитенту.
+    /// </summary>
+    /// <param name="issuerName">Номер эмитента.</param>
+    /// <param name="operations">Коллекция операций.</param>
+    /// <param name="isPrintTotal">Печать ли итог чека (не требуется когда эмитент один).</param>
+    private static void PrintOperationsOnIssuer(string issuerName, IEnumerable<SalesReportResult> operations, bool isPrintTotal)
     {
         var culture = new CultureInfo("ru-RU");
 
         AppendTextInCenter(issuerName);
 
-        foreach (var saleData in operations)
+        var salesReportResults = operations as SalesReportResult[] ?? operations.ToArray();
+        
+        foreach (var saleData in salesReportResults)
         {
             var resourceName = !string.IsNullOrEmpty(saleData.N) ? saleData.N! : "undefined";
             AppendLineWidth(resourceName);
@@ -128,10 +144,10 @@ public static class TextReportGenerator
 
         var totalData = new
         {
-            TotalSBC = operations.Sum(x => x.SBC ?? 0),
-            TotalSC = operations.Sum(x => x.SC ?? 0),
-            TotalSBCR = operations.Sum(x => x.SBCR ?? 0),
-            TotalSCR = operations.Sum(x => x.SCR ?? 0)
+            TotalSBC = salesReportResults.Sum(x => x.SBC ?? 0),
+            TotalSC = salesReportResults.Sum(x => x.SC ?? 0),
+            TotalSBCR = salesReportResults.Sum(x => x.SBCR ?? 0),
+            TotalSCR = salesReportResults.Sum(x => x.SCR ?? 0)
         };
 
         AppendTextInCenter("Итого продаж");

@@ -71,7 +71,7 @@ public class DialogPrintService
     /// <summary>
     /// Вывести отчёт за смену.
     /// </summary>
-    /// <param name="reportData"></param>
+    /// <param name="reportData">Данные для печати чека.</param>
     /// <returns>Результат печати.</returns>
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {

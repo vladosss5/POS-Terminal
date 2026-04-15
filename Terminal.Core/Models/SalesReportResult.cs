@@ -1,5 +1,8 @@
 ﻿namespace Terminal.Core.Models;
 
+/// <summary>
+/// Модель элемента сменного отчёта.
+/// </summary>
 public class SalesReportResult
 {
     /// <summary>

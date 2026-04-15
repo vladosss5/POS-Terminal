@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
@@ -11,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Services.NavigationService;
@@ -19,7 +19,6 @@ using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
-
 
 /// <summary>
 /// Реализация сервиса печати для терминалов Sunyard на платформе Android.
@@ -41,27 +40,32 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <inheritdoc cref="INavigationService" />
     private readonly INavigationService _navigationService;
     
+    /// <inheritdoc cref="SunyardPrintListener" />
     private SunyardPrintListener? _currentPrintListener;
+    
+    /// <inheritdoc cref="IDeviceService" />
     private IDeviceService? _deviceService;
+    
+    /// <inheritdoc cref="IPrinter" />
     private IPrinter? _printer;
-    private bool _isConnected;
-    private readonly object _lock = new();
+    
+    /// <inheritdoc cref="SunyardServiceConnection" />
     private SunyardServiceConnection? _serviceConnection;
-
+    
     /// <summary>
-    /// Возвращает true, если сервис подключён к системному сервису Sunyard и принтер доступен.
+    /// Принтер подключен?
     /// </summary>
-    public bool IsConnected => _isConnected;
+    private bool _isConnected;
+    
+    /// <summary>
+    /// Блокировка потоков для доступа к принтеру.
+    /// </summary>
+    private readonly Lock _lock = new();
 
     /// <summary>
     /// Событие, возникающее при изменении состояния подключения к принтеру.
     /// </summary>
     public event EventHandler<bool>? ConnectionChanged;
-    
-    /// <summary>
-    /// Событие, возникающее при ошибках в работе сервиса (например, потеря соединения).
-    /// </summary>
-    public event EventHandler<string>? ErrorOccurred;
 
     /// <summary>
     /// Конструктор.
@@ -149,6 +153,11 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
+    /// <summary>
+    /// Показать и напечатать сменный отчёт.
+    /// </summary>
+    /// <param name="reportData">Данные отчёта.</param>
+    /// <returns>Результат печати.</returns>
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         var receiptText = TextReportGenerator.FormatShiftReportText(reportData);
@@ -184,6 +193,11 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
+    /// <summary>
+    /// Напечатать сменный отчёт.
+    /// </summary>
+    /// <param name="reportData">Данные сменного отчёта.</param>
+    /// <returns>Результат печати.</returns>
     private async Task<PrintResult> ExecutePrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         await ConnectAsync();
@@ -289,6 +303,13 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
+    /// <summary>
+    /// Напечатать продажи по эмитенту.
+    /// </summary>
+    /// <param name="issuerName">Номер эмитента.</param>
+    /// <param name="operations">Коллекция операций.</param>
+    /// <param name="isPrintTotal">Печать ли итог чека (не требуется когда эмитент один).</param>
+    /// <param name="culture">Культура для конвертации данных.</param>
     private void PrintOperationsOnIssuer(
         string issuerName,
         IEnumerable<SalesReportResult> operations,
@@ -347,6 +368,10 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         AddLineWidthText();
     }
     
+    /// <summary>
+    /// Подключиться к принтеру.
+    /// </summary>
+    /// <exception cref="TimeoutException">Ошибка истечения времени ожидания.</exception>
     private async Task ConnectAsync()
     {
         if (_isConnected) return;
@@ -405,6 +430,9 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         await tcs.Task;
     }
 
+    /// <summary>
+    /// Отключиться от принтера.
+    /// </summary>
     private void Disconnect()
     {
         if (!_isConnected || _serviceConnection == null) 
@@ -427,12 +455,16 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         ConnectionChanged?.Invoke(this, false);
     }
 
-    public async Task<PrinterStatus> GetStatusAsync()
+    /// <summary>
+    /// Получить статус подключения к принтеру.
+    /// </summary>
+    /// <returns>Статус принтера.</returns>
+    private async Task<PrinterStatus> GetStatusAsync()
     {
         CheckConnection();
         return await Task.Run(() =>
         {
-            int status = _printer!.Status;
+            var status = _printer!.Status;
             return MapStatus(status);
         });
     }

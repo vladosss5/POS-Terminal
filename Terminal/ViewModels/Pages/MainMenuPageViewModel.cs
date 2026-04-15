@@ -36,6 +36,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     ///<inheritdoc cref="IShiftService"/>
     private readonly IShiftService _shiftService;
 
+    ///<inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
     
     /// <inheritdoc cref="IMessageBoxService"/>
@@ -53,7 +54,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
-    public ObservableCollection<MainMenuItemModel> MenuItems { get; } = new();
+    public ObservableCollection<MainMenuItemModel> MenuItems { get; } = [];
 
     
     /// <summary>
@@ -123,8 +124,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <summary>
     /// Напечатать промежуточный отчёт за смену.
     /// </summary>
-    /// <param name="arg"></param>
-    /// <returns></returns>
+    /// <param name="arg">Токен отмены.</param>
     private async Task PrintInterimReport(CancellationToken arg)
     {
         var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
@@ -169,6 +169,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         await _receiptPrintService.PrintShiftReportAsync(reportData);
     }
 
+    /// <summary>
+    /// Возвращает номер последнего чека, инкрементирует и сохраняет в БД.
+    /// </summary>
+    /// <param name="arg">Токен отмены.</param>
+    /// <returns>Номер последнего чека.</returns>
     private async Task<int> GetNumberLastReceipt(CancellationToken arg)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(arg);
@@ -262,9 +267,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <param name="issuerList">Номера эмитентов.</param>
     /// <param name="shiftKey">Номер смены.</param>
     /// <param name="elseIssuer">Прочие эмитенты.</param>
-    /// <param name="devideOrg"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="devideOrg">Разделять продажи по эмитентам.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Список элементов сменного отчёта.</returns>
     private async Task<List<SalesReportResult>> GetReportAsync(
         IEnumerable<int> paymentTypes, 
         IEnumerable<int> issuerList, 
@@ -276,11 +281,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
         
         var reportScript = await App.ReadSqlScriptFromResourceAsync("report.sql");
+
+        var paymentTypesArray = paymentTypes as int[] ?? paymentTypes.ToArray();
+        var ptPlaceholders = paymentTypesArray.Select((_, i) => $"@pt{i}").ToList();
         
-        var ptPlaceholders = paymentTypes.Select((_, i) => $"@pt{i}").ToList();
-        var issuerPlaceholders = issuerList.Select((_, i) => $"@iss{i}").ToList();
+        var issuerArray = issuerList as int[] ?? issuerList.ToArray();
+        var issuerPlaceholders = issuerArray.Select((_, i) => $"@iss{i}").ToList();
     
-        var finalSql = reportScript
+        var finalSql = reportScript!
             .Replace("%PaymentType%", string.Join(",", ptPlaceholders))
             .Replace("%IssuerList%", string.Join(",", issuerPlaceholders))
             .Replace("%ShiftKey%", "@ShiftKey")
@@ -294,8 +302,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new("@DevideOrg", devideOrg ? 1 : 0)
         };
 
-        parameters.AddRange(paymentTypes.Select((t, i) => new SqliteParameter($"@pt{i}", t)));
-        parameters.AddRange(issuerList.Select((t, i) => new SqliteParameter($"@iss{i}", t)));
+        parameters.AddRange(paymentTypesArray.Select((t, i) => new SqliteParameter($"@pt{i}", t)));
+        parameters.AddRange(issuerArray.Select((t, i) => new SqliteParameter($"@iss{i}", t)));
         
         var result = await db.Set<SalesReportResult>()
             .FromSqlRaw(finalSql, parameters.ToArray())

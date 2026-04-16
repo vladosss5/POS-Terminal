@@ -196,7 +196,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
-        _ = InitializePaymentTypes();
+        InitializePaymentTypes();
         _ = LoadDataAsync();
         
         IsProcessStarted = true;
@@ -419,7 +419,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Подгрузить методы оплаты из конфигурации.
     /// </summary>
-    private async Task InitializePaymentTypes()
+    private void InitializePaymentTypes()
     {
         var paymentTypes = _configurationService.CurrentSetting.PaymentTypes;
         
@@ -462,25 +462,18 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
-
-            var chekNumberSetting = await db.Settings.FindAsync(SettingsKey.Sale);
-
-            if (chekNumberSetting == null)
-                return;
             
-            var currentNumber = chekNumberSetting.Value!.Value + 1;
-            
-            _builder.SetCheckNumber(currentNumber);
+            await _builder.SetCheckNumber();
+            await _builder.SetShiftNumber();
+            await _builder.SetTerminalNumber();
+            await _builder.SetIssuerNumber();
             
             if (_authService.CurrentUser != null) 
                 _builder.SetPersonKey(_authService.CurrentUser.UserId, _authService.CurrentUser.Name);
             
             var selling = _builder.Build();
-            await db.AddAsync(selling);
-
-            chekNumberSetting.Value = currentNumber;
-            db.Update(chekNumberSetting);
             
+            await db.AddAsync(selling);
             await db.SaveChangesAsync();
 
             await PrintReceiptAsync(selling);

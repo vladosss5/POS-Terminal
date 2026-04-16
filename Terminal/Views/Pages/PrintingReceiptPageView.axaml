@@ -68,7 +68,7 @@
                                         Background="WhiteSmoke"
                                         BorderBrush="DarkGray">
                                     <Grid ColumnDefinitions="*, *" RowDefinitions="*, *, *" Background="Transparent">
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TransactionShopKey}" 
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding CheckNumber}" 
                                                    Classes="text-items-control" HorizontalAlignment="Left"/>
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SaleDate}" 
                                                    Classes="text-items-control" HorizontalAlignment="Right"/>

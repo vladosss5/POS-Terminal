@@ -10,7 +10,7 @@ public record struct ReceiptForListingDto
     /// <summary>
     /// Id продажи/чека
     /// </summary>
-    public int TransactionShopKey { get; set; }
+    public int CheckNumber { get; set; }
     
     /// <summary>
     /// Наименование ресурса.

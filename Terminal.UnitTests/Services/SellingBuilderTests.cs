@@ -1,8 +1,12 @@
 ﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using Terminal.Application.Implementations.Builders;
+using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
+using Terminal.Data.Context;
 
 namespace Terminal.UnitTests.Services;
 
@@ -10,11 +14,21 @@ namespace Terminal.UnitTests.Services;
 public class SellingBuilderTests
 {
     private SellingBuilder? _builder;
+    private Mock<IShiftService> _shiftServiceMock = null!;
+    private Mock<IDbContextFactory<DataContext>> _dbFactoryMock = null!;
+    private Mock<IDbContextFactory<ParamDbContext>> _paramDbFactoryMock = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _builder = new SellingBuilder();
+        _shiftServiceMock = new Mock<IShiftService>();
+        _dbFactoryMock = new Mock<IDbContextFactory<DataContext>>();
+        _paramDbFactoryMock = new Mock<IDbContextFactory<ParamDbContext>>();
+        
+        _builder = new SellingBuilder(
+            _shiftServiceMock.Object,
+            _dbFactoryMock.Object,
+            _paramDbFactoryMock.Object);
     }
 
     [Test]
@@ -76,17 +90,38 @@ public class SellingBuilderTests
     }
 
     [Test]
-    public void SetCheckNumber_SetsCheckNumberProperty()
+    public async Task SetCheckNumber_SetsCheckNumberProperty()
     {
         // Arrange
-        const int checkNumber = 12345;
-
+        var expectedCheckNumber = 101;
+        
+        var settings = new List<Setting>
+        {
+            new() { SettingsKey = SettingsKey.Sale, Value = 100 }
+        }.AsQueryable();
+    
+        var mockDbSet = new Mock<DbSet<Setting>>();
+        mockDbSet.As<IQueryable<Setting>>().Setup(m => m.Provider).Returns(settings.Provider);
+        mockDbSet.As<IQueryable<Setting>>().Setup(m => m.Expression).Returns(settings.Expression);
+        mockDbSet.As<IQueryable<Setting>>().Setup(m => m.ElementType).Returns(settings.ElementType);
+        mockDbSet.As<IQueryable<Setting>>().Setup(m => m.GetEnumerator()).Returns(settings.GetEnumerator());
+        
+        mockDbSet.Setup(x => x.FindAsync(It.IsAny<object[]>()))
+            .ReturnsAsync(settings.First());
+    
+        var mockDbContext = new Mock<DataContext>();
+        mockDbContext.Setup(x => x.Settings).Returns(mockDbSet.Object);
+    
+        _dbFactoryMock.Setup(x => x.CreateDbContextAsync())
+            .ReturnsAsync(mockDbContext.Object);
+    
         // Act
-        _builder!.SetCheckNumber(checkNumber);
+        await _builder!.SetCheckNumber();
         var result = _builder!.Build();
-
+    
         // Assert
-        Assert.That(result.CheckNumber, Is.EqualTo(checkNumber));
+        Assert.That(result.CheckNumber, Is.EqualTo(expectedCheckNumber));
+        mockDbContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -360,50 +395,62 @@ public class SellingBuilderTests
     }
 
     [Test]
-    public void Build_AfterMultipleSetOperations_ReturnsCompleteSelling()
+public async Task Build_AfterMultipleSetOperations_ReturnsCompleteSelling()
+{
+    // Arrange
+    var resourceCode = new ResourceCode
     {
-        // Arrange
-        var resourceCode = new ResourceCode
-        {
-            ResourceKey = 200,
-            ResourceName = "Premium Service",
-            ResourcePrice = 150.00m
-        };
-        const decimal amount = 2m;
-        const int checkNumber = 9999;
-        const int personKey = 100;
-        const string personName = "Jane Smith";
-        const string volume = "300,00";
-        const bool isCost = true;
+        ResourceKey = 200,
+        ResourceName = "Premium Service",
+        ResourcePrice = 150.00m
+    };
+    const decimal amount = 2m;
+    const int expectedCheckNumber = 101;
+    const int personKey = 100;
+    const string personName = "Jane Smith";
+    const string volume = "300,00";
+    const bool isCost = true;
+    
+    var options = new DbContextOptionsBuilder<DataContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
 
-        // Act
-        _builder!.SetPaymentTypes(BasePaymentType.Cash, DerivedPaymentType.FuelCard);
-        _builder!.SetResourceCode(resourceCode);
-        _builder!.SetAmount(amount);
-        _builder!.SetCheckNumber(checkNumber);
-        _builder!.SetPersonKey(personKey, personName);
-        _builder!.SetRequestedVolume(volume, isCost);
-        var result = _builder!.Build();
-
-        // Assert
-        Assert.Multiple(() =>
-        {
-            Assert.That(result.BaseType, Is.EqualTo(BasePaymentType.Cash));
-            Assert.That(result.DerivedType, Is.EqualTo(DerivedPaymentType.FuelCard));
-            Assert.That(result.ResourceKey, Is.EqualTo(resourceCode.ResourceKey));
-            Assert.That(result.ResourceCode, Is.EqualTo(resourceCode.ResourceKey));
-            Assert.That(result.ResourceName, Is.EqualTo(resourceCode.ResourceName));
-            Assert.That(result.SellingPrice, Is.EqualTo(resourceCode.ResourcePrice));
-            Assert.That(result.Amount, Is.EqualTo(amount));
-            Assert.That(result.CheckNumber, Is.EqualTo(checkNumber));
-            Assert.That(result.PersonKey, Is.EqualTo(personKey));
-            Assert.That(result.PersonName, Is.EqualTo(personName));
-            Assert.That(result.RequestedCost, Is.EqualTo(300.00m));
-            Assert.That(result.RequestedAmount, Is.EqualTo(150.00m));
-            Assert.That(result.ShopCost, Is.EqualTo(300.00m));
-            Assert.That(result.TransactionDatetime, Is.Not.EqualTo(default(DateTime)));
-        });
-    }
+    await using var dbContext = new DataContext(options);
+    
+    dbContext.Settings.Add(new Setting { SettingsKey = SettingsKey.Sale, Value = 100 });
+    await dbContext.SaveChangesAsync();
+    
+    _dbFactoryMock.Setup(x => x.CreateDbContextAsync())
+        .ReturnsAsync(dbContext);
+    
+    // Act
+    _builder!.SetPaymentTypes(BasePaymentType.Cash, DerivedPaymentType.FuelCard);
+    _builder!.SetResourceCode(resourceCode);
+    _builder!.SetAmount(amount);
+    await _builder!.SetCheckNumber();
+    _builder!.SetPersonKey(personKey, personName);
+    _builder!.SetRequestedVolume(volume, isCost);
+    var result = _builder!.Build();
+    
+    // Assert
+    Assert.Multiple(() =>
+    {
+        Assert.That(result.BaseType, Is.EqualTo(BasePaymentType.Cash));
+        Assert.That(result.DerivedType, Is.EqualTo(DerivedPaymentType.FuelCard));
+        Assert.That(result.ResourceKey, Is.EqualTo(resourceCode.ResourceKey));
+        Assert.That(result.ResourceCode, Is.EqualTo(resourceCode.ResourceKey));
+        Assert.That(result.ResourceName, Is.EqualTo(resourceCode.ResourceName));
+        Assert.That(result.SellingPrice, Is.EqualTo(resourceCode.ResourcePrice));
+        Assert.That(result.Amount, Is.EqualTo(amount));
+        Assert.That(result.CheckNumber, Is.EqualTo(expectedCheckNumber));
+        Assert.That(result.PersonKey, Is.EqualTo(personKey));
+        Assert.That(result.PersonName, Is.EqualTo(personName));
+        Assert.That(result.RequestedCost, Is.EqualTo(300.00m));
+        Assert.That(result.RequestedAmount, Is.EqualTo(150.00m));
+        Assert.That(result.ShopCost, Is.EqualTo(300.00m));
+        Assert.That(result.TransactionDatetime, Is.Not.EqualTo(default(DateTime)));
+    });
+}
 
     [Test]
     public void SetRequestedVolume_WhenCalledMultipleTimes_OverwritesPreviousValues()

@@ -99,7 +99,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         
-        var selling = await db.Sales.FirstOrDefaultAsync(x => x.TransactionShopKey == receiptDto.TransactionShopKey);
+        var selling = await db.Sales.FirstOrDefaultAsync(x => x.CheckNumber == receiptDto.CheckNumber);
         if (selling == null)
         {
             Logger.LogError("Продажа не найдена!");
@@ -206,7 +206,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         var cultureInfo = new CultureInfo("ru-RU");
         
         query = query.Where(s =>
-            (numericKeyword != null && s.TransactionShopKey == numericKeyword) ||
+            (numericKeyword != null && s.CheckNumber == numericKeyword) ||
             (s.ResourceName != null && EF.Functions.Like(s.ResourceName, pattern))
         );
         
@@ -214,7 +214,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
             .OrderByDescending(s => s.TransactionDatetime)
             .Select(s => new ReceiptForListingDto
             {
-                TransactionShopKey = s.TransactionShopKey,
+                CheckNumber = s.CheckNumber ?? s.TransactionShopKey,
                 ResourceName = s.ResourceName ?? "Неизвестный товар",
                 ResourceCount = s.Amount.HasValue ? Convert.ToDecimal(s.Amount.Value) : 0m,
                 PricePerItem = s.SellingPrice.HasValue ? Convert.ToDecimal(s.SellingPrice.Value) : 0m,
@@ -250,7 +250,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         
         return sales.Select(sale => new ReceiptForListingDto
         {
-            TransactionShopKey = sale.TransactionShopKey,
+            CheckNumber = sale.CheckNumber ?? sale.TransactionShopKey,
             ResourceName = sale.ResourceName ?? sale.ResourceName ?? "Неизвестный товар",
             ResourceCount = sale.Amount.HasValue ? Convert.ToDecimal(sale.Amount.Value) : 0m,
             PricePerItem = sale.SellingPrice.HasValue ? Convert.ToDecimal(sale.SellingPrice.Value) : 0m,

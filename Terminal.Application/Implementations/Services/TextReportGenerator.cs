@@ -80,16 +80,16 @@ public static class TextReportGenerator
 
         AppendLineWidth("Итого в чеке");
         AppendTextInCenter("Итого продаж");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalBaseCost.ToString(culture));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString(culture));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalBaseCost.ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2", culture));
 
         AppendTextInCenter("Итого возвратов");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString(culture));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString(culture));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2", culture));
 
         AppendTextInCenter("Всего продаж");
-        AppendKeyValueLine("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString(culture));
-        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString(culture));
+        AppendKeyValueLine("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", culture));
 
         AppendTextInCenter();
         _stringBuilder.AppendLine($"Оператор: {reportData.OperatorName}");
@@ -122,19 +122,19 @@ public static class TextReportGenerator
             AppendLineWidth(resourceName);
 
             AppendTextInCenter("Продажи");
-            AppendKeyValueLine("Ко-во", saleData.A != null ? saleData.A.Value.ToString(culture) : "0");
-            AppendKeyValueLine("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString(culture) : "0");
-            AppendKeyValueLine("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Ко-во", saleData.A != null ? saleData.A.Value.ToString("F3", culture) : "0,000");
+            AppendKeyValueLine("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString("F2", culture) : "0,00");
+            AppendKeyValueLine("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString("F2", culture) : "0,00");
 
             AppendTextInCenter("Возвраты");
-            AppendKeyValueLine("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString(culture) : "0");
-            AppendKeyValueLine("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString(culture) : "0");
-            AppendKeyValueLine("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString(culture) : "0");
+            AppendKeyValueLine("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString("F3", culture) : "0,000");
+            AppendKeyValueLine("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString("F2", culture) : "0,00");
+            AppendKeyValueLine("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString("F2", culture) : "0,00");
 
             AppendTextInCenter($"Итого по {resourceName}");
-            AppendKeyValueLine("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString(culture));
-            AppendKeyValueLine("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString(culture));
-            AppendKeyValueLine("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString(culture));
+            AppendKeyValueLine("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString("F3", culture));
+            AppendKeyValueLine("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString("F2", culture));
+            AppendKeyValueLine("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString("F2", culture));
         }
 
         AppendLineWidth();
@@ -151,16 +151,16 @@ public static class TextReportGenerator
         };
 
         AppendTextInCenter("Итого продаж");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBC.ToString(culture));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString(culture));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBC.ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2", culture));
 
         AppendTextInCenter("Итого возвратов");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString(culture));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString(culture));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2", culture));
 
         AppendTextInCenter("Всего продаж");
-        AppendKeyValueLine("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString(culture));
-        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString(culture));
+        AppendKeyValueLine("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString("F2", culture));
+        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", culture));
 
         AppendLineWidth();
     }
@@ -188,10 +188,10 @@ public static class TextReportGenerator
         }
         AppendLineWidth("Продажа");
         AppendKeyValueLine(receipt.ResourceName, $"= {receipt.Amount.ToString(culture)}");
-        AppendKeyValueLine(receipt.PricePerUnit.ToString(culture), $"= {receipt.SellingPrice.ToString(culture)}");
+        AppendKeyValueLine(receipt.PricePerUnit.ToString("F2", culture), $"= {receipt.SellingPrice.ToString("F2", culture)}");
         
-        AppendKeyValueLine("Скидка", $"= {receipt.Discount.ToString(culture)}");
-        AppendKeyValueLine("Итого", $"= {receipt.TotalPrice.ToString(culture)}");
+        AppendKeyValueLine("Скидка", $"= {receipt.Discount.ToString("F2", culture)}");
+        AppendKeyValueLine("Итого", $"= {receipt.TotalPrice.ToString("F2", culture)}");
         
         if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
         {

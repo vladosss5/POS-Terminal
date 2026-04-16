@@ -30,7 +30,6 @@ public interface ISellingBuilder
     /// <summary>
     /// Задать номер чека.
     /// </summary>
-    /// <param name="number">Номер.</param>
     public Task SetCheckNumber();
 
     /// <summary>

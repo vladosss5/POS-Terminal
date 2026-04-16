@@ -466,6 +466,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             await _builder.SetCheckNumber();
             await _builder.SetShiftNumber();
             await _builder.SetTerminalNumber();
+            await _builder.SetIssuerNumber();
             
             if (_authService.CurrentUser != null) 
                 _builder.SetPersonKey(_authService.CurrentUser.UserId, _authService.CurrentUser.Name);

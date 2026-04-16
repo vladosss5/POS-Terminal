@@ -115,6 +115,17 @@ public class SellingBuilder : ISellingBuilder
     }
 
     /// <inheritdoc/>
+    public async Task SetIssuerNumber()
+    {
+        if (_selling.DerivedType == DerivedPaymentType.FuelCard) //TODO: добавить логику считывания эмитента из топливной карты
+            return;
+        
+        await using var paramDb = await _paramDbFactory.CreateDbContextAsync();
+        var issuerNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "IssuerId");
+        _selling.IssuerCardId = Convert.ToInt32(issuerNumber!.Value);
+    }
+
+    /// <inheritdoc/>
     public Selling Build()
     {
         _selling.TransactionDatetime = DateTime.Now;

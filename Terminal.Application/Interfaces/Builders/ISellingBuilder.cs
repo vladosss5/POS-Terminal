@@ -58,6 +58,11 @@ public interface ISellingBuilder
     public Task SetTerminalNumber();
 
     /// <summary>
+    /// Установить номер эмитента.
+    /// </summary>
+    public Task SetIssuerNumber();
+
+    /// <summary>
     /// Собрать итоговый объект процесса заправки.
     /// </summary>
     /// <returns>Модель процесса заправки.</returns>

@@ -13,7 +13,7 @@
             <Setter Property="CornerRadius" Value="20"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="Margin" Value="5,10,5,10"></Setter>
+            <Setter Property="Margin" Value="15"></Setter>
         </Style>
         <Style Selector="TextBlock.action-text">
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -21,8 +21,23 @@
         </Style>
     </UserControl.Styles>
     
-    <Grid RowDefinitions="*, Auto">
-        <ListBox Grid.Row="0"
+    <Grid RowDefinitions="Auto, *, 100">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="Отчёт" 
+                       Classes="page-title"
+                       Foreground="Black"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding Close}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <ListBox Grid.Row="1"
                  ItemsSource="{Binding ReceiptLines}"
                  Background="White"
                  BorderThickness="0">
@@ -38,6 +53,7 @@
                     <TextBlock Text="{Binding}"
                                FontFamily="{StaticResource HaskligMedium}"
                                FontSize="14"
+                               Foreground="Black"
                                TextWrapping="Wrap"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -46,22 +62,16 @@
                 <Style Selector="ListBoxItem">
                     <Setter Property="Background" Value="Transparent" />
                     <Setter Property="Padding" Value="0" />
+                    <Setter Property="IsEnabled" Value="False"/>
                 </Style>
             </ListBox.Styles>
         </ListBox>
         
-        <Grid Grid.Row="1" ColumnDefinitions="*, *">
-            <Button Grid.Column="0" 
-                    Command="{Binding Close}" 
-                    Classes="action-button">
-                <TextBlock Text="Назад" Classes="action-text"/>
-            </Button>
-            <Button Grid.Column="1" 
-                    Command="{Binding Print}" 
-                    Classes="action-button" 
-                    Background="#0078D4">
-                <TextBlock Text="Печать" Classes="action-text"/>
-            </Button>
-        </Grid>
+        <Button Grid.Row="2"
+                Command="{Binding Print}" 
+                Classes="action-button" 
+                Background="#0078D4">
+            <TextBlock Text="Печать" Classes="action-text"/>
+        </Button>
     </Grid>
 </UserControl>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Terminal.ViewModels.Pages;
@@ -11,17 +13,17 @@ public class ShiftReportPageViewModel : PageViewModelBase
     /// <summary>
     /// Событие для печати.
     /// </summary>
-    private readonly Action _print;
+    private readonly Action? _print;
 
     /// <summary>
     /// Событие для выхода.
     /// </summary>
-    private readonly Action _exit;
+    private readonly Action? _exit;
     
     /// <summary>
-    /// Текст чека.
+    /// Текст чека построчно.
     /// </summary>
-    public string ReceiptText
+    public ObservableCollection<string> ReceiptLines
     {
         get;
         set => SetProperty(ref field, value);
@@ -41,7 +43,7 @@ public class ShiftReportPageViewModel : PageViewModelBase
         Action? exit = null)
         : base(logger)
     {
-        ReceiptText = receiptText;
+        ReceiptLines = new ObservableCollection<string>(receiptText.Split('\n'));
 
         if (print != null)
             _print = print;
@@ -55,7 +57,7 @@ public class ShiftReportPageViewModel : PageViewModelBase
     /// </summary>
     public void Close()
     {
-        _exit.Invoke();
+        _exit?.Invoke();
     }
 
     /// <summary>
@@ -63,6 +65,6 @@ public class ShiftReportPageViewModel : PageViewModelBase
     /// </summary>
     public void Print()
     {
-        _print.Invoke();
+        _print?.Invoke();
     }
 }

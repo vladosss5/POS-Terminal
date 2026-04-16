@@ -3,21 +3,65 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.Pages.ShiftReportPageView"
              x:DataType="pages:ShiftReportPageViewModel">
+    <UserControl.Styles>
+        <Style Selector="Button.action-button">
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="BorderBrush" Value="DarkGray"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="5,10,5,10"></Setter>
+        </Style>
+        <Style Selector="TextBlock.action-text">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
     
     <Grid RowDefinitions="*, Auto">
-        <ScrollViewer Grid.Row="0">
-            <TextBlock Text="{Binding ReceiptText}" 
-                       HorizontalAlignment="Center"
-                       FontFamily="{StaticResource HaskligMedium}"
-                       FontSize="14"
-                       TextWrapping="Wrap"/>
-        </ScrollViewer>
+        <ListBox Grid.Row="0"
+                 ItemsSource="{Binding ReceiptLines}"
+                 Background="White"
+                 BorderThickness="0">
+            
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel CacheLength="0.5" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}"
+                               FontFamily="{StaticResource HaskligMedium}"
+                               FontSize="14"
+                               TextWrapping="Wrap"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+            </ListBox.Styles>
+        </ListBox>
+        
         <Grid Grid.Row="1" ColumnDefinitions="*, *">
-            <Button Grid.Column="0" Content="Закрыть" Command="{Binding Close}"/>
-            <Button Grid.Column="1" Content="Печать" Command="{Binding Print}"/>
+            <Button Grid.Column="0" 
+                    Command="{Binding Close}" 
+                    Classes="action-button">
+                <TextBlock Text="Назад" Classes="action-text"/>
+            </Button>
+            <Button Grid.Column="1" 
+                    Command="{Binding Print}" 
+                    Classes="action-button" 
+                    Background="#0078D4">
+                <TextBlock Text="Печать" Classes="action-text"/>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

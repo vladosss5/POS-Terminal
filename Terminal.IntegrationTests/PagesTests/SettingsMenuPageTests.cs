@@ -7,16 +7,16 @@ using Terminal.ViewModels.Pages;
 namespace Terminal.IntegrationTests.PagesTests;
 
 [TestFixture]
-public class SettingsMenuPageViewModelTests : IntegrationTestsBase
+public class SettingsPageViewModelTests : IntegrationTestsBase
 {
-    private SettingsMenuPageViewModel? _settingsMenuPageViewModel;
+    private SettingsPageViewModel? _settingsMenuPageViewModel;
     private Mock<INavigationService>? _navigationMock;
 
     [SetUp]
     public void InitField()
     {
         // Получаем сервисы из scope
-        _settingsMenuPageViewModel = TestScope!.ServiceProvider.GetRequiredService<SettingsMenuPageViewModel>();
+        _settingsMenuPageViewModel = TestScope!.ServiceProvider.GetRequiredService<SettingsPageViewModel>();
         _settingsMenuPageViewModel.OnActivated(NavigationMock!.Object);
         
         _navigationMock = NavigationMock;
@@ -90,7 +90,7 @@ public class SettingsMenuPageViewModelTests : IntegrationTestsBase
     public void MenuItemCommands_AreNotExecutedWhenNavigationIsNull()
     {
         // Arrange - создаем ViewModel без навигации
-        var viewModelWithoutNav = TestScope!.ServiceProvider.GetRequiredService<SettingsMenuPageViewModel>();
+        var viewModelWithoutNav = TestScope!.ServiceProvider.GetRequiredService<SettingsPageViewModel>();
         
         // Act & Assert - команды не должны выбрасывать исключения при null навигации
         Assert.That(() => viewModelWithoutNav.MenuItems[0].Command?.Execute(null), Throws.Nothing);

@@ -41,7 +41,7 @@ public static class TestServiceProvider
         collection.AddTransient<MainMenuPageViewModel>();
         collection.AddTransient<SaleProcessPageViewModel>();
         collection.AddTransient<PrintingReceiptPageViewModel>();
-        collection.AddSingleton<SettingsMenuPageViewModel>();
+        collection.AddSingleton<SettingsPageViewModel>();
         collection.AddTransient<PaymentTypesSettingsPageViewModel>();
         collection.AddTransient<OpenShiftPageViewModel>();
         collection.AddTransient<SettingsShiftOpeningPageViewModel>();

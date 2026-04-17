@@ -139,7 +139,7 @@ public class AdminLoginPageViewModel : PageViewModelBase
 
         if (success)
         {
-            Navigation.NavigateTo<SettingsMenuPageViewModel>();
+            Navigation.NavigateTo<SettingsPageViewModel>();
         }
         else
         {

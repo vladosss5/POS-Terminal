@@ -2,9 +2,9 @@
 
 namespace Terminal.Views.Pages;
 
-public partial class PaymentTypesSettingsPageView : UserControl
+public partial class SettingsPageView : UserControl
 {
-    public PaymentTypesSettingsPageView()
+    public SettingsPageView()
     {
         InitializeComponent();
     }

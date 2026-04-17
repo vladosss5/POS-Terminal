@@ -1,0 +1,314 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
+             x:DataType="pages:SettingsPageViewModel"
+             x:Class="Terminal.Views.Pages.SettingsPageView"
+             x:Name="ThisUserControl">
+    
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0"  
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <!-- Копирование чеков -->
+                <Border Classes="group-setting">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Копирование чеков" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Топливный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ResourceCopy}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Дисконтный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.DiscountCopy}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Платёжный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.PaymentCopy}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Ведомственный чек" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.StatementCopy}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Состав чека -->
+                <Border Classes="group-setting">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Состав чека" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Бонусная программа" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.BonusProgram}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Сумма чека" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.Sum}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Блок продаж" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.SaleBlock}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Цена" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ShowPrice}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Отчёты -->
+                <Border Classes="group-setting">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Отчёты" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоговое кол-во" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.TotalAmount}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоговая скидка" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.TotalDiscount}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Итоги эмитентов" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ReportTotal}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Делить эмитент" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.ReportDivide}"/>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Делить по топливу" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.DivideFuels}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Прочее -->
+                <Border Classes="group-setting">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Прочее" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Удалять корректировки" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
+                                          IsChecked="{Binding SettingsModel.RemoteUpdate}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Ожидание ввода пароля -->
+                <Border Classes="group-setting" Padding="0,15,0,15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Аутентификация" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Ожидание ввода пароля" Classes="text-items-control"/>
+                            
+                            <ComboBox Grid.Column="1" Classes="selector-box"
+                                      ItemsSource="{Binding TimeoutValues}"
+                                      SelectedItem="{Binding SecondsAuthenticationCanceled}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="16"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Аутентифицировать по" Classes="text-items-control"/>
+                            
+                            <ComboBox Grid.Column="1" Classes="selector-box"
+                                      ItemsSource="{Binding LoadModes}"
+                                      SelectedItem="{Binding SelectedAuthorizeType}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource EnumFriendlyNameConverter}}"
+                                                   FontSize="16"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Помнить пароль" Classes="text-items-control"/>
+                            <ToggleSwitch Grid.Column="1" Classes="setting-switcher"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Типы оплаты -->
+                <Border Classes="group-setting" Padding="0,15,0,15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Типы оплаты" Classes="group-title"/>
+                        
+                        <ItemsControl ItemsSource="{Binding SettingsModel.PaymentTypes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="1" Rows="0" 
+                                                 HorizontalAlignment="Stretch" 
+                                                 VerticalAlignment="Top"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Spacing="10">
+                                        <Grid ColumnDefinitions="*, Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayedName}"
+                                                       Classes="text-items-control" 
+                                                       HorizontalAlignment="Left" 
+                                                       VerticalAlignment="Center"/>
+                                
+                                            <ToggleSwitch Grid.Column="1" OnContent="" OffContent=""
+                                                          IsChecked="{Binding IsEnabled}"
+                                                          Classes="setting-switcher"/>
+                                        </Grid>
+                                        <Separator Classes="default-separator"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="15,0,0,0"/>
+        </Style>
+        
+        <Style Selector="ToggleSwitch.setting-switcher">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="OnContent" Value=""/>
+            <Setter Property="OffContent" Value=""/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Command" Value="{Binding Path=#ThisUserControl.((pages:SettingsPageViewModel)DataContext).SaveCommand}"/>
+        </Style>
+        
+        <Style Selector="Separator.default-separator">
+            <Setter Property="Background" Value="LightGray"/>
+        </Style>
+        
+        <Style Selector="Border.group-setting">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="BorderBrush" Value="DarkGray"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Margin" Value="10,5,10,5"/>
+            <Setter Property="Padding" Value="0,10,0,10"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock.group-title">
+            <Setter Property="Margin" Value="10,0,0,10"/>
+            <Setter Property="Foreground" Value="#7a7a7a"/>
+            <Setter Property="FontWeight" Value="Bold"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock.text-items-control">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="15,0,0,0"/>
+        </Style>
+        
+        <Style Selector="ToggleSwitch.setting-switcher">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="OnContent" Value=""/>
+            <Setter Property="OffContent" Value=""/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style Selector="Separator.default-separator">
+            <Setter Property="Background" Value="LightGray"/>
+        </Style>
+        
+        <Style Selector="Border.group-setting">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="WhiteSmoke"/>
+            <Setter Property="BorderBrush" Value="DarkGray"/>
+            <Setter Property="BorderThickness" Value="1"></Setter>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Margin" Value="10,5,10,5"/>
+            <Setter Property="Padding" Value="0,10,0,10"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock.group-title">
+            <Setter Property="Margin" Value="10,0,0,10"/>
+            <Setter Property="Foreground" Value="#7a7a7a"/>
+            <Setter Property="FontWeight" Value="Bold"></Setter>
+        </Style>
+        
+        <Style Selector="ComboBox.selector-box">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="Transparent"></Setter>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

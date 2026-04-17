@@ -85,10 +85,10 @@
                     <!-- Кнопки ввода -->
                     <Grid Grid.Row="1" 
                           ColumnDefinitions="*,*,*,*"
-                          RowDefinitions="Auto, *, *"
+                          RowDefinitions="*, *"
                           Margin="8"
                           IsVisible="{Binding ShowButtons}">
-                        <ItemsControl Grid.Row="0" Grid.RowSpan="3" 
+                        <ItemsControl Grid.Row="0" Grid.RowSpan="2" 
                                       Grid.Column="0" Grid.ColumnSpan="3" 
                                       ItemsSource="{Binding LoginButtons}">
                             <ItemsControl.ItemsPanel>
@@ -116,7 +116,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         
-                        <Button Grid.Column="3" Grid.Row="0" 
+                        <Button Grid.Column="3" Grid.Row="0"
                                 Classes="number-button"
                                 Tapped="OnButtonTapped"
                                 Holding="OnButtonHolding"
@@ -125,7 +125,7 @@
                             <Image Source="../../Assets/Icons/backspace.png"/>
                         </Button>
 
-                        <Button Grid.Column="3" Grid.Row="1" Grid.RowSpan="2"
+                        <Button Grid.Column="3" Grid.Row="1" 
                                 Classes="number-button"
                                 Command="{Binding AuthenticationWithPasswordAsync}"
                                 VerticalAlignment="Stretch"

@@ -105,9 +105,6 @@ public class AdminLoginPageViewModel : PageViewModelBase
             case LoginButtonTypes.Digit:
                 Password += button.Content;;
                 break;
-            case LoginButtonTypes.Backspace:
-                Password = Password[..^1];
-                break;
             default:
                 Logger.LogWarning("Нажатая кнопка не определена.");
                 break;
@@ -115,9 +112,25 @@ public class AdminLoginPageViewModel : PageViewModelBase
     }
 
     /// <summary>
+    /// Стереть последний символ.
+    /// </summary>
+    public void RemoveLastChar()
+    {
+        if (string.IsNullOrWhiteSpace(Password))
+            return;
+        
+        Password = Password[..^1];
+    }
+
+    /// <summary>
+    /// Очистить пароль.
+    /// </summary>
+    public void ClearPassword() => Password = string.Empty;
+
+    /// <summary>
     /// Авторизация администратора.
     /// </summary>
-    private async Task Login()
+    public async Task Login()
     {
         StopInactivityTimer();
         
@@ -196,15 +209,15 @@ public class AdminLoginPageViewModel : PageViewModelBase
             new LoginButton { Content = "7", ContentIsImage = false, Type = LoginButtonTypes.Digit},
             new LoginButton { Content = "8", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "9", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "enter.png", ContentIsImage = true, Type = LoginButtonTypes.Enter },
             new LoginButton { Content = "4", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "5", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "6", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "backspace.png", ContentIsImage = true, Type = LoginButtonTypes.Backspace },
             new LoginButton { Content = "1", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "2", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "3", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit }
+            new LoginButton { Content = "00", ContentIsImage = false, Type = LoginButtonTypes.Digit },
+            new LoginButton { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
+            new LoginButton { Content = ",", ContentIsImage = false, Type = LoginButtonTypes.Digit }
         ];
         
         ResetInactivityTimer();

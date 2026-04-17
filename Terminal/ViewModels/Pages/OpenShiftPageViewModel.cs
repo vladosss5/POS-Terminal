@@ -252,7 +252,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Пройти аутентификацию.
     /// </summary>
-    private async Task AuthenticationWithPasswordAsync()
+    public async Task AuthenticationWithPasswordAsync()
     {
         if (string.IsNullOrEmpty(Password))
         {
@@ -499,9 +499,21 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Удалить последний символ из пароля.
     /// </summary>
-    private void RemoveLastChar()
+    public void RemoveLastChar()
     {
+        if (string.IsNullOrWhiteSpace(Password))
+            return;
+        
         Password = Password[..^1];
+    }
+
+    /// <summary>
+    /// Очистить пароль
+    /// </summary>
+    public void ClearPassword()
+    {
+        Password = string.Empty;
+        PasswordIsEmpty = true;
     }
     
     /// <summary>
@@ -533,9 +545,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             new() { Content = "1", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new() { Content = "2", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new() { Content = "3", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "backspace.png", ContentIsImage = true, Type = LoginButtonTypes.Backspace },
+            new() { Content = "00", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new() { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "enter.png", ContentIsImage = true, Type = LoginButtonTypes.Enter }
+            new() { Content = ",", ContentIsImage = false, Type = LoginButtonTypes.Digit },
         ];
 
         switch (_configurationService.CurrentSetting.AuthorizeType)

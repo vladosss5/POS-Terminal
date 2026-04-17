@@ -196,15 +196,15 @@ public class AdminLoginPageViewModel : PageViewModelBase
             new LoginButton { Content = "7", ContentIsImage = false, Type = LoginButtonTypes.Digit},
             new LoginButton { Content = "8", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "9", ContentIsImage = false, Type = LoginButtonTypes.Digit },
+            new LoginButton { Content = "enter.png", ContentIsImage = true, Type = LoginButtonTypes.Enter },
             new LoginButton { Content = "4", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "5", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "6", ContentIsImage = false, Type = LoginButtonTypes.Digit },
+            new LoginButton { Content = "backspace.png", ContentIsImage = true, Type = LoginButtonTypes.Backspace },
             new LoginButton { Content = "1", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "2", ContentIsImage = false, Type = LoginButtonTypes.Digit },
             new LoginButton { Content = "3", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "backspace.png", ContentIsImage = true, Type = LoginButtonTypes.Backspace },
-            new LoginButton { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "enter.png", ContentIsImage = true, Type = LoginButtonTypes.Enter }
+            new LoginButton { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit }
         ];
         
         ResetInactivityTimer();

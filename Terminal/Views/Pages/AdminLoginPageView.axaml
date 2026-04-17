@@ -5,7 +5,7 @@
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
              xmlns:models="clr-namespace:Terminal.Core.Models;assembly=Terminal.Core"
              xmlns:converters="clr-namespace:Terminal.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.Pages.AdminLoginPageView"
              x:DataType="pages:AdminLoginPageViewModel"
              x:Name="ThisUserControl">
@@ -48,16 +48,16 @@
             </Border>
             
             <!-- Кнопки ввода -->
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}">
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}"
+                          Margin="8">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid Columns="3" 
-                                     Rows="4"
+                        <UniformGrid Columns="4" Rows="3"
                                      HorizontalAlignment="Stretch"
                                      VerticalAlignment="Stretch"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-                
+            
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:LoginButton">
                         <Button Command="{Binding #ThisUserControl.((pages:AdminLoginPageViewModel)DataContext).ButtonClick}"
@@ -66,8 +66,8 @@
                             <Panel>
                                 <TextBlock Text="{Binding Content}" Classes="text-button"
                                            IsVisible="{Binding !ContentIsImage}"/>
-                                
-                                <Image Source="{Binding Content, Converter={StaticResource PathToImageConverter}}" 
+            
+                                <Image Source="{Binding Content, Converter={StaticResource PathToImageConverter}}"
                                        IsVisible="{Binding ContentIsImage}"/>
                             </Panel>
                         </Button>

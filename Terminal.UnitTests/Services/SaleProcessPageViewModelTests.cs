@@ -91,6 +91,15 @@ public class SaleProcessPageViewModelTests
             .Returns(_currentSettings);
         _dbFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_dbContextMock.Object);
+        _settingPaymentTypeMapperMock
+            .Setup(x => x.SettingPaymentTypeToDto(It.IsAny<SettingPaymentType>()))
+            .Returns((SettingPaymentType setting) => new PaymentTypeDto
+            {
+                DisplayedName = setting.DisplayedName,
+                BaseType = (BasePaymentType)setting.BaseType,
+                DerivedType = (DerivedPaymentType)setting.DerivedType,
+                IsEnabled = setting.IsEnabled
+            });
 
         _viewModel = new SaleProcessPageViewModel(
             _builderMock.Object,

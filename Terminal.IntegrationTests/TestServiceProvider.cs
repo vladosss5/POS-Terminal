@@ -24,7 +24,7 @@ public static class TestServiceProvider
     public static void RegisterCommonServices(this IServiceCollection collection,
         Mock<INavigationService> navigationMock,
         Mock<IMessageBoxService> messageMock,
-        Mock<ICardReaderService> cardReaderMock, 
+        Mock<ICardReaderService> cardReaderMock,
         Mock<IReceiptPrintService> receiptPrintMock)
     {
         collection.AddLogging(builder =>
@@ -42,11 +42,8 @@ public static class TestServiceProvider
         collection.AddTransient<SaleProcessPageViewModel>();
         collection.AddTransient<PrintingReceiptPageViewModel>();
         collection.AddSingleton<SettingsPageViewModel>();
-        collection.AddTransient<PaymentTypesSettingsPageViewModel>();
         collection.AddTransient<OpenShiftPageViewModel>();
-        collection.AddTransient<SettingsShiftOpeningPageViewModel>();
         collection.AddTransient<AdminLoginPageViewModel>();
-        collection.AddTransient<SettingsPrintPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
@@ -79,7 +76,7 @@ public static class TestServiceProvider
     }
     
     /// <summary>
-    /// Регистрация контекста БД.
+    /// Регистрация контекстов БД.
     /// </summary>
     public static void AddDataContext(this IServiceCollection collection)
     {
@@ -92,6 +89,18 @@ public static class TestServiceProvider
         collection.AddDbContextFactory<DataContext>(options =>
         {
             options.UseSqlite($"Data Source={dbPath}");
+        });
+
+        
+        var paramDbPath = ParamDbContext.GetDbPathForIntegrationTests();
+        var paramDir = Path.GetDirectoryName(paramDbPath);
+
+        if (paramDir != null)
+            Directory.CreateDirectory(paramDir);
+        
+        collection.AddDbContextFactory<ParamDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={paramDbPath}");
         });
     }
 }

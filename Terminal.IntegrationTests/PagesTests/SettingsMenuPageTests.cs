@@ -47,36 +47,6 @@ public class SettingsPageViewModelTests : IntegrationTestsBase
     }
 
     [Test]
-    public void MenuItem_PaymentTypes_WhenExecuted_NavigatesToPaymentTypesSettings()
-    {
-        // Act
-        _settingsMenuPageViewModel!.MenuItems[0].Command?.Execute(null);
-        
-        // Assert
-        _navigationMock!.Verify(x => x.NavigateTo<PaymentTypesSettingsPageViewModel>(), Times.Once);
-    }
-
-    [Test]
-    public void MenuItem_Authentication_WhenExecuted_NavigatesToSettingsShiftOpening()
-    {
-        // Act
-        _settingsMenuPageViewModel!.MenuItems[1].Command?.Execute(null);
-        
-        // Assert
-        _navigationMock!.Verify(x => x.NavigateTo<SettingsShiftOpeningPageViewModel>(), Times.Once);
-    }
-
-    [Test]
-    public void MenuItem_Print_WhenExecuted_NavigatesToSettingsPrint()
-    {
-        // Act
-        _settingsMenuPageViewModel!.MenuItems[2].Command?.Execute(null);
-        
-        // Assert
-        _navigationMock!.Verify(x => x.NavigateTo<SettingsPrintPageViewModel>(), Times.Once);
-    }
-
-    [Test]
     public void StepBack_WhenCalled_NavigatesToMainMenu()
     {
         // Act

@@ -77,4 +77,14 @@ public partial class ParamDbContext : DbContext
 
         return fullPath;
     }
+    
+    public static string GetDbPathForIntegrationTests()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dbFolder = Path.Combine(appData, "IntegrationTests", "Terminal");
+        Directory.CreateDirectory(dbFolder);
+        var fullPath = Path.Combine(dbFolder, "param.db");
+
+        return fullPath;
+    }
 }

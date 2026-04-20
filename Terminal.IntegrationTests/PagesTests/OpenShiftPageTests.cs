@@ -89,26 +89,6 @@ public class OpenShiftPageTests : IntegrationTestsBase
         NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Never);
         Assert.That(_authService!.CurrentUser, Is.Null);
     }
-
-    // [Test]
-    // public async Task LoginByCard_CorrectCardNumber()
-    // {
-    //     // Arrange
-    //     CardReaderMock!.Setup(x => x.ReadCardAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-    //         .ReturnsAsync(CardReadResult.Success(new CardInfo(Convert.ToString(CardNumber, 16), CardType.MifareClassic1K, [])));
-    //     
-    //     // Act
-    //     _openShiftPageViewModel!.SelectUser(_existingOperator);
-    //     await Task.Delay(3000);
-    //
-    //     // Assert
-    //     NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Once); // Проверка перехода страницы.
-    //     Assert.That(_authService!.CurrentUser, Is.Not.Null); // Проверка сохранения аутентифицированного оператора.
-    //     
-    //     var shiftService = TestScope!.ServiceProvider.GetRequiredService<IShiftService>();
-    //     var shift = await shiftService.GetOpenedShiftOrDefaultAsync();
-    //     Assert.That(shift, Is.Not.Null); // Проверка открытия смены.
-    // }
     
     [Test]
     public void LoginByCard_IncorrectCardNumber()

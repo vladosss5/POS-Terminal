@@ -98,10 +98,7 @@ public class SettingsPageViewModel : PageViewModelBase
     /// <summary>
     /// Перейти к прошлому шагу.
     /// </summary>
-    public void StepBack()
-    {
-        Navigation.NavigateTo<MainMenuPageViewModel>();
-    }
+    public void StepBack() => Navigation.NavigateTo<MainMenuPageViewModel>();
     
     /// <summary>
     /// Вызвать сохранение конфигурации в файл.

@@ -151,7 +151,13 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Коллекция кнопок для авторизации.
     /// </summary>
-    public LoginButton[] LoginButtons { get; private set; }
+    public string[] LoginButtons { get; private set; } =
+    [
+        "7", "8", "9",
+        "4", "5", "6",
+        "1", "2", "3",
+        "00", "0", ",",
+    ];
 
     /// <summary>
     /// Сообщение в окне пароля.
@@ -188,33 +194,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
         _ = InitializeData();
     }
-
-    /// <summary>
-    /// Нажатие на кнопку.
-    /// </summary>
-    /// <param name="button">Кнопка на которую нажали.</param>
-    public async Task ButtonClick(LoginButton button)
-    {
-        if (IsMifareCardAuthorizeType)
-            return;
-        
-        if (!_inputCancellationTokenSource!.IsCancellationRequested)
-            ResetInputTimer();
-        
-        switch (button.Type)
-        {
-            case LoginButtonTypes.Digit:
-                AddCharInPassword(button.Content);
-                break;
-            case LoginButtonTypes.Enter:
-                _onEnterPressedHandler?.Invoke();
-                await AuthenticationWithPasswordAsync();
-                break;
-            case LoginButtonTypes.Backspace:
-                RemoveLastChar();
-                break;
-        }
-    }
     
     /// <summary>
     /// Выбрать учётную запись для входа.
@@ -247,7 +226,27 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="element">Символ.</param>
-    private void AddCharInPassword(string element) => Password += element;
+    public void AddCharInPassword(string element)
+    {
+        if (!_inputCancellationTokenSource!.IsCancellationRequested)
+            ResetInputTimer();
+
+        Password += element;
+    }
+    
+    /// <summary>
+    /// Удалить последний символ из пароля.
+    /// </summary>
+    public void RemoveLastChar()
+    {
+        if (string.IsNullOrWhiteSpace(Password))
+            return;
+        
+        if (!_inputCancellationTokenSource!.IsCancellationRequested)
+            ResetInputTimer();
+        
+        Password = Password[..^1];
+    }
 
     /// <summary>
     /// Пройти аутентификацию.
@@ -497,17 +496,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Удалить последний символ из пароля.
-    /// </summary>
-    public void RemoveLastChar()
-    {
-        if (string.IsNullOrWhiteSpace(Password))
-            return;
-        
-        Password = Password[..^1];
-    }
-
-    /// <summary>
     /// Очистить пароль
     /// </summary>
     public void ClearPassword()
@@ -533,22 +521,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
         var users = await db.Users.ToListAsync();
         Users.AddRange(users);
-        
-        LoginButtons =
-        [
-            new() { Content = "7", ContentIsImage = false, Type = LoginButtonTypes.Digit},
-            new() { Content = "8", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "9", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "4", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "5", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "6", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "1", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "2", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "3", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "00", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new() { Content = ",", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-        ];
 
         switch (_configurationService.CurrentSetting.AuthorizeType)
         {

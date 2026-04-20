@@ -2,10 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Enums;
-using Terminal.Core.Models;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -70,7 +67,13 @@ public class AdminLoginPageViewModel : PageViewModelBase
     /// <summary>
     /// Коллекция кнопок для авторизации.
     /// </summary>
-    public LoginButton[] LoginButtons { get; private set; }
+    public string[] LoginButtons { get; private set; } =
+    [
+        "7", "8", "9",
+        "4", "5", "6",
+        "1", "2", "3",
+        "00", "0", ",",
+    ];
     
     /// <summary>
     /// Конструктор.
@@ -88,29 +91,23 @@ public class AdminLoginPageViewModel : PageViewModelBase
 
         _defaultRemainingSeconds = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
-        InitializeData();
+        Title = "Вход админа";
+        
+        ResetInactivityTimer();
     }
 
     /// <summary>
-    /// Обработка нажатия на кнопку.
+    /// Добавить символ к паролю.
     /// </summary>
-    /// <param name="button">Кнопка.</param>
-    public async Task ButtonClick(LoginButton button)
+    /// <param name="element">Символ.</param>
+    public void AddCharInPassword(string element)
     {
-        switch (button.Type)
-        {
-            case LoginButtonTypes.Enter:
-                await Login();
-                break;
-            case LoginButtonTypes.Digit:
-                Password += button.Content;;
-                break;
-            default:
-                Logger.LogWarning("Нажатая кнопка не определена.");
-                break;
-        }
-    }
+        if (!_inactivityCts!.IsCancellationRequested)
+            ResetInactivityTimer();
 
+        Password += element;
+    }
+    
     /// <summary>
     /// Стереть последний символ.
     /// </summary>
@@ -119,13 +116,22 @@ public class AdminLoginPageViewModel : PageViewModelBase
         if (string.IsNullOrWhiteSpace(Password))
             return;
         
+        if (!_inactivityCts!.IsCancellationRequested)
+            ResetInactivityTimer();
+        
         Password = Password[..^1];
     }
 
     /// <summary>
     /// Очистить пароль.
     /// </summary>
-    public void ClearPassword() => Password = string.Empty;
+    public void ClearPassword()
+    {
+        if (!_inactivityCts!.IsCancellationRequested)
+            ResetInactivityTimer();
+        
+        Password = string.Empty;
+    }
 
     /// <summary>
     /// Авторизация администратора.
@@ -195,31 +201,5 @@ public class AdminLoginPageViewModel : PageViewModelBase
         _inactivityCts?.Cancel();
         _inactivityCts?.Dispose();
         _inactivityCts = null;
-    }
-    
-    /// <summary>
-    /// Инициализировать данные.
-    /// </summary>
-    private void InitializeData()
-    {
-        Title = "Вход админа";
-        
-        LoginButtons =
-        [
-            new LoginButton { Content = "7", ContentIsImage = false, Type = LoginButtonTypes.Digit},
-            new LoginButton { Content = "8", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "9", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "4", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "5", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "6", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "1", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "2", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "3", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "00", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = "0", ContentIsImage = false, Type = LoginButtonTypes.Digit },
-            new LoginButton { Content = ",", ContentIsImage = false, Type = LoginButtonTypes.Digit }
-        ];
-        
-        ResetInactivityTimer();
     }
 }

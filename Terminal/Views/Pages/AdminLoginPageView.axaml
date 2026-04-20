@@ -65,17 +65,11 @@
                     </ItemsControl.ItemsPanel>
             
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:LoginButton">
-                            <Button Command="{Binding #ThisUserControl.((pages:AdminLoginPageViewModel)DataContext).ButtonClick}"
+                        <DataTemplate>
+                            <Button Command="{Binding #ThisUserControl.((pages:AdminLoginPageViewModel)DataContext).AddCharInPassword}"
                                     CommandParameter="{Binding}"
                                     Classes="number-button">
-                                <Panel>
-                                    <TextBlock Text="{Binding Content}" Classes="text-button"
-                                               IsVisible="{Binding !ContentIsImage}"/>
-            
-                                    <Image Source="{Binding Content, Converter={StaticResource PathToImageConverter}}"
-                                           IsVisible="{Binding ContentIsImage}"/>
-                                </Panel>
+                                    <TextBlock Text="{Binding}" Classes="text-button"/>
                             </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

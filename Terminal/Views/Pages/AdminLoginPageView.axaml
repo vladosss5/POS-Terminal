@@ -5,7 +5,7 @@
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
              xmlns:models="clr-namespace:Terminal.Core.Models;assembly=Terminal.Core"
              xmlns:converters="clr-namespace:Terminal.Converters"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.Pages.AdminLoginPageView"
              x:DataType="pages:AdminLoginPageViewModel"
              x:Name="ThisUserControl">
@@ -29,7 +29,7 @@
         </Grid>
         
         <!-- Ввод пароля -->
-        <Grid Grid.Row="1" RowDefinitions="*, Auto"
+        <Grid Grid.Row="1" RowDefinitions="*, *"
               HorizontalAlignment="Stretch" 
               VerticalAlignment="Stretch">
             
@@ -48,32 +48,50 @@
             </Border>
             
             <!-- Кнопки ввода -->
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding LoginButtons}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="3" 
-                                     Rows="4"
-                                     HorizontalAlignment="Stretch"
-                                     VerticalAlignment="Stretch"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+            <Grid Grid.Row="1" 
+                  ColumnDefinitions="*,*,*,*"
+                  RowDefinitions="*, *"
+                  Margin="8">
+                <ItemsControl Grid.Row="0" Grid.RowSpan="2" 
+                              Grid.Column="0" Grid.ColumnSpan="3" 
+                              ItemsSource="{Binding LoginButtons}">
+                    
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" Rows="4"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+            
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding #ThisUserControl.((pages:AdminLoginPageViewModel)DataContext).AddCharInPassword}"
+                                    CommandParameter="{Binding}"
+                                    Classes="number-button">
+                                    <TextBlock Text="{Binding}" Classes="text-button"/>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="models:LoginButton">
-                        <Button Command="{Binding #ThisUserControl.((pages:AdminLoginPageViewModel)DataContext).ButtonClick}"
-                                CommandParameter="{Binding}"
-                                Classes="number-button">
-                            <Panel>
-                                <TextBlock Text="{Binding Content}" Classes="text-button"
-                                           IsVisible="{Binding !ContentIsImage}"/>
-                                
-                                <Image Source="{Binding Content, Converter={StaticResource PathToImageConverter}}" 
-                                       IsVisible="{Binding ContentIsImage}"/>
-                            </Panel>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                <Button Grid.Column="3" Grid.Row="0"
+                        Classes="number-button"
+                        Tapped="OnButtonTapped"
+                        Holding="OnButtonHolding"
+                        Gestures.IsHoldWithMouseEnabled="True"
+                        Gestures.IsHoldingEnabled="True">
+                    <Image Source="../../Assets/Icons/backspace.png"/>
+                </Button>
+
+                <Button Grid.Column="3" Grid.Row="1"
+                        Classes="number-button"
+                        Command="{Binding Login}"
+                        VerticalAlignment="Stretch"
+                        CornerRadius="20">
+                    <Image Source="../../Assets/Icons/enter.png"/>
+                </Button>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

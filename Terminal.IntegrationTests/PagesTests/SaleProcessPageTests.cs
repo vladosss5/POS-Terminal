@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using Terminal.Application.Implementations.DbEntitiesServices;
+using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.ViewModels.Pages;
@@ -29,6 +31,17 @@ public class SaleProcessPageTests : IntegrationTestsBase
         var resource = await db.ResourceCodes.FirstAsync(x => x.IsShow == 1);
         var charsAmount = new[] {"0", "1", "2", "3", ",", "00", "1" , "1"};
 
+        var shift = new Shift
+        {
+            ShiftKey = 1,
+            ShopKey = 9,
+            IsOpened = true,
+            ShiftDate = DateTime.Now
+        };
+
+        await db.Shifts.AddAsync(shift);
+        await db.SaveChangesAsync();
+        
         ReceiptPrintMock
             .Setup(x => x.PrintSalesReceiptAsync(It.IsAny<SalesReceipt>()))
             .ReturnsAsync(new PrintResult { Success = true, Status = PrinterStatus.Ready });

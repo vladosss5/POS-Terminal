@@ -1,20 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using AvaloniaEdit.Utils;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
+using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
 
 /// <summary>
-/// Логика работы страницы с настройками открытия смены.
+/// Логика работы страницы с настройками.
 /// </summary>
-public class SettingsShiftOpeningPageViewModel : PageViewModelBase
+public class SettingsPageViewModel : PageViewModelBase
 {
     /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
 
+    /// <summary>
+    /// Св-во для получения ссылки на экземпляр класса текущей конфигурации.
+    /// </summary>
+    public SettingsModel SettingsModel { get; }
+    
     /// <summary>
     /// Выбранный вариант времени ожидания ввода пароля.
     /// </summary>
@@ -30,7 +40,7 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
             _configurationService.SaveSettingsToFile();
         } 
     }
-
+    
     /// <summary>
     /// Варианты времени ожидания ввода пароля.
     /// </summary>
@@ -64,20 +74,37 @@ public class SettingsShiftOpeningPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// Коллекция пунктов меню.
+    /// </summary>
+    public ObservableCollection<SettingsMenuItemModel> MenuItems { get; } = [];
+    
+    /// <summary>
     /// Конструктор.
     /// </summary>
-    public SettingsShiftOpeningPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+    /// <param name="logger"></param>
+    public SettingsPageViewModel(
+        ILogger<PageViewModelBase> logger,
         IConfigurationService configurationService) 
         : base(logger)
     {
-        Title = "Открытие смены";
-        
         _configurationService = configurationService;
+        Title = "Настройки";
+        
+        SettingsModel = _configurationService.CurrentSetting;
         
         InitializeData();
     }
-
+    
+    /// <summary>
+    /// Перейти к прошлому шагу.
+    /// </summary>
+    public void StepBack() => Navigation.NavigateTo<MainMenuPageViewModel>();
+    
+    /// <summary>
+    /// Вызвать сохранение конфигурации в файл.
+    /// </summary>
+    public void SaveCommand() => _configurationService.SaveSettingsToFile();
+    
     /// <summary>
     /// Инициализировать данные.
     /// </summary>

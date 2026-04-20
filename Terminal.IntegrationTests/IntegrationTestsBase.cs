@@ -2,7 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.ParamDbEntities;
 using Terminal.Data.Context;
 using Terminal.Services.NavigationService;
 
@@ -14,9 +16,11 @@ public abstract class IntegrationTestsBase
     
     protected IServiceScope? TestScope;
     protected IDbContextFactory<DataContext>? DbFactory;
+    protected IDbContextFactory<ParamDbContext>? ParamDbFactory;
     protected readonly Mock<INavigationService> NavigationMock = new();
     protected readonly Mock<ICardReaderService> CardReaderMock = new();
-    protected Mock<IReceiptPrintService> ReceiptPrintMock = new();
+    protected readonly Mock<IReceiptPrintService> ReceiptPrintMock = new();
+    protected readonly Mock<ShiftService> MockShiftService = new();
     
     private readonly Mock<IMessageBoxService> _messageBoxMock = new();
     
@@ -33,6 +37,7 @@ public abstract class IntegrationTestsBase
         
         _services = serviceCollection.BuildServiceProvider();
         DbFactory = _services.GetRequiredService<IDbContextFactory<DataContext>>();
+        ParamDbFactory = _services.GetRequiredService<IDbContextFactory<ParamDbContext>>();
         
         await CreateDatabaseSchema();
         await SeedInitialData();
@@ -43,9 +48,9 @@ public abstract class IntegrationTestsBase
     {
         TestScope = _services!.CreateScope();
         
-        NavigationMock!.Reset();
-        _messageBoxMock!.Reset();
-        CardReaderMock!.Reset();
+        NavigationMock.Reset();
+        _messageBoxMock.Reset();
+        CardReaderMock.Reset();
         
         await CleanTestDataAsync();
     }
@@ -62,6 +67,10 @@ public abstract class IntegrationTestsBase
         await using var context = await DbFactory!.CreateDbContextAsync();
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
+
+        await using var paramContext = await ParamDbFactory!.CreateDbContextAsync();
+        await paramContext.Database.EnsureDeletedAsync();
+        await paramContext.Database.EnsureCreatedAsync();
     }
 
     private async Task CleanTestDataAsync()
@@ -75,6 +84,17 @@ public abstract class IntegrationTestsBase
 
     private async Task SeedInitialData()
     {
+        // Подгрузка данных для param db
+        await using var paramContext = await ParamDbFactory!.CreateDbContextAsync();
+
+        await paramContext.Params.AddRangeAsync(
+        [
+            new Param { Name = "SerialNO111", Value = "121" },
+            new Param { Name = "IssuerId", Value = "973" }
+        ]);
+        await paramContext.SaveChangesAsync();
+        
+        // Подгрузка данных для основной БД
         await using var context = await DbFactory!.CreateDbContextAsync();
         
         List<string> scripts = [];

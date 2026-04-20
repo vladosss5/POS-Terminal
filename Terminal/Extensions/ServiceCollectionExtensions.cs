@@ -39,12 +39,9 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<MainMenuPageViewModel>();
         collection.AddTransient<SaleProcessPageViewModel>();
         collection.AddTransient<PrintingReceiptPageViewModel>();
-        collection.AddSingleton<SettingsMenuPageViewModel>();
-        collection.AddTransient<PaymentTypesSettingsPageViewModel>();
+        collection.AddSingleton<SettingsPageViewModel>();
         collection.AddTransient<OpenShiftPageViewModel>();
-        collection.AddTransient<SettingsShiftOpeningPageViewModel>();
         collection.AddTransient<AdminLoginPageViewModel>();
-        collection.AddTransient<SettingsPrintPageViewModel>();
         collection.AddTransient<InitialSetupPageViewModel>();
         collection.AddSingleton<ShiftReportPageViewModel>();
         

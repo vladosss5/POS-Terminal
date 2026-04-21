@@ -1,0 +1,13 @@
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+namespace Terminal.Views.Pages;
+
+public partial class ResourcePageView : UserControl
+{
+    public ResourcePageView()
+    {
+        InitializeComponent();
+    }
+}

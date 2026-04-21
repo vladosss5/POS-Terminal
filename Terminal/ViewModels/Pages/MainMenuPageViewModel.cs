@@ -111,14 +111,38 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task ShiftClose()
     {
-        await _authService.LogoutAsync();
-
         var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
-
-        if (openShift != null)
-            await _shiftService.CloseShiftAsync(openShift);
-
-        Navigation.NavigateTo<OpenShiftPageViewModel>();
+        var shiftNumber = openShift != null ? openShift.ShiftKey : 0;
+        
+        var confirmPage = new ConfirmationPageViewModel(
+            _logger,
+            "Закрыть смену",
+            $"№ {shiftNumber}",
+            async void () =>
+            {
+                try
+                {
+                    await _authService.LogoutAsync();
+        
+                    var closingShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+        
+                    if (closingShift != null)
+                        await _shiftService.CloseShiftAsync(closingShift);
+        
+                    Navigation.NavigateTo<OpenShiftPageViewModel>();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation(e.Message);
+                    Navigation.NavigateTo<OpenShiftPageViewModel>();
+                }
+            },
+            () =>
+            {
+                Navigation.NavigateTo<MainMenuPageViewModel>();
+            });
+        
+        Navigation.NavigateToInstancePage(confirmPage);
     }
     
     /// <summary>

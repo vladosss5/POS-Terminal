@@ -17,7 +17,6 @@ using Terminal.Services;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
-using Terminal.Views.Pages;
 
 namespace Terminal.Extensions;
 
@@ -44,6 +43,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<AdminLoginPageViewModel>();
         collection.AddTransient<InitialSetupPageViewModel>();
         collection.AddSingleton<ShiftReportPageViewModel>();
+        collection.AddTransient<ResourcePageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

@@ -2,7 +2,160 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Terminal.Views.Pages.ResourcePageView">
-    Welcome to Avalonia!
+             x:Class="Terminal.Views.Pages.ResourcePageView"
+             x:DataType="pages:ResourcePageViewModel"
+             x:Name="UserControl">
+    
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <!-- Тип топлива -->
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding !ResourceHasBeenSelected}" Padding="10">
+            <ItemsControl ItemsSource="{Binding Resources}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Top"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Command="{Binding Path=#UserControl.((pages:ResourcePageViewModel)DataContext).SelectResource}"
+                                CommandParameter="{Binding}"
+                                Classes="selector-button"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch">
+                            <Grid RowDefinitions="*, *" VerticalAlignment="Stretch">
+                                <TextBlock Grid.Row="0" 
+                                           Text="{Binding ResourceName}" 
+                                           Classes="text-button"
+                                           VerticalAlignment="Bottom"/>
+                                
+                                <StackPanel Grid.Row="1" 
+                                            Orientation="Horizontal" 
+                                            HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding ResourcePrice}" 
+                                               Classes="price"/>
+                                    
+                                    <TextBlock Text="₽" 
+                                               Classes="price"/>
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        
+        <!-- Ввод цены -->
+        <Grid Grid.Row="1" RowDefinitions="*, *"
+              HorizontalAlignment="Stretch" 
+              VerticalAlignment="Stretch"
+              IsVisible="{Binding ResourceHasBeenSelected}">
+            
+            <!-- Вывод введённого -->
+            <Grid Grid.Row="0" 
+                  RowDefinitions="*, Auto"
+                  Margin="10" 
+                  VerticalAlignment="Stretch">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" 
+                            HorizontalAlignment="Center" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{Binding PricePreview}"
+                               FontSize="60" TextWrapping="Wrap"
+                               Background="Transparent" 
+                               TextAlignment="Center"/>
+                    <TextBlock Text="₽"
+                               FontSize="60" TextWrapping="Wrap"
+                               Background="Transparent" 
+                               TextAlignment="Center"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Row="1" 
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center" 
+                            VerticalAlignment="Bottom">
+                    <TextBlock Text="Текущая цена " Classes="old_price"/>
+                    <TextBlock Text="{Binding SelectedResourceCode.ResourcePrice}" Classes="old_price"/>
+                    <TextBlock Text="₽" Classes="old_price"/>
+                </StackPanel>
+            </Grid>
+            
+            <!-- Кнопки ввода -->
+            <Grid Grid.Row="1" 
+                  ColumnDefinitions="*,*,*,*"
+                  RowDefinitions="*, *"
+                  Margin="8">
+                <ItemsControl Grid.Row="0" Grid.RowSpan="2" 
+                              Grid.Column="0" Grid.ColumnSpan="3" 
+                              ItemsSource="{Binding NumberButtons}">
+                    
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" Rows="4"
+                                         HorizontalAlignment="Stretch"
+                                         VerticalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+            
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding #UserControl.((pages:ResourcePageViewModel)DataContext).AddCharInPassword}"
+                                    CommandParameter="{Binding}"
+                                    Classes="number-button">
+                                    <TextBlock Text="{Binding}" Classes="text-button"/>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <Button Grid.Column="3" Grid.Row="0"
+                        Classes="number-button"
+                        Tapped="OnButtonTapped"
+                        Holding="OnButtonHolding"
+                        Gestures.IsHoldWithMouseEnabled="True"
+                        Gestures.IsHoldingEnabled="True">
+                    <Image Source="../../Assets/Icons/backspace.png"/>
+                </Button>
+
+                <Button Grid.Column="3" Grid.Row="1"
+                        Classes="number-button"
+                        Command="{Binding SavePrice}"
+                        VerticalAlignment="Stretch"
+                        CornerRadius="20">
+                    <Image Source="../../Assets/Icons/enter.png"/>
+                </Button>
+            </Grid>
+        </Grid>
+    </Grid>
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.price">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        
+        <Style Selector="TextBlock.old_price">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
 </UserControl>

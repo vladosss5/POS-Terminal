@@ -253,7 +253,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Меню оператора"
+                Title = "Смена цены",
+                Command = new RelayCommand(delegate
+                {
+                    Navigation.NavigateTo<ResourcePageViewModel>();
+                })
             },
             new MainMenuItemModel
             {

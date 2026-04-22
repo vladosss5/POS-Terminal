@@ -36,12 +36,15 @@ public partial class PageViewModelBase : ViewModelBase
     /// Проверяет, инициализирована ли навигация
     /// </summary>
     protected bool IsNavigationInitialized => _navigationService != null;
-    
+
     /// <summary>
     /// Заголовок страницы.
     /// </summary>
-    [ObservableProperty]
-    private string _title = string.Empty;
+    public string Title
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
 
     
     /// <summary>

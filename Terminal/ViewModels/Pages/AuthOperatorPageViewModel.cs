@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Dtos;
+using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels.Pages;
 
+/// <summary>
+/// Логика страницы аутентификации оператора.
+/// </summary>
 public class AuthOperatorPageViewModel : PageViewModelBase
 {
-    /// <summary>
-    /// Событие при успешной аутентификации.
-    /// </summary>
-    private Action _actionOnSuccess;
+    /// <inheritdoc cref="IAuthService" />
+    private readonly IAuthService _authService;
     
-    /// <summary>
-    /// Событие при ошибке аутентификации.
-    /// </summary>
-    private Action _actionOnError;
+    /// <inheritdoc cref="AuthNavigationParameters" />
+    private readonly AuthNavigationParameters _navigationParams;
     
     /// <summary>
     /// Значение таймера по умолчанию.
@@ -75,47 +75,35 @@ public class AuthOperatorPageViewModel : PageViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    /// <param name="actionOnSuccess">Событие при успешной аутентификации.</param>
-    /// <param name="actionOnError">Событие при ошибке аутентификации.</param>
-    /// <param name="logger"></param>
     public AuthOperatorPageViewModel(
-        Action actionOnSuccess,
-        Action actionOnError,
-        ILogger<PageViewModelBase> logger) 
+        ILogger<PageViewModelBase> logger, 
+        IConfigurationService configurationService,
+        IAuthService authService, 
+        AuthNavigationParameters navigationParams) 
         : base(logger)
     {
-        _actionOnSuccess = actionOnSuccess;
-        _actionOnError = actionOnError;
-
-        var confService = App.Services!.GetRequiredService<IConfigurationService>();
-        _defaultRemainingSeconds = confService.CurrentSetting.SecondsAuthenticationCanceled;
+        Title = "Пароль оператора";
+        
+        _authService = authService;
+        _navigationParams = navigationParams;
+        _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
+        
+        ResetInactivityTimer();
     }
 
     /// <summary>
     /// Авторизация администратора.
     /// </summary>
-    public async Task Login()
+    public void Login()
     {
         StopInactivityTimer();
 
-        var authService = App.Services!.GetRequiredService<IAuthService>();
+        var authResult = _authService.AuthenticateOperator(Password);
 
-        if (authService.CurrentUser == null)
-        {
-            _actionOnError.Invoke();
-            return;
-        }
-        
-        
-            
-        
-        // var hashPassword = _configurationService.CurrentSetting.ServicePassword;
-        // var success = _hashService.VerifyPasswordWithMd5(Password, hashPassword);
-        //
-        // if (success)
-        //     _actionOnSuccess.Invoke();
-        // else
-        //     _actionOnError.Invoke();
+        if (authResult)
+            NavigateOnSuccess();
+        else
+            NavigateOnFailure();
     }
 
     /// <summary>
@@ -153,6 +141,45 @@ public class AuthOperatorPageViewModel : PageViewModelBase
             ResetInactivityTimer();
         
         Password = string.Empty;
+    }
+    
+    /// <summary>
+    /// Переход при успешной аутентификации.
+    /// </summary>
+    private void NavigateOnSuccess()
+    {
+        var navigateMethod = typeof(INavigationService)
+            .GetMethod(nameof(INavigationService.NavigateTo), Type.EmptyTypes)?
+            .MakeGenericMethod(_navigationParams.SuccessPageType);
+
+        if (navigateMethod != null)
+            navigateMethod.Invoke(Navigation, null);
+    }
+    
+    /// <summary>
+    /// Переход при ошибке аутентификации.
+    /// </summary>
+    private void NavigateOnFailure()
+    {
+        if (_navigationParams.GoBackOnCancel && Navigation.CanGoBack)
+        {
+            Navigation.GoBack();
+            return;
+        }
+
+        if (_navigationParams.FailurePageType != null)
+        {
+            var navigateMethod = typeof(INavigationService)
+                .GetMethod(nameof(INavigationService.NavigateTo), Type.EmptyTypes)?
+                .MakeGenericMethod(_navigationParams.FailurePageType);
+
+            navigateMethod?.Invoke(Navigation, null);
+        }
+        else
+        {
+            if (Navigation.CanGoBack)
+                Navigation.GoBack();
+        }
     }
     
     /// <summary>

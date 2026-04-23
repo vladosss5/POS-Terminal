@@ -128,7 +128,7 @@ public class AuthServiceTests
         await _authService!.LoginWithCardNumber(userName, cardNumber);
         
         // Act
-        await _authService.LogoutAsync();
+        _authService.Logout();
         
         // Assert
         Assert.That(_authService.CurrentUser, Is.Null);

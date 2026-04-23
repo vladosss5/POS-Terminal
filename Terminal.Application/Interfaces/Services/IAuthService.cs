@@ -27,9 +27,16 @@ public interface IAuthService
     /// <param name="cardNumber">Номер карты.</param>
     /// <returns>True если вход успешен.</returns>
     public Task<bool> LoginWithCardNumber(string userName, int cardNumber);
+
+    /// <summary>
+    /// Аутентифицировать текущего оператора повторно.
+    /// </summary>
+    /// <param name="password">Пароль для проверки.</param>
+    /// <returns>True когда хэш пароля текущего оператора совпадает с хешем введённого.</returns>
+    public bool AuthenticateOperator(string password);
     
     /// <summary>
     /// Выполнить выход.
     /// </summary>
-    public Task LogoutAsync();
+    public void Logout();
 }

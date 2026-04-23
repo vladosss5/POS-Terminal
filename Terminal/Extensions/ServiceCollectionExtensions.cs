@@ -14,6 +14,7 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
 using Terminal.Data.Context;
 using Terminal.Services;
+using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -63,6 +64,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IHashService, HashService>();
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
+        collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
+        collection.AddTransient<AuthOperatorPageViewModel>();
     }
     
     /// <summary>

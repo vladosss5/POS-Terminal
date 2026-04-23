@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -130,7 +131,7 @@ public class ResourcePageViewModel : PageViewModelBase
         if (resourceCode == null)
             return;
         
-        if (!decimal.TryParse(PricePreview, out var newPrice)) 
+        if (!decimal.TryParse(PricePreview, NumberStyles.Any, new CultureInfo("ru-RU"), out var newPrice)) 
             return;
 
         resourceCode.ResourcePrice = newPrice;

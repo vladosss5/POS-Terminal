@@ -218,7 +218,7 @@ public static class TextReportGenerator
         AppendLineWidth();
         AppendKeyValueLine("Эмитент:", changeData.IssuerNumber);
         AppendKeyValueLine("Терминал:", changeData.TerminalNumber);
-        AppendKeyValueLine("Дата:", changeData.TransactionDateTime.ToString(culture));
+        AppendKeyValueLine("Дата:", changeData.ChangingDateTime.ToString(culture));
         
         AppendLineWidth();
         AppendTextInCenter("Смены цены товара");

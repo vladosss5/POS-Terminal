@@ -253,7 +253,7 @@ public class ResourcePageViewModel : PageViewModelBase
         {
             IssuerNumber = issuerNumber != null ? issuerNumber.Value : "undefined",
             TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
-            TransactionDateTime = DateTime.Now,
+            ChangingDateTime = DateTime.Now,
             ResourceName = SelectedResourceCode != null ? SelectedResourceCode.ResourceName! : "undefined",
             PriceUpTo = oldValue ?? 0,
             PriceAfter = newValue,

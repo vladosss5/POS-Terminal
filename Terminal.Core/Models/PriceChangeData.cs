@@ -13,9 +13,9 @@ public class PriceChangeData
     public string TerminalNumber { get; set; } = null!;
     
     /// <summary>
-    /// Дата и время покупки.
+    /// Дата и время изменения.
     /// </summary>
-    public DateTime TransactionDateTime { get; set; }
+    public DateTime ChangingDateTime { get; set; }
 
     /// <summary>
     /// Название ресурса.

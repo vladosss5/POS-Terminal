@@ -14,10 +14,10 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
 using Terminal.Data.Context;
 using Terminal.Services;
+using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
-using Terminal.Views.Pages;
 
 namespace Terminal.Extensions;
 
@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<AdminLoginPageViewModel>();
         collection.AddTransient<InitialSetupPageViewModel>();
         collection.AddSingleton<ShiftReportPageViewModel>();
+        collection.AddTransient<ResourcePageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
@@ -63,6 +64,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IHashService, HashService>();
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
+        collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
+        collection.AddTransient<AuthOperatorPageViewModel>();
     }
     
     /// <summary>

@@ -14,6 +14,8 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
+using Terminal.Dtos;
+using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
 
@@ -50,6 +52,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
     private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
+    
+    /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
+    private readonly IAuthPageFactory _authPageFactory;
 
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -69,7 +74,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IReceiptPrintService receiptPrintService, 
         IDbContextFactory<DataContext> dbFactory, 
         IDbContextFactory<ParamDbContext> paramDbFactory, 
-        IConfigurationService configurationService) 
+        IConfigurationService configurationService, 
+        IAuthPageFactory authPageFactory) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -81,6 +87,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _dbFactory = dbFactory;
         _paramDbFactory = paramDbFactory;
         _configurationService = configurationService;
+        _authPageFactory = authPageFactory;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -122,7 +129,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             {
                 try
                 {
-                    await _authService.LogoutAsync();
+                    _authService.Logout();
         
                     var closingShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
         
@@ -183,7 +190,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var reportData = new ShiftReportDataDto
         {
             ReceiptNumber = receiptNumber,
-            IssuerNumber = issuerNumber != null ? issuerNumber.Value : "undefined",
+            IssuerNumber = issuerNumber.Value,
             TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
             Shift = openShift,
             SalesList = sales,
@@ -214,6 +221,22 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         await db.SaveChangesAsync(arg);
 
         return currentNumber;
+    }
+    
+    /// <summary>
+    /// Открыть страницу управления ценами ресурсов.
+    /// </summary>
+    private void OpenResourcePage()
+    {
+        var authParams = new AuthNavigationParameters
+        {
+            SuccessPageType = typeof(ResourcePageViewModel),
+            FailurePageType = typeof(MainMenuPageViewModel),
+            GoBackOnCancel = true
+        };
+
+        var authPage = _authPageFactory.Create(authParams);
+        Navigation.NavigateToInstancePage(authPage);
     }
     
     /// <summary>
@@ -253,7 +276,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Меню оператора"
+                Title = "Смена цены",
+                Command = new RelayCommand(OpenResourcePage)
             },
             new MainMenuItemModel
             {

@@ -99,6 +99,38 @@ public class DialogPrintService
             };
         }
     }
+
+    /// <summary>
+    /// Печать чека об изменение цены ресурса.
+    /// </summary>
+    /// <param name="changeData">Данные для печати.</param>
+    /// <returns>Результат печати.</returns>
+    public async Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData)
+    {
+        try
+        {
+            var receiptText = TextReportGenerator.FormatPriceChangeText(changeData);
+            
+            var result = await ShowTextDialog(receiptText);
+            
+            return new PrintResult
+            {
+                Success = result,
+                Status = result ? PrinterStatus.Ready : PrinterStatus.Unknown,
+                ErrorMessage = result ? null : "Печать отменена пользователем"
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Ошибка при показе диалога печати");
+            return new PrintResult
+            {
+                Success = false,
+                ErrorMessage = e.Message,
+                Status = PrinterStatus.Unknown
+            };
+        }
+    }
     
     /// <summary>
     /// Показать диалоговое окно с текстом.

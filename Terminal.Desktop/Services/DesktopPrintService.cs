@@ -36,4 +36,10 @@ public class DesktopPrintService : IReceiptPrintService
     {
         return await _dialogPrintService.PrintShiftReportAsync(reportData);
     }
+
+    /// <inheritdoc/>
+    public async Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData)
+    {
+        return await _dialogPrintService.PrintPriceChangeAsync(changeData);
+    }
 }

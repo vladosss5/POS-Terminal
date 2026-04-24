@@ -153,11 +153,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
-    /// <summary>
-    /// Показать и напечатать сменный отчёт.
-    /// </summary>
-    /// <param name="reportData">Данные отчёта.</param>
-    /// <returns>Результат печати.</returns>
+    /// <inheritdoc/>
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         var receiptText = TextReportGenerator.FormatShiftReportText(reportData);
@@ -190,6 +186,59 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         
         _navigationService.NavigateToInstancePage(shiftReportPage);
         
+        return await tcs.Task;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData)
+    {
+        await ConnectAsync();
+        CheckConnection();
+        
+        var status = await GetStatusAsync();
+        if (status != PrinterStatus.Ready)
+        {
+            _logger.LogWarning($"Printer not ready: {status}");
+            return new PrintResult { Success = false, ErrorMessage = $"Printer not ready: {status}" };
+        }
+        
+        var tcs = new TaskCompletionSource<PrintResult>();
+        var cultureRu = new CultureInfo("ru-RU");
+
+        try
+        {
+            _printer!.SetGray(10);
+            
+            AddLineWidthText();
+            AddKeyValueText("Эмитент", changeData.IssuerNumber);
+            AddKeyValueText("Терминал", changeData.TerminalNumber);
+            AddKeyValueText("Дата", changeData.ChangingDateTime.ToString(cultureRu));
+            AddLineWidthText();
+            AddCenteredText("Смена цены товара");
+            AddKeyValueText("Товар", changeData.ResourceName);
+            AddKeyValueText("Знач. до", changeData.PriceUpTo.ToString(cultureRu));
+            AddKeyValueText("Знач. после", changeData.PriceAfter.ToString(cultureRu));
+            AddLineWidthText();
+            AddLeftText($"Оператор {changeData.OperatorName}");
+            AddLineWidthText();
+            
+            _printer.FeedLine(6);
+            _printer.CutPaper();
+            
+            _logger.LogInformation($"Чек составлен. Старт печати");
+            _currentPrintListener = new SunyardPrintListener(tcs, _logger);
+            _printer.StartPrint(_currentPrintListener);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка: {ex.Message}, {ex.StackTrace}");
+            tcs.TrySetException(ex);
+        }
+        finally
+        {
+            Disconnect();
+        }
+        _logger.LogInformation($"Чек отпечатан");
         return await tcs.Task;
     }
 

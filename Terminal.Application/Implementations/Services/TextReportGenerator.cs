@@ -204,6 +204,36 @@ public static class TextReportGenerator
         
         return _stringBuilder.ToString();
     }
+
+    /// <summary>
+    /// Сгенерировать форматированную строку для чека о смене цены.
+    /// </summary>
+    /// <param name="changeData">Данные для печати.</param>
+    /// <returns>Строка чека.</returns>
+    public static string FormatPriceChangeText(PriceChangeData changeData)
+    {
+        _stringBuilder = new StringBuilder();
+        var culture = new CultureInfo("ru-RU");
+        
+        AppendLineWidth();
+        AppendKeyValueLine("Эмитент:", changeData.IssuerNumber);
+        AppendKeyValueLine("Терминал:", changeData.TerminalNumber);
+        AppendKeyValueLine("Дата:", changeData.ChangingDateTime.ToString(culture));
+        
+        AppendLineWidth();
+        AppendTextInCenter("Смены цены товара");
+        
+        AppendLineWidth();
+        AppendKeyValueLine("Товар", changeData.ResourceName);
+        AppendKeyValueLine("Знач. до", changeData.PriceUpTo.ToString("F2", culture));
+        AppendKeyValueLine("Знач. после", changeData.PriceAfter.ToString("F2", culture));
+        
+        AppendLineWidth();
+        _stringBuilder.AppendLine($"Оператор {changeData.OperatorName}");
+        AppendLineWidth();
+        
+        return _stringBuilder.ToString();
+    }
     
     /// <summary>
     /// Вставить линию типа ключ-значение.

@@ -64,8 +64,9 @@ public class AuthService : IAuthService
     }
 
     /// <inheritdoc/>
-    public async Task LogoutAsync()
-    {
-        CurrentUser = null;
-    }
+    public bool AuthenticateOperator(string password) 
+        => CurrentUser != null && _hashService.VerifyPasswordWithMd5(password, CurrentUser.UserPassword!);
+
+    /// <inheritdoc/>
+    public void Logout() => CurrentUser = null;
 }

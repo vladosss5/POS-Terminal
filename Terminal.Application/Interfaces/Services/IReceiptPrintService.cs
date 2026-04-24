@@ -22,4 +22,11 @@ public interface IReceiptPrintService
     /// <param name="reportData"></param>
     /// <returns>Результат печати.</returns>
     public Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData);
+
+    /// <summary>
+    /// Печать смены цены.
+    /// </summary>
+    /// <param name="changeData">Данные по смене печати.</param>
+    /// <returns>Результат печати.</returns>
+    public Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData);
 }

@@ -153,11 +153,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         return await tcs.Task;
     }
 
-    /// <summary>
-    /// Показать и напечатать сменный отчёт.
-    /// </summary>
-    /// <param name="reportData">Данные отчёта.</param>
-    /// <returns>Результат печати.</returns>
+    /// <inheritdoc/>
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         var receiptText = TextReportGenerator.FormatShiftReportText(reportData);
@@ -191,6 +187,12 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         _navigationService.NavigateToInstancePage(shiftReportPage);
         
         return await tcs.Task;
+    }
+
+    /// <inheritdoc/>
+    public async Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>

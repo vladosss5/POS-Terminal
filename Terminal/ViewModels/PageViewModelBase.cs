@@ -21,7 +21,7 @@ public partial class PageViewModelBase : ViewModelBase
     /// <summary>
     /// Сервис навигации (доступен только после активации страницы).
     /// </summary>
-    protected INavigationService Navigation
+    protected INavigationService? Navigation
     {
         get
         {
@@ -42,8 +42,7 @@ public partial class PageViewModelBase : ViewModelBase
     /// </summary>
     public string Title
     {
-        get;
-        set => SetProperty(ref field, value);
+        get; set => SetProperty(ref field, value);
     }
 
     

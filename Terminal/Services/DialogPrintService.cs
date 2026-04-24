@@ -100,6 +100,11 @@ public class DialogPrintService
         }
     }
 
+    /// <summary>
+    /// Печать чека об изменение цены ресурса.
+    /// </summary>
+    /// <param name="changeData">Данные для печати.</param>
+    /// <returns>Результат печати.</returns>
     public async Task<PrintResult> PrintPriceChangeAsync(PriceChangeData changeData)
     {
         try

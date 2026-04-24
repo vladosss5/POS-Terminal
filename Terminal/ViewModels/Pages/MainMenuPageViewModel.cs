@@ -190,7 +190,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var reportData = new ShiftReportDataDto
         {
             ReceiptNumber = receiptNumber,
-            IssuerNumber = issuerNumber != null ? issuerNumber.Value : "undefined",
+            IssuerNumber = issuerNumber.Value,
             TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
             Shift = openShift,
             SalesList = sales,

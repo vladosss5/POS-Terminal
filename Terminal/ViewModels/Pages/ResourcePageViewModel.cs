@@ -23,6 +23,7 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
     private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
 
+    ///<inheritdoc cref="IReceiptPrintService"/>
     private readonly IReceiptPrintService _receiptPrintService;
     
     ///<inheritdoc cref="IAuthService"/>
@@ -84,8 +85,7 @@ public class ResourcePageViewModel : PageViewModelBase
     /// </summary>
     public ObservableCollection<ResourceCode> Resources
     {
-        get;
-        set => SetProperty(ref field, value);
+        get; set => SetProperty(ref field, value);
     } = [];
     
     /// <summary>
@@ -109,7 +109,7 @@ public class ResourcePageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Выьрать ресурс для редактирования.
+    /// Выбрать ресурс для редактирования.
     /// </summary>
     /// <param name="resource">Редактируемый ресурс.</param>
     public void SelectResource(ResourceCode resource)
@@ -241,6 +241,11 @@ public class ResourcePageViewModel : PageViewModelBase
         Resources.AddRange(resources);
     }
     
+    /// <summary>
+    /// Печать чека о смене цены.
+    /// </summary>
+    /// <param name="oldValue">Цена до.</param>
+    /// <param name="newValue">Цена после.</param>
     private async Task Print(decimal? oldValue, decimal newValue)
     {
         await using var paramDb = await _paramDbFactory.CreateDbContextAsync();

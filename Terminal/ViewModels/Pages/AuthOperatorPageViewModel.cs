@@ -107,9 +107,9 @@ public class AuthOperatorPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Добавить символ к паролю.
+    /// Добавить символы к паролю.
     /// </summary>
-    /// <param name="element">Символ.</param>
+    /// <param name="element">Символы.</param>
     public void AddCharInPassword(string element)
     {
         if (!_inactivityCts!.IsCancellationRequested)

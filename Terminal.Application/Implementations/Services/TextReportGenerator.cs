@@ -208,8 +208,8 @@ public static class TextReportGenerator
     /// <summary>
     /// Сгенерировать форматированную строку для чека о смене цены.
     /// </summary>
-    /// <param name="changeData"></param>
-    /// <returns></returns>
+    /// <param name="changeData">Данные для печати.</param>
+    /// <returns>Строка чека.</returns>
     public static string FormatPriceChangeText(PriceChangeData changeData)
     {
         _stringBuilder = new StringBuilder();

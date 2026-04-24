@@ -1,5 +1,8 @@
 ﻿namespace Terminal.Core.Models;
 
+/// <summary>
+/// Модель данных изменения цены ресурса.
+/// </summary>
 public class PriceChangeData
 {
     /// <summary>

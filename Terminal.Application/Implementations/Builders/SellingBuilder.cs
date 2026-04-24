@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Core.DbEntities;
@@ -78,7 +76,7 @@ public class SellingBuilder : ISellingBuilder
     /// <inheritdoc/>
     public void SetRequestedVolume(string volume, bool isCost)
     {
-        var decimalValue = decimal.Parse(volume, new CultureInfo("ru-RU"));
+        var decimalValue = decimal.Parse(volume);
         
         if (isCost)
         {

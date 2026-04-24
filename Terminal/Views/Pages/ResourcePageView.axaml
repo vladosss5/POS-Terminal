@@ -45,7 +45,7 @@
                                 <TextBlock Grid.Row="0" 
                                            Text="{Binding ResourceName}" 
                                            Classes="text-button"
-                                           VerticalAlignment="Bottom"/>
+                                           VerticalAlignment="Bottom" Margin="0,5,0,0"/>
                                 
                                 <StackPanel Grid.Row="1" 
                                             Orientation="Horizontal" 
@@ -147,8 +147,9 @@
     
     <UserControl.Styles>
         <Style Selector="TextBlock.price">
-            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontSize" Value="16"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#575757"/>
         </Style>
         
         <Style Selector="TextBlock.old_price">

@@ -50,8 +50,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
-    
-    private readonly CultureInfo _russianCulture;
+
+    /// <summary>
+    /// Культура для приведения чисел с точкой к строке.
+    /// </summary>
+    private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
     
     /// <summary>
     /// Кол-во топлива.
@@ -134,7 +137,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         "7", "8", "9",
         "4", "5", "6",
         "1", "2", "3",
-        "00", "0", ","
+        "00", "0", "."
     ];
     
     /// <summary>
@@ -148,7 +151,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, _culture, out var d))
                 _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
         }
     }
@@ -164,7 +167,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, NumberStyles.Any, new CultureInfo("ru-RU"), out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, _culture, out var d))
                 _amountFuel = d;
         }
     }
@@ -193,7 +196,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _settingPaymentTypeMapper = settingPaymentTypeMapper;
         _authService = authService;
-        _russianCulture = new CultureInfo("ru-RU");
 
         InitializeSteps();
         InitializePaymentTypes();
@@ -297,9 +299,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             var current = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
             var maxDecimals = IsAmountMoney ? 2 : 3;
 
-            var dotIndex = current.IndexOf(',');
+            var dotIndex = current.IndexOf('.');
         
-            if (dotIndex >= 0 && symbol != ',')
+            if (dotIndex >= 0 && symbol != '.')
             {
                 var decimalsAfterDot = current.Length - dotIndex - 1;
             
@@ -307,16 +309,16 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
                     return;
             }
         
-            if (symbol == ',' && current.Contains(symbol))
+            if (symbol == '.' && current.Contains(symbol))
                 return;
 
-            if (current == "0" && symbol == ',')
+            if (current == "0" && symbol == '.')
                 current = "0";
 
             string newValue;
 
-            if (current == "0" && symbol != ',')
-                newValue = symbol.ToString();
+            if (current == "0" && symbol != '.')
+                newValue = symbol.ToString(_culture);
             else
                 newValue = current + symbol;
         
@@ -357,27 +359,27 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         if (IsAmountMoney)
         {
-            if (!decimal.TryParse(AmountMoneyPreview, NumberStyles.Any, _russianCulture, out var money))
+            if (!decimal.TryParse(AmountMoneyPreview, NumberStyles.Any, _culture, out var money))
                 return;
             
             _amountFuel = money / (SelectedFuelType?.ResourcePrice ?? 1m);
             AmountFuelPreview = _amountFuel
-                .ToString($"N3", _russianCulture)
+                .ToString($"N3", _culture)
                 .TrimEnd('0')
-                .TrimEnd(',');
+                .TrimEnd('.');
                 
             IsAmountMoney = false;
             AmountWhat = _amountMessages[1];
         }
         else
         {
-            if (!decimal.TryParse(AmountFuelPreview, NumberStyles.Any, _russianCulture, out var fuel)) 
+            if (!decimal.TryParse(AmountFuelPreview, NumberStyles.Any, _culture, out var fuel)) 
                 return;
             
             AmountMoneyPreview = (fuel * (SelectedFuelType?.ResourcePrice ?? 1m))
-                .ToString($"N2", _russianCulture)
+                .ToString($"N2", _culture)
                 .TrimEnd('0')
-                .TrimEnd(',');
+                .TrimEnd('.');
                 
             IsAmountMoney = true;
             AmountWhat = _amountMessages[0];

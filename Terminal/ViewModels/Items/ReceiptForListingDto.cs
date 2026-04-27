@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Terminal.ViewModels.Items;
 
@@ -23,9 +24,19 @@ public record struct ReceiptForListingDto
     public decimal ResourceCount { get; set; }
     
     /// <summary>
+    /// ResourceCount с точкой как разделителем.
+    /// </summary>
+    public string ResourceCountFormatted => ResourceCount.ToString(CultureInfo.InvariantCulture);
+    
+    /// <summary>
     /// Цена за ресурс * кол-во
     /// </summary>
     public decimal PricePerItem { get; set; }
+    
+    /// <summary>
+    /// PricePerItem с точкой как разделителем.
+    /// </summary>
+    public string PricePerItemFormatted => PricePerItem.ToString(CultureInfo.InvariantCulture);
     
     /// <summary>
     /// Дата и время продажи
@@ -36,4 +47,9 @@ public record struct ReceiptForListingDto
     /// Итоговая цена чека.
     /// </summary>
     public decimal FullReceiptPrice { get; set; }
+    
+    /// <summary>
+    /// FullReceiptPrice с точкой как разделителем.
+    /// </summary>
+    public string FullReceiptPriceFormatted => FullReceiptPrice.ToString(CultureInfo.InvariantCulture);
 }

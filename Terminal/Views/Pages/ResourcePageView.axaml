@@ -50,7 +50,7 @@
                                 <StackPanel Grid.Row="1" 
                                             Orientation="Horizontal" 
                                             HorizontalAlignment="Center">
-                                    <TextBlock Text="{Binding ResourcePrice}" 
+                                    <TextBlock Text="{Binding ResourcePriceFormatted}" 
                                                Classes="price"/>
                                     
                                     <TextBlock Text="₽" 
@@ -92,7 +92,7 @@
                             HorizontalAlignment="Center" 
                             VerticalAlignment="Bottom">
                     <TextBlock Text="Текущая цена " Classes="old_price"/>
-                    <TextBlock Text="{Binding SelectedResourceCode.ResourcePrice}" Classes="old_price"/>
+                    <TextBlock Text="{Binding SelectedResourceCode.ResourcePriceFormatted}" Classes="old_price"/>
                     <TextBlock Text="₽" Classes="old_price"/>
                 </StackPanel>
             </Grid>

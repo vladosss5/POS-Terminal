@@ -30,6 +30,10 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="ISalesReceiptMappingService" />
     private readonly ISalesReceiptMappingService _receiptMappingService;
+    
+    private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
+
+    private readonly CultureInfo _cultureForDate;
 
     /// <summary>
     /// Кол-во элементов на странице.
@@ -59,7 +63,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// <summary>
     /// Коллекция чеков.
     /// </summary>
-    public ObservableCollection<ReceiptForListingDto> SalesPerShiftCollection { get; } = new();
+    public ObservableCollection<ReceiptForListingDto> SalesPerShiftCollection { get; } = [];
 
     /// <summary>
     /// Ключевое слово для поиска.
@@ -87,6 +91,8 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         _dbFactory = dbFactory;
         _printService = printService;
         _receiptMappingService = receiptMappingService;
+
+        _cultureForDate = new CultureInfo("ru-RU");
 
         _ = LoadMoreReceiptsAsync();
     }
@@ -198,12 +204,11 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     {
         await using var db = await _dbFactory.CreateDbContextAsync(token);
 
-        var keyword = Keyword?.Trim() ?? string.Empty;
+        var keyword = Keyword.Trim();
         var query = db.Sales.AsNoTracking().AsQueryable();
         
         var pattern = $"%{keyword}%";
         var numericKeyword = long.TryParse(keyword, out var num) ? num : (long?)null;
-        var cultureInfo = new CultureInfo("ru-RU");
         
         query = query.Where(s =>
             (numericKeyword != null && s.CheckNumber == numericKeyword) ||
@@ -216,12 +221,12 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
             {
                 CheckNumber = s.CheckNumber ?? s.TransactionShopKey,
                 ResourceName = s.ResourceName ?? "Неизвестный товар",
-                ResourceCount = s.Amount.HasValue ? Convert.ToDecimal(s.Amount.Value) : 0m,
-                PricePerItem = s.SellingPrice.HasValue ? Convert.ToDecimal(s.SellingPrice.Value) : 0m,
+                ResourceCount = s.Amount.HasValue ? Convert.ToDecimal(s.Amount.Value, _culture) : 0m,
+                PricePerItem = s.SellingPrice.HasValue ? Convert.ToDecimal(s.SellingPrice.Value, _culture) : 0m,
                 SaleDate = s.TransactionDatetime == null
-                    ? DateTime.MinValue.ToString(cultureInfo)
-                    : s.TransactionDatetime.Value.ToString(cultureInfo),
-                FullReceiptPrice = s.ShopCost.HasValue ? Convert.ToDecimal(s.ShopCost.Value) : 0m
+                    ? DateTime.MinValue.ToString(_cultureForDate)
+                    : s.TransactionDatetime.Value.ToString(_cultureForDate),
+                FullReceiptPrice = s.ShopCost.HasValue ? Convert.ToDecimal(s.ShopCost.Value, _culture) : 0m
             })
             .ToListAsync(token);
 
@@ -234,7 +239,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// <summary>
     /// Перейти к прошлому шагу.
     /// </summary>
-    public void StepBack() => Navigation.GoBack();
+    public void StepBack() => Navigation!.GoBack();
 
     /// <summary>
     /// Маппинг коллекций доменной модели Selling к коллекции отображаемых элементов. 
@@ -243,21 +248,21 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// <returns>Перечисление отображаемых объектов.</returns>
     private IEnumerable<ReceiptForListingDto> MapSellingToReceiptForListingDtos(IEnumerable<Selling> sales)
     {
-        if (sales == null)
+        var salesList = sales.ToList();
+        
+        if (salesList.Count == 0)
             return Enumerable.Empty<ReceiptForListingDto>();
         
-        var cultureInfo = new CultureInfo("ru-RU");
-        
-        return sales.Select(sale => new ReceiptForListingDto
+        return salesList.Select(sale => new ReceiptForListingDto
         {
             CheckNumber = sale.CheckNumber ?? sale.TransactionShopKey,
             ResourceName = sale.ResourceName ?? sale.ResourceName ?? "Неизвестный товар",
-            ResourceCount = sale.Amount.HasValue ? Convert.ToDecimal(sale.Amount.Value) : 0m,
-            PricePerItem = sale.SellingPrice.HasValue ? Convert.ToDecimal(sale.SellingPrice.Value) : 0m,
+            ResourceCount = sale.Amount.HasValue ? Convert.ToDecimal(sale.Amount.Value, _culture) : 0m,
+            PricePerItem = sale.SellingPrice.HasValue ? Convert.ToDecimal(sale.SellingPrice.Value, _culture) : 0m,
             SaleDate = sale.TransactionDatetime == null 
-                ? DateTime.MinValue.ToString(cultureInfo) 
-                : sale.TransactionDatetime.Value.ToString(cultureInfo),
-            FullReceiptPrice = sale.ShopCost.HasValue ? Convert.ToDecimal(sale.ShopCost.Value) : 0m
+                ? DateTime.MinValue.ToString(_cultureForDate) 
+                : sale.TransactionDatetime.Value.ToString(_cultureForDate),
+            FullReceiptPrice = sale.ShopCost.HasValue ? Convert.ToDecimal(sale.ShopCost.Value, _culture) : 0m
         });
     }
 }

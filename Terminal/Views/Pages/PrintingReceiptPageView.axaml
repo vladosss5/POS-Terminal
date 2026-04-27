@@ -75,12 +75,12 @@
                             
                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ResourceName}" 
                                                    Classes="text-items-control" HorizontalAlignment="Left"/>
-                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PricePerItem}" 
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PricePerItemFormatted}" 
                                                    Classes="text-items-control" HorizontalAlignment="Right"/>
                             
                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Итого:" 
                                                    Classes="text-items-control" HorizontalAlignment="Left"/>
-                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FullReceiptPrice}" 
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FullReceiptPriceFormatted}" 
                                                    Classes="text-items-control" HorizontalAlignment="Right"/>
                                     </Grid>
                                 </Button>

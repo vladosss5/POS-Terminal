@@ -14,7 +14,11 @@ public static class TextReportGenerator
     /// Ширина страницы.
     /// </summary>
     private const int PageWidth = 48;
+
+    private static readonly CultureInfo CultureForDates = new("ru-RU");
     
+    private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
+
     /// <summary>
     /// Строитель строки.
     /// </summary>
@@ -28,8 +32,6 @@ public static class TextReportGenerator
     public static string FormatShiftReportText(ShiftReportDataDto reportData)
     {
         _stringBuilder = new StringBuilder();
-        
-        var culture = new CultureInfo("ru-RU");
 
         var title = reportData.ReportType switch
         {
@@ -47,10 +49,10 @@ public static class TextReportGenerator
 
         AppendKeyValueLine("Эмитент", reportData.IssuerNumber);
         AppendKeyValueLine("Терминал", "#" + reportData.TerminalNumber);
-        AppendKeyValueLine("Номер смены:", reportData.Shift.ShiftShopKey.ToString(culture));
+        AppendKeyValueLine("Номер смены:", reportData.Shift.ShiftShopKey.ToString(CultureForDates));
         AppendKeyValueLine("Начало:",
-            reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(culture) : "");
-        AppendKeyValueLine("Конец:", DateTime.Now.ToString(culture));
+            reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(CultureForDates) : "");
+        AppendKeyValueLine("Конец:", DateTime.Now.ToString(CultureForDates));
 
         var issuersCount = reportData.SalesList
             .Select(x => x.ICI)
@@ -80,16 +82,16 @@ public static class TextReportGenerator
 
         AppendLineWidth("Итого в чеке");
         AppendTextInCenter("Итого продаж");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalBaseCost.ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalBaseCost.ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2", CultureForNumbers));
 
         AppendTextInCenter("Итого возвратов");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2", CultureForNumbers));
 
         AppendTextInCenter("Всего продаж");
-        AppendKeyValueLine("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", CultureForNumbers));
 
         AppendTextInCenter();
         _stringBuilder.AppendLine($"Оператор: {reportData.OperatorName}");
@@ -120,19 +122,19 @@ public static class TextReportGenerator
             AppendLineWidth(resourceName);
 
             AppendTextInCenter("Продажи");
-            AppendKeyValueLine("Ко-во", saleData.A != null ? saleData.A.Value.ToString("F3") : "0.000");
-            AppendKeyValueLine("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString("F2") : "0.00");
-            AppendKeyValueLine("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString("F2") : "0.00");
+            AppendKeyValueLine("Ко-во", saleData.A != null ? saleData.A.Value.ToString("F3", CultureForNumbers) : "0.000");
+            AppendKeyValueLine("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString("F2", CultureForNumbers) : "0.00");
+            AppendKeyValueLine("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString("F2", CultureForNumbers) : "0.00");
 
             AppendTextInCenter("Возвраты");
-            AppendKeyValueLine("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString("F3") : "0.000");
-            AppendKeyValueLine("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString("F2") : "0.00");
-            AppendKeyValueLine("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString("F2") : "0.00");
+            AppendKeyValueLine("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString("F3", CultureForNumbers) : "0.000");
+            AppendKeyValueLine("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString("F2", CultureForNumbers) : "0.00");
+            AppendKeyValueLine("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString("F2", CultureForNumbers) : "0.00");
 
             AppendTextInCenter($"Итого по {resourceName}");
-            AppendKeyValueLine("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString("F3"));
-            AppendKeyValueLine("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString("F2"));
-            AppendKeyValueLine("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString("F2"));
+            AppendKeyValueLine("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString("F3", CultureForNumbers));
+            AppendKeyValueLine("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString("F2", CultureForNumbers));
+            AppendKeyValueLine("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString("F2", CultureForNumbers));
         }
 
         AppendLineWidth();
@@ -149,16 +151,16 @@ public static class TextReportGenerator
         };
 
         AppendTextInCenter("Итого продаж");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBC.ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBC.ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSC.ToString("F2", CultureForNumbers));
 
         AppendTextInCenter("Итого возвратов");
-        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", totalData.TotalSBCR.ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", totalData.TotalSCR.ToString("F2", CultureForNumbers));
 
         AppendTextInCenter("Всего продаж");
-        AppendKeyValueLine("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString("F2"));
-        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2"));
+        AppendKeyValueLine("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", CultureForNumbers));
 
         AppendLineWidth();
     }
@@ -171,27 +173,25 @@ public static class TextReportGenerator
     public static string FormatSalesReceiptText(SalesReceipt receipt)
     {
         _stringBuilder = new StringBuilder();
-        
-        var culture = new CultureInfo("ru-RU");
 
         AppendKeyValueLine("Чек", $"#{receipt.Number}");
         AppendLineWidth();
         AppendKeyValueLine("Терминал:", receipt.TerminalNumber);
-        AppendKeyValueLine("Дата:", receipt.TransactionDateTime.ToString(culture));
+        AppendKeyValueLine("Дата:", receipt.TransactionDateTime.ToString(CultureForDates));
 
-        if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
+        if (receipt is { BaseType: BasePaymentType.NonCash, DerivedType: DerivedPaymentType.FuelCard })
         {
             AppendKeyValueLine("Карта", receipt.CardNumber!);
             AppendKeyValueLine("Карта сокр", receipt.CardNumber!);
         }
         AppendLineWidth("Продажа");
-        AppendKeyValueLine(receipt.ResourceName, $"= {receipt.Amount.ToString()}");
-        AppendKeyValueLine(receipt.PricePerUnit.ToString("F2"), $"= {receipt.SellingPrice.ToString("F2")}");
+        AppendKeyValueLine(receipt.ResourceName, $"= {receipt.Amount.ToString(CultureForNumbers)}");
+        AppendKeyValueLine(receipt.PricePerUnit.ToString("F2", CultureForNumbers), $"= {receipt.SellingPrice.ToString("F2", CultureForNumbers)}");
         
-        AppendKeyValueLine("Скидка", $"= {receipt.Discount.ToString("F2")}");
-        AppendKeyValueLine("Итого", $"= {receipt.TotalPrice.ToString("F2")}");
+        AppendKeyValueLine("Скидка", $"= {receipt.Discount.ToString("F2", CultureForNumbers)}");
+        AppendKeyValueLine("Итого", $"= {receipt.TotalPrice.ToString("F2", CultureForNumbers)}");
         
-        if (receipt.BaseType == BasePaymentType.NonCash && receipt.DerivedType == DerivedPaymentType.FuelCard)
+        if (receipt is { BaseType: BasePaymentType.NonCash, DerivedType: DerivedPaymentType.FuelCard })
             AppendLineWidth("Инфо по кошелькам");
         
         AppendLineWidth();
@@ -209,20 +209,19 @@ public static class TextReportGenerator
     public static string FormatPriceChangeText(PriceChangeData changeData)
     {
         _stringBuilder = new StringBuilder();
-        var culture = new CultureInfo("ru-RU");
         
         AppendLineWidth();
         AppendKeyValueLine("Эмитент:", changeData.IssuerNumber);
         AppendKeyValueLine("Терминал:", changeData.TerminalNumber);
-        AppendKeyValueLine("Дата:", changeData.ChangingDateTime.ToString(culture));
+        AppendKeyValueLine("Дата:", changeData.ChangingDateTime.ToString(CultureForDates));
         
         AppendLineWidth();
         AppendTextInCenter("Смены цены товара");
         
         AppendLineWidth();
         AppendKeyValueLine("Товар", changeData.ResourceName);
-        AppendKeyValueLine("Знач. до", changeData.PriceUpTo.ToString("F2"));
-        AppendKeyValueLine("Знач. после", changeData.PriceAfter.ToString("F2"));
+        AppendKeyValueLine("Знач. до", changeData.PriceUpTo.ToString("F2", CultureForNumbers));
+        AppendKeyValueLine("Знач. после", changeData.PriceAfter.ToString("F2", CultureForNumbers));
         
         AppendLineWidth();
         _stringBuilder.AppendLine($"Оператор {changeData.OperatorName}");

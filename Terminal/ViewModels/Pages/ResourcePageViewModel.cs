@@ -29,6 +29,8 @@ public class ResourcePageViewModel : PageViewModelBase
     ///<inheritdoc cref="IAuthService"/>
     private readonly IAuthService _authService;
 
+    private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
+
     /// <summary>
     /// Стандартное название страницы.
     /// </summary>
@@ -42,7 +44,7 @@ public class ResourcePageViewModel : PageViewModelBase
         "7", "8", "9",
         "4", "5", "6",
         "1", "2", "3",
-        "00", "0", ",",
+        "00", "0", ".",
     ];
 
     /// <summary>
@@ -115,7 +117,9 @@ public class ResourcePageViewModel : PageViewModelBase
     public void SelectResource(ResourceCode resource)
     {
         SelectedResourceCode = resource;
-        PricePreview = resource.ResourcePrice.ToString();
+        PricePreview = resource.ResourcePrice != null 
+            ? resource.ResourcePrice.Value.ToString(CultureInfo.InvariantCulture)
+            : "0";
     }
 
     /// <summary>
@@ -125,7 +129,7 @@ public class ResourcePageViewModel : PageViewModelBase
     {
         if (!ResourceHasBeenSelected)
         {
-            Navigation.NavigateTo<MainMenuPageViewModel>();
+            Navigation!.NavigateTo<MainMenuPageViewModel>();
             return;
         }
         
@@ -148,11 +152,10 @@ public class ResourcePageViewModel : PageViewModelBase
         if (resourceCode == null)
             return;
         
-        if (!decimal.TryParse(PricePreview, NumberStyles.Any, new CultureInfo("ru-RU"), out var newPrice)) 
+        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice)) 
             return;
 
         var oldValue = resourceCode.ResourcePrice;
-        var newValue = newPrice;
 
         resourceCode.ResourcePrice = newPrice;
 
@@ -164,7 +167,7 @@ public class ResourcePageViewModel : PageViewModelBase
         if (index < 0)
             return;
         
-        await Print(oldValue, newValue);
+        await Print(oldValue, newPrice);
         
         SelectedResourceCode.ResourcePrice = newPrice;
         Resources[index] = SelectedResourceCode;
@@ -184,24 +187,24 @@ public class ResourcePageViewModel : PageViewModelBase
         
         foreach (var symbol in symbols)
         {
-            var dotIndex = PricePreview.IndexOf(',');
+            var dotIndex = PricePreview.IndexOf('.');
         
-            if (dotIndex >= 0 && symbol != ',')
+            if (dotIndex >= 0 && symbol != '.')
             {
                 var decimalsAfterDot = PricePreview.Length - dotIndex - 1;
                 if (decimalsAfterDot >= 2)
                     return;
             }
         
-            if (symbol == ',' && PricePreview.Contains(symbol))
+            if (symbol == '.' && PricePreview.Contains(symbol))
                 return;
 
-            if (PricePreview == "0" && symbol == ',')
+            if (PricePreview == "0" && symbol == '.')
                 PricePreview = "0";
 
             string newValue;
 
-            if (PricePreview == "0" && symbol != ',')
+            if (PricePreview == "0" && symbol != '.')
                 newValue = symbol.ToString();
             else
                 newValue = PricePreview + symbol;

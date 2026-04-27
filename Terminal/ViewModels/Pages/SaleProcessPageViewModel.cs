@@ -50,6 +50,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
+
+    private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
     
     /// <summary>
     /// Кол-во топлива.
@@ -146,7 +148,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, _culture, out var d))
                 _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
         }
     }
@@ -162,7 +164,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value)) 
                 return;
             
-            if (decimal.TryParse(value, out var d))
+            if (decimal.TryParse(value, NumberStyles.Any, _culture, out var d))
                 _amountFuel = d;
         }
     }
@@ -313,7 +315,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             string newValue;
 
             if (current == "0" && symbol != '.')
-                newValue = symbol.ToString();
+                newValue = symbol.ToString(_culture);
             else
                 newValue = current + symbol;
         
@@ -354,12 +356,12 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         if (IsAmountMoney)
         {
-            if (!decimal.TryParse(AmountMoneyPreview, out var money))
+            if (!decimal.TryParse(AmountMoneyPreview, NumberStyles.Any, _culture, out var money))
                 return;
             
             _amountFuel = money / (SelectedFuelType?.ResourcePrice ?? 1m);
             AmountFuelPreview = _amountFuel
-                .ToString($"N3")
+                .ToString($"N3", _culture)
                 .TrimEnd('0')
                 .TrimEnd('.');
                 
@@ -368,11 +370,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         }
         else
         {
-            if (!decimal.TryParse(AmountFuelPreview, out var fuel)) 
+            if (!decimal.TryParse(AmountFuelPreview, NumberStyles.Any, _culture, out var fuel)) 
                 return;
             
             AmountMoneyPreview = (fuel * (SelectedFuelType?.ResourcePrice ?? 1m))
-                .ToString($"N2")
+                .ToString($"N2", _culture)
                 .TrimEnd('0')
                 .TrimEnd('.');
                 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 
 namespace Terminal.Core.DbEntities;
 
@@ -29,6 +31,10 @@ public partial class ResourceCode
     /// Цена ресурса
     /// </summary>
     public decimal? ResourcePrice { get; set; }
+
+    [NotMapped] public string ResourcePriceFormatted => ResourcePrice != null 
+        ? ResourcePrice.Value.ToString(CultureInfo.InvariantCulture)
+        : "0";
 
     /// <summary>
     /// Признак отображения в интерфейсе

@@ -145,15 +145,19 @@ public class ResourcePageViewModel : PageViewModelBase
     {
         if (SelectedResourceCode == null)
             return;
-        
+
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        var resourceCode = await db.ResourceCodes.FirstOrDefaultAsync(x => x.ResourceKey == SelectedResourceCode!.ResourceKey);
+        var resourceCode =
+            await db.ResourceCodes.FirstOrDefaultAsync(x => x.ResourceKey == SelectedResourceCode!.ResourceKey);
         if (resourceCode == null)
             return;
-        
-        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice)) 
+
+        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice))
             return;
+
+        if (resourceCode.ResourcePrice!.Value == newPrice)
+            ResetPageData();
 
         var oldValue = resourceCode.ResourcePrice;
 
@@ -161,19 +165,18 @@ public class ResourcePageViewModel : PageViewModelBase
 
         db.Update(resourceCode);
         await db.SaveChangesAsync();
-        
+
         var index = Resources.IndexOf(SelectedResourceCode);
-        
+
         if (index < 0)
             return;
-        
+
         await Print(oldValue, newPrice);
-        
+
         SelectedResourceCode.ResourcePrice = newPrice;
         Resources[index] = SelectedResourceCode;
-        SelectedResourceCode = null;
-        ResourceHasBeenSelected = false;
-        Title = DefaultTitle;
+
+        ResetPageData();
     }
 
     /// <summary>
@@ -242,6 +245,16 @@ public class ResourcePageViewModel : PageViewModelBase
         var resources = await db.ResourceCodes.ToListAsync();
         
         Resources.AddRange(resources);
+    }
+    
+    /// <summary>
+    /// Сброс данных на странице.
+    /// </summary>
+    private void ResetPageData()
+    {
+        SelectedResourceCode = null;
+        ResourceHasBeenSelected = false;
+        Title = DefaultTitle;
     }
     
     /// <summary>

@@ -562,10 +562,13 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <param name="value">Значение.</param>
     private void AddKeyValueText(string key, string value)
     {
+        var keyProportion = key.Length > 10 ? 0.50f : 0.30f;
+        var valueProportion = value.Length > 20 ? 0.50f : 0.70f;
+        
         var chips = new List<PrinterChip>
         {
-            new(key, 0.45f, IPrintConstant.IAlign.Left),
-            new(value, 0.55f, IPrintConstant.IAlign.Right)
+            new(key, keyProportion, IPrintConstant.IAlign.Left),
+            new(value, valueProportion, IPrintConstant.IAlign.Right)
         };
         _printer!.AddTextChips(chips);
     }

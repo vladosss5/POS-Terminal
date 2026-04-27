@@ -15,8 +15,14 @@ public static class TextReportGenerator
     /// </summary>
     private const int PageWidth = 48;
 
+    /// <summary>
+    /// Культура для преобразования не числовых значений.
+    /// </summary>
     private static readonly CultureInfo CultureForDates = new("ru-RU");
     
+    /// <summary>
+    /// Культура для преобразования числовых значений с точкой.
+    /// </summary>
     private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
 
     /// <summary>

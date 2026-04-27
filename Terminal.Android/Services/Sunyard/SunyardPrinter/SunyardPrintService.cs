@@ -28,6 +28,16 @@ namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
 {
     /// <summary>
+    /// Культура для преобразования не числовых значений.
+    /// </summary>
+    private static readonly CultureInfo CultureRu = new("ru-RU");
+
+    /// <summary>
+    /// Культура для преобразования числовых значений с точкой.
+    /// </summary>
+    private static readonly CultureInfo CultureForNumber = CultureInfo.InvariantCulture;
+    
+    /// <summary>
     /// Логгер.
     /// </summary>
     private readonly ILogger<SunyardPrintService> _logger;
@@ -97,14 +107,13 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
 
         try
         {
-            _printer!.SetGray(9);
+            _printer!.SetGray(10);
 
             AddKeyValueText("Чек", salesReceipt.Number);
             AddLineWidthText();
             AddKeyValueText("Терминал", salesReceipt.TerminalNumber);
 
-            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
-                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
+            if (salesReceipt is { BaseType: BasePaymentType.NonCash, DerivedType: DerivedPaymentType.FuelCard })
             {
                 AddKeyValueText("Карта", salesReceipt.CardNumber!);
                 AddKeyValueText("Карта сокр", salesReceipt.CardNumber!);
@@ -113,21 +122,18 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddLineWidthText("Продажа");
             AddKeyValueText(
                 salesReceipt.ResourceName,
-                $"= {salesReceipt.Amount.ToString("F2")}");
+                $"= {salesReceipt.Amount.ToString("F2", CultureForNumber)}");
 
             AddKeyValueText(
-                salesReceipt.PricePerUnit.ToString("F2"),
-                $"= {salesReceipt.SellingPrice.ToString("F2")}");
+                salesReceipt.PricePerUnit.ToString("F2", CultureForNumber),
+                $"= {salesReceipt.SellingPrice.ToString("F2", CultureForNumber)}");
 
-            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString("F2")}");
-            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString("F2")}");
+            AddKeyValueText("Скидка", $"= {salesReceipt.Discount.ToString("F2", CultureForNumber)}");
+            AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString("F2", CultureForNumber)}");
 
-            if (salesReceipt.BaseType == BasePaymentType.NonCash && 
-                salesReceipt.DerivedType == DerivedPaymentType.FuelCard)
-            {
+            if (salesReceipt is { BaseType: BasePaymentType.NonCash, DerivedType: DerivedPaymentType.FuelCard })
                 AddLineWidthText("Инфо по кошелькам");
-            }
-
+            
             AddLineWidthText();
             AddLeftText($"Оператор {salesReceipt.Operator}");
             AddLineWidthText();
@@ -202,7 +208,6 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         }
         
         var tcs = new TaskCompletionSource<PrintResult>();
-        var cultureRu = new CultureInfo("ru-RU");
 
         try
         {
@@ -211,12 +216,12 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddLineWidthText();
             AddKeyValueText("Эмитент", changeData.IssuerNumber);
             AddKeyValueText("Терминал", changeData.TerminalNumber);
-            AddKeyValueText("Дата", changeData.ChangingDateTime.ToString(cultureRu));
+            AddKeyValueText("Дата", changeData.ChangingDateTime.ToString(CultureRu));
             AddLineWidthText();
             AddCenteredText("Смена цены товара");
             AddKeyValueText("Товар", changeData.ResourceName);
-            AddKeyValueText("Знач. до", changeData.PriceUpTo.ToString());
-            AddKeyValueText("Знач. после", changeData.PriceAfter.ToString());
+            AddKeyValueText("Знач. до", changeData.PriceUpTo.ToString(CultureForNumber));
+            AddKeyValueText("Знач. после", changeData.PriceAfter.ToString(CultureForNumber));
             AddLineWidthText();
             AddLeftText($"Оператор {changeData.OperatorName}");
             AddLineWidthText();
@@ -259,14 +264,13 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         }
         
         var tcs = new TaskCompletionSource<PrintResult>();
-        var cultureRu = new CultureInfo("ru-RU");
 
         try
         {
             _printer!.SetGray(10);
             
             AddLineWidthText();
-            AddKeyValueText("Чек", reportData.ReceiptNumber.ToString(cultureRu));
+            AddKeyValueText("Чек", reportData.ReceiptNumber.ToString(CultureRu));
             AddLineWidthText();
             
             var title = reportData.ReportType switch
@@ -279,10 +283,10 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             
             AddKeyValueText("Эмитент", reportData.IssuerNumber);
             AddKeyValueText("Терминал", "#" + reportData.TerminalNumber);
-            AddKeyValueText("Номер смены:", reportData.Shift.ShiftShopKey.ToString(cultureRu));
+            AddKeyValueText("Номер смены:", reportData.Shift.ShiftShopKey.ToString(CultureRu));
             AddKeyValueText("Начало:",
-                reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(cultureRu) : "");
-            AddKeyValueText("Конец:", DateTime.Now.ToString(cultureRu));
+                reportData.Shift.ShiftDate != null ? reportData.Shift.ShiftDate!.Value.ToString(CultureRu) : "");
+            AddKeyValueText("Конец:", DateTime.Now.ToString(CultureRu));
             AddLineWidthText();
             
             var issuersCount = reportData.SalesList
@@ -293,15 +297,13 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             PrintOperationsOnIssuer(
                 $"Эмитент {reportData.IssuerNumber}",
                 reportData.SalesList.Where(x => x.ICI!.Value == Convert.ToInt32(reportData.IssuerNumber)),
-                issuersCount > 1,
-                cultureRu);
+                issuersCount > 1);
 
             if (issuersCount > 1)
                 PrintOperationsOnIssuer(
                     $"Другие эмитенты",
                     reportData.SalesList.Where(x => x.ICI!.Value != Convert.ToInt32(reportData.IssuerNumber)),
-                    true,
-                    cultureRu);
+                    true);
             
             var totalData = new
             {
@@ -313,16 +315,16 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             
             AddLineWidthText("Итого в чеке");
             AddCenteredText("Итого продаж");
-            AddKeyValueText("Сумма баз.", totalData.TotalBaseCost.ToString("F2"));
-            AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString("F2"));
+            AddKeyValueText("Сумма баз.", totalData.TotalBaseCost.ToString("F2", CultureForNumber));
+            AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString("F2", CultureForNumber));
 
             AddCenteredText("Итого возвратов");
-            AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString("F2"));
-            AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString("F2"));
+            AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString("F2", CultureForNumber));
+            AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString("F2", CultureForNumber));
 
             AddCenteredText("Всего продаж");
-            AddKeyValueText("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString("F2"));
-            AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2"));
+            AddKeyValueText("Сумма баз.", (totalData.TotalBaseCost - totalData.TotalSBCR).ToString("F2", CultureForNumber));
+            AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", CultureForNumber));
 
             AddCenteredText();
             AddLeftText($"Оператор: {reportData.OperatorName}");
@@ -357,12 +359,10 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <param name="issuerName">Номер эмитента.</param>
     /// <param name="operations">Коллекция операций.</param>
     /// <param name="isPrintTotal">Печать ли итог чека (не требуется когда эмитент один).</param>
-    /// <param name="culture">Культура для конвертации данных.</param>
     private void PrintOperationsOnIssuer(
         string issuerName,
         IEnumerable<SalesReportResult> operations,
-        bool isPrintTotal,
-        CultureInfo culture)
+        bool isPrintTotal)
     {
         AddCenteredText(issuerName);
 
@@ -374,19 +374,19 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddLineWidthText(resourceName);
 
             AddCenteredText("Продажи");
-            AddKeyValueText("Ко-во", saleData.A != null ? saleData.A.Value.ToString("F3") : "0.000");
-            AddKeyValueText("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString("F2") : "0.00");
-            AddKeyValueText("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString("F2") : "0.00");
+            AddKeyValueText("Ко-во", saleData.A != null ? saleData.A.Value.ToString("F3", CultureForNumber) : "0.000");
+            AddKeyValueText("Сумма баз.", saleData.SBC != null ? saleData.SBC.Value.ToString("F2", CultureForNumber) : "0.00");
+            AddKeyValueText("Сумма скид.", saleData.SC != null ? saleData.SC.Value.ToString("F2", CultureForNumber) : "0.00");
 
             AddCenteredText("Возвраты");
-            AddKeyValueText("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString("F3") : "0.000");
-            AddKeyValueText("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString("F2") : "0.00");
-            AddKeyValueText("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString("F2") : "0.00");
+            AddKeyValueText("Ко-во", saleData.AR != null ? saleData.AR.Value.ToString("F3", CultureForNumber) : "0.000");
+            AddKeyValueText("Сумма баз.", saleData.SBCR != null ? saleData.SBCR.Value.ToString("F2", CultureForNumber) : "0.00");
+            AddKeyValueText("Сумма скид.", saleData.SCR != null ? saleData.SCR.Value.ToString("F2", CultureForNumber) : "0.00");
 
             AddCenteredText($"Итого по {resourceName}");
-            AddKeyValueText("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString("F3"));
-            AddKeyValueText("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString("F2"));
-            AddKeyValueText("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString("F2"));
+            AddKeyValueText("Ко-во", ((saleData.A ?? 0) - (saleData.AR ?? 0)).ToString("F3", CultureForNumber));
+            AddKeyValueText("Сумма баз.", ((saleData.SBC ?? 0) - (saleData.SBCR ?? 0)).ToString("F2", CultureForNumber));
+            AddKeyValueText("Сумма скид.", ((saleData.SC ?? 0) - (saleData.SCR ?? 0)).ToString("F2", CultureForNumber));
         }
 
         AddLineWidthText();
@@ -402,16 +402,16 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
         };
 
         AddCenteredText("Итого продаж");
-        AddKeyValueText("Сумма баз.", totalData.TotalSBC.ToString("F2"));
-        AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString("F2"));
+        AddKeyValueText("Сумма баз.", totalData.TotalSBC.ToString("F2", CultureForNumber));
+        AddKeyValueText("Сумма скид.", totalData.TotalSC.ToString("F2", CultureForNumber));
 
         AddCenteredText("Итого возвратов");
-        AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString("F2"));
-        AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString("F2"));
+        AddKeyValueText("Сумма баз.", totalData.TotalSBCR.ToString("F2", CultureForNumber));
+        AddKeyValueText("Сумма скид.", totalData.TotalSCR.ToString("F2", CultureForNumber));
 
         AddCenteredText("Всего продаж");
-        AddKeyValueText("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString("F2"));
-        AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2"));
+        AddKeyValueText("Сумма баз.", (totalData.TotalSBC - totalData.TotalSBCR).ToString("F2", CultureForNumber));
+        AddKeyValueText("Сумма скид.", (totalData.TotalSC - totalData.TotalSCR).ToString("F2", CultureForNumber));
 
         AddLineWidthText();
     }
@@ -599,7 +599,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// </summary>
     /// <param name="code">Код статуса из SDK.</param>
     /// <returns>Соответствующий статус принтера.</returns>
-    private PrinterStatus MapStatus(int code)
+    private static PrinterStatus MapStatus(int code)
     {
         return code switch
         {

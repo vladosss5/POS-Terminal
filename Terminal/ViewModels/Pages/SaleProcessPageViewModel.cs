@@ -51,6 +51,9 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
 
+    /// <summary>
+    /// Культура для приведения чисел с точкой к строке.
+    /// </summary>
     private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
     
     /// <summary>

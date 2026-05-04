@@ -55,6 +55,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+    
+    private readonly ITmsConnectionService _tmsService;
 
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -75,7 +77,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory, 
         IDbContextFactory<ParamDbContext> paramDbFactory, 
         IConfigurationService configurationService, 
-        IAuthPageFactory authPageFactory) 
+        IAuthPageFactory authPageFactory, ITmsConnectionService tmsService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -88,6 +90,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _paramDbFactory = paramDbFactory;
         _configurationService = configurationService;
         _authPageFactory = authPageFactory;
+        _tmsService = tmsService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -238,6 +241,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var authPage = _authPageFactory.Create(authParams);
         Navigation.NavigateToInstancePage(authPage);
     }
+
+    private async Task ConnectToTmsAsync()
+    {
+        const string serverHost = "127.0.0.1";
+        const int port = 5786;
+        const ulong terminalId = 777;
+        
+        var success = await _tmsService.ConnectAndAuthorizeAsync(terminalId, serverHost, port);
+    }
     
     /// <summary>
     /// Создать кнопки главного меню.
@@ -256,6 +268,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Возврат на карту"
+            },
+            new MainMenuItemModel
+            {
+                Title = "TMS",
+                Command = new AsyncRelayCommand(ConnectToTmsAsync)
             },
             new MainMenuItemModel
             {

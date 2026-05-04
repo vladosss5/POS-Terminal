@@ -66,6 +66,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddTransient<AuthOperatorPageViewModel>();
+        collection.AddSingleton<ITmsConnectionService, TmsConnectionService>();
     }
     
     /// <summary>

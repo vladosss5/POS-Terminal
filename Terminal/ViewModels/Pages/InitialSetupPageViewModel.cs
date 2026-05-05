@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Avalonia;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Terminal.Core.ParamDbEntities;
-using Terminal.Data.Context;
+using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -12,8 +12,11 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public class InitialSetupPageViewModel : PageViewModelBase
 {
-    /// Фабрика <inheritdoc cref="ParamDbContext" />
-    private readonly IDbContextFactory<ParamDbContext> _dbContextFactory;
+    /// <inheritdoc cref="ILogger" />
+    private readonly ILogger<InitialSetupPageViewModel> _logger;
+    
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
 
     /// <summary>
     /// Номер эмитента.
@@ -46,11 +49,13 @@ public class InitialSetupPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public InitialSetupPageViewModel(
+        IParameterService parameterService,
         ILogger<PageViewModelBase> logger, 
-        IDbContextFactory<ParamDbContext> dbContextFactory) 
+        ILogger<InitialSetupPageViewModel> loggerService) 
         : base(logger)
     {
-        _dbContextFactory = dbContextFactory;
+        _parameterService = parameterService;
+        _logger = loggerService;
         Title = "Первичная настройка";
     }
 
@@ -59,16 +64,18 @@ public class InitialSetupPageViewModel : PageViewModelBase
     /// </summary>
     public async Task SaveSetupAsync()
     {
-        await using var db = await _dbContextFactory.CreateDbContextAsync();
-
-        await db.Params.AddRangeAsync([
-            new Param { Name = "IsInstalled", Value = "1" },
-            new Param { Name = "IssuerId", Value = IssuerNumber },
-            new Param { Name = "SerialNO111", Value = TerminalNumber}
-        ]);
-
-        await db.SaveChangesAsync();
+        try
+        {
+            await _parameterService.SetValue(AppParameter.IsInstalled, "1");
+            await _parameterService.SetValue(AppParameter.IssuerId, IssuerNumber);
+            await _parameterService.SetValue(AppParameter.SerialNO111, TerminalNumber);
         
-        Navigation.NavigateTo<OpenShiftPageViewModel>();
+            Navigation!.NavigateTo<OpenShiftPageViewModel>();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
     }
 }

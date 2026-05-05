@@ -1,7 +1,9 @@
 ﻿using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.DbEntitiesServices;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Data.Context;
@@ -11,29 +13,33 @@ namespace Terminal.Application.Implementations.Builders;
 /// <inheritdoc/>
 public class SellingBuilder : ISellingBuilder
 {
+    private ILogger<SellingBuilder> _logger;
+    
     /// <inheritdoc cref="Selling" />
     private readonly Selling _selling = new();
 
     /// <inheritdoc cref="IShiftService" />
     private readonly IShiftService _shiftService;
     
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
+    
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
-    
-    /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
-    private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     public SellingBuilder(
+        ILogger<SellingBuilder> logger,
         IShiftService shiftService,
         IDbContextFactory<DataContext> dbFactory, 
-        IDbContextFactory<ParamDbContext> paramDbFactory)
+        IParameterService parameterService)
     {
         _shiftService = shiftService;
         _dbFactory = dbFactory;
-        _paramDbFactory = paramDbFactory;
+        _parameterService = parameterService;
+        _logger = logger;
     }
 
     public void SetPaymentTypes(BasePaymentType baseType, DerivedPaymentType derivedType)
@@ -108,20 +114,32 @@ public class SellingBuilder : ISellingBuilder
     /// <inheritdoc/>
     public async Task SetTerminalNumber()
     {
-        await using var paramDb = await _paramDbFactory.CreateDbContextAsync();
-        var terminalNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "SerialNO111");
-        _selling.TerminalKey = Convert.ToInt64(terminalNumber!.Value);
+        try
+        {
+            var terminalNumber = await _parameterService.GetValue(AppParameter.SerialNO111);
+            _selling.TerminalKey = Convert.ToInt64(terminalNumber);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
     }
 
     /// <inheritdoc/>
     public async Task SetIssuerNumber()
     {
-        if (_selling.DerivedType == DerivedPaymentType.FuelCard) //TODO: добавить логику считывания эмитента из топливной карты
-            return;
-        
-        await using var paramDb = await _paramDbFactory.CreateDbContextAsync();
-        var issuerNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "IssuerId");
-        _selling.IssuerCardId = Convert.ToInt32(issuerNumber!.Value);
+        try
+        {
+            if (_selling.DerivedType == DerivedPaymentType.FuelCard) //TODO: добавить логику считывания эмитента из топливной карты
+                return;
+            
+            var issuerNumber = await _parameterService.GetValue(AppParameter.IssuerId);
+            _selling.IssuerCardId = Convert.ToInt32(issuerNumber);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
     }
 
     /// <inheritdoc/>

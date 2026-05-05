@@ -27,8 +27,7 @@ public class SellingBuilderTests
         
         _builder = new SellingBuilder(
             _shiftServiceMock.Object,
-            _dbFactoryMock.Object,
-            _paramDbFactoryMock.Object);
+            _dbFactoryMock.Object);
     }
 
     [Test]

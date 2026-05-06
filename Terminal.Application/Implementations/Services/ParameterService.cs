@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.ParamDbEntities;
 using Terminal.Data.Context;
 
 namespace Terminal.Application.Implementations.Services;
@@ -39,11 +40,21 @@ public class ParameterService : IParameterService
         var parameter = await db.Params.FirstOrDefaultAsync(x => x.Name == parameterName.ToString());
 
         if (parameter == null)
-            throw new Exception("Параметр не найден");
+        {
+            parameter = new Param
+            {
+                Name = parameterName.ToString(),
+                Value = value
+            };
 
-        parameter.Value = value;
-
-        db.Update(parameter);
+            await db.AddAsync(parameter);
+        }
+        else
+        {
+            parameter.Value = value;
+            db.Update(parameter);
+        }
+        
         await db.SaveChangesAsync();
     }
 }

@@ -21,6 +21,16 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc/>
+    public async Task<bool> CheckSetupComplete()
+    {
+        await using var db = await _dbContextFactory.CreateDbContextAsync();
+
+        var isInstalled = await db.Params.FirstOrDefaultAsync(x => x.Name == nameof(AppParameter.IsInstalled));
+
+        return isInstalled is { Value: "1" };
+    }
+
+    /// <inheritdoc/>
     public async Task<string> GetValueAsync(AppParameter parameterName)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync();

@@ -66,9 +66,9 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         try
         {
-            await _parameterService.SetValue(AppParameter.IsInstalled, "1");
-            await _parameterService.SetValue(AppParameter.IssuerId, IssuerNumber);
-            await _parameterService.SetValue(AppParameter.SerialNO111, TerminalNumber);
+            await _parameterService.SetValueAsync(AppParameter.IsInstalled, "1");
+            await _parameterService.SetValueAsync(AppParameter.IssuerId, IssuerNumber);
+            await _parameterService.SetValueAsync(AppParameter.SerialNO111, TerminalNumber);
         
             Navigation!.NavigateTo<OpenShiftPageViewModel>();
         }

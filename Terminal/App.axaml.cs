@@ -162,7 +162,7 @@ public partial class App : Avalonia.Application
         var navigationService = Services!.GetRequiredService<INavigationService>();
         var parameterService = Services!.GetRequiredService<IParameterService>();
 
-        var isInstalled = await parameterService.GetValue(AppParameter.IsInstalled);
+        var isInstalled = await parameterService.GetValueAsync(AppParameter.IsInstalled);
 
         if (isInstalled == "1")
         {

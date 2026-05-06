@@ -116,7 +116,7 @@ public class SellingBuilder : ISellingBuilder
     {
         try
         {
-            var terminalNumber = await _parameterService.GetValue(AppParameter.SerialNO111);
+            var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
             _selling.TerminalKey = Convert.ToInt64(terminalNumber);
         }
         catch (Exception e)
@@ -133,7 +133,7 @@ public class SellingBuilder : ISellingBuilder
             if (_selling.DerivedType == DerivedPaymentType.FuelCard) //TODO: добавить логику считывания эмитента из топливной карты
                 return;
             
-            var issuerNumber = await _parameterService.GetValue(AppParameter.IssuerId);
+            var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
             _selling.IssuerCardId = Convert.ToInt32(issuerNumber);
         }
         catch (Exception e)

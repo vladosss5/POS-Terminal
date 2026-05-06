@@ -166,7 +166,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             return;
         }
         
-        var issuerNumber = await _parameterService.GetValue(AppParameter.IssuerId);
+        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
         
         var divideByIssuers = _configurationService.CurrentSetting.ReportDivide;
         var paymentTypes = _configurationService.CurrentSetting.ReportPaymentTypes!
@@ -183,7 +183,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
         var receiptNumber = await GetNumberLastReceipt(arg);
         
-        var terminalNumber = await _parameterService.GetValue(AppParameter.SerialNO111);
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var operatorName = _authService.CurrentUser?.Name;
 
         var reportData = new ShiftReportDataDto

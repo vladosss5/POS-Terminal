@@ -265,8 +265,8 @@ public class ResourcePageViewModel : PageViewModelBase
     /// <param name="newValue">Цена после.</param>
     private async Task Print(decimal? oldValue, decimal newValue)
     {
-        var issuerNumber = await _parameterService.GetValue(AppParameter.IssuerId);
-        var terminalNumber = await _parameterService.GetValue(AppParameter.SerialNO111);
+        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var operatorName = _authService.CurrentUser?.Name;
         
         var changeData = new PriceChangeData

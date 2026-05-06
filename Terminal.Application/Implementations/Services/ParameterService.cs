@@ -20,7 +20,7 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc/>
-    public async Task<string> GetValue(AppParameter parameterName)
+    public async Task<string> GetValueAsync(AppParameter parameterName)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync();
 
@@ -32,7 +32,7 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc/>
-    public async Task SetValue(AppParameter parameterName, string value)
+    public async Task SetValueAsync(AppParameter parameterName, string value)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync();
         

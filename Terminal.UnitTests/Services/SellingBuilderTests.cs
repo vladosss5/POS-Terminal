@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Interfaces.DbEntitiesServices;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.Enums;
 using Terminal.Data.Context;
@@ -14,20 +16,24 @@ namespace Terminal.UnitTests.Services;
 public class SellingBuilderTests
 {
     private SellingBuilder? _builder;
+    private Mock<ILogger<SellingBuilder>> _mockLogger = null!;
     private Mock<IShiftService> _shiftServiceMock = null!;
     private Mock<IDbContextFactory<DataContext>> _dbFactoryMock = null!;
-    private Mock<IDbContextFactory<ParamDbContext>> _paramDbFactoryMock = null!;
+    private Mock<IParameterService> _paramDbFactoryMock = null!;
 
     [SetUp]
     public void SetUp()
     {
+        _mockLogger = new Mock<ILogger<SellingBuilder>>();
         _shiftServiceMock = new Mock<IShiftService>();
         _dbFactoryMock = new Mock<IDbContextFactory<DataContext>>();
-        _paramDbFactoryMock = new Mock<IDbContextFactory<ParamDbContext>>();
+        _paramDbFactoryMock = new Mock<IParameterService>();
         
         _builder = new SellingBuilder(
+            _mockLogger.Object,
             _shiftServiceMock.Object,
-            _dbFactoryMock.Object);
+            _dbFactoryMock.Object,
+            _paramDbFactoryMock.Object);
     }
 
     [Test]

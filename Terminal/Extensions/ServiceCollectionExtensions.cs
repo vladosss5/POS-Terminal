@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<InitialSetupPageViewModel>();
         collection.AddSingleton<ShiftReportPageViewModel>();
         collection.AddTransient<ResourcePageViewModel>();
+        collection.AddTransient<AuthOperatorPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();
@@ -65,8 +66,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
-        collection.AddTransient<AuthOperatorPageViewModel>();
         collection.AddSingleton<ITmsConnectionService, TmsConnectionService>();
+        collection.AddSingleton<IParameterService, ParameterService>();
     }
     
     /// <summary>

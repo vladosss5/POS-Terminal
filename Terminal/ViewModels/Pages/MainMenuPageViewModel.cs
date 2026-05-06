@@ -47,11 +47,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IReceiptPrintService"/>
     private readonly IReceiptPrintService _receiptPrintService;
     
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
+    
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
-    
-    /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
-    private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
@@ -74,10 +74,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IShiftService shiftService, 
         IMessageBoxService messageBoxService, 
         IReceiptPrintService receiptPrintService, 
-        IDbContextFactory<DataContext> dbFactory, 
-        IDbContextFactory<ParamDbContext> paramDbFactory, 
+        IDbContextFactory<DataContext> dbFactory,
         IConfigurationService configurationService, 
-        IAuthPageFactory authPageFactory, ITmsConnectionService tmsService) 
+        IAuthPageFactory authPageFactory, 
+        IParameterService parameterService, 
+        ITmsConnectionService tmsService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -87,9 +88,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _messageBoxService = messageBoxService;
         _receiptPrintService = receiptPrintService;
         _dbFactory = dbFactory;
-        _paramDbFactory = paramDbFactory;
         _configurationService = configurationService;
         _authPageFactory = authPageFactory;
+        _parameterService = parameterService;
         _tmsService = tmsService;
         Title = "Главная";
 
@@ -169,8 +170,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             return;
         }
         
-        await using var paramDb = await _paramDbFactory.CreateDbContextAsync(arg);
-        var issuerNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "IssuerId", cancellationToken: arg);
+        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
         
         var divideByIssuers = _configurationService.CurrentSetting.ReportDivide;
         var paymentTypes = _configurationService.CurrentSetting.ReportPaymentTypes!
@@ -179,22 +179,22 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
         var sales = await GetReportAsync(
             paymentTypes: paymentTypes,
-            issuerList: [Convert.ToInt32(issuerNumber!.Value)], 
+            issuerList: [Convert.ToInt32(issuerNumber)], 
             shiftKey: openShift.ShiftKey ?? 0,
-            elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber.Value), 
+            elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber), 
             devideOrg: false, 
             cancellationToken: arg);
 
         var receiptNumber = await GetNumberLastReceipt(arg);
         
-        var terminalNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "SerialNO111", cancellationToken: arg);
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var operatorName = _authService.CurrentUser?.Name;
 
         var reportData = new ShiftReportDataDto
         {
             ReceiptNumber = receiptNumber,
-            IssuerNumber = issuerNumber.Value,
-            TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
+            IssuerNumber = issuerNumber,
+            TerminalNumber = terminalNumber,
             Shift = openShift,
             SalesList = sales,
             OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"

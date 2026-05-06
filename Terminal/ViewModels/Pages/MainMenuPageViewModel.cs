@@ -244,9 +244,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     private async Task ConnectToTmsAsync()
     {
-        const string serverHost = "127.0.0.1";
-        const int port = 5786;
-        const ulong terminalId = 777;
+        var serverHost = await _parameterService.GetValueAsync(AppParameter.TmsIp);
+        var port = int.Parse(await _parameterService.GetValueAsync(AppParameter.TmsPort));
+        var terminalId = ulong.Parse(await _parameterService.GetValueAsync(AppParameter.SerialNO111));
         
         var success = await _tmsService.ConnectAndAuthorizeAsync(terminalId, serverHost, port);
     }

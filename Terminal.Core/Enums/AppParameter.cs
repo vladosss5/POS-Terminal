@@ -18,5 +18,15 @@ public enum AppParameter
     /// <summary>
     /// Номер эмитента.
     /// </summary>
-    IssuerId
+    IssuerId,
+    
+    /// <summary>
+    /// IPv4 адрес TMS.
+    /// </summary>
+    TmsIp,
+    
+    /// <summary>
+    /// Порт TMS.
+    /// </summary>
+    TmsPort
 }

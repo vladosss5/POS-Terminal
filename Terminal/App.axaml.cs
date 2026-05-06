@@ -162,15 +162,12 @@ public partial class App : Avalonia.Application
         var navigationService = Services!.GetRequiredService<INavigationService>();
         var parameterService = Services!.GetRequiredService<IParameterService>();
 
-        var isInstalled = await parameterService.GetValueAsync(AppParameter.IsInstalled);
+        var isInstalled = await parameterService.CheckSetupComplete();
 
-        if (isInstalled == "1")
-        {
+        if (isInstalled)
             navigationService.NavigateTo<OpenShiftPageViewModel>();
-            return;
-        }
-        
-        navigationService.NavigateTo<InitialSetupPageViewModel>();
+        else
+            navigationService.NavigateTo<InitialSetupPageViewModel>();
     }
     
     /// <summary>

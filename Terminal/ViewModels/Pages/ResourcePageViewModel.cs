@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Data.Context;
 
@@ -20,8 +21,8 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
     
-    /// Фабрика экземпляров: <inheritdoc cref="ParamDbContext"/>
-    private readonly IDbContextFactory<ParamDbContext> _paramDbFactory;
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
 
     ///<inheritdoc cref="IReceiptPrintService"/>
     private readonly IReceiptPrintService _receiptPrintService;
@@ -97,15 +98,15 @@ public class ResourcePageViewModel : PageViewModelBase
         ILogger<PageViewModelBase> logger, 
         IDbContextFactory<DataContext> dbFactory, 
         IReceiptPrintService receiptPrintService, 
-        IDbContextFactory<ParamDbContext> paramDbFactory, 
-        IAuthService authService) 
+        IAuthService authService, 
+        IParameterService parameterService) 
         : base(logger)
     {
         Title = DefaultTitle;
         _dbFactory = dbFactory;
         _receiptPrintService = receiptPrintService;
-        _paramDbFactory = paramDbFactory;
         _authService = authService;
+        _parameterService = parameterService;
 
         _ = LoadData();
     }
@@ -264,16 +265,14 @@ public class ResourcePageViewModel : PageViewModelBase
     /// <param name="newValue">Цена после.</param>
     private async Task Print(decimal? oldValue, decimal newValue)
     {
-        await using var paramDb = await _paramDbFactory.CreateDbContextAsync();
-        var issuerNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "IssuerId");
-        
-        var terminalNumber = await paramDb.Params.FirstOrDefaultAsync(x => x.Name == "SerialNO111");
+        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var operatorName = _authService.CurrentUser?.Name;
         
         var changeData = new PriceChangeData
         {
-            IssuerNumber = issuerNumber != null ? issuerNumber.Value : "undefined",
-            TerminalNumber = terminalNumber != null ? terminalNumber.Value : "undefined",
+            IssuerNumber = issuerNumber,
+            TerminalNumber = terminalNumber,
             ChangingDateTime = DateTime.Now,
             ResourceName = SelectedResourceCode != null ? SelectedResourceCode.ResourceName! : "undefined",
             PriceUpTo = oldValue ?? 0,

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Data.Context;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
@@ -159,18 +160,14 @@ public partial class App : Avalonia.Application
     private static async Task OpenFirstPage()
     {
         var navigationService = Services!.GetRequiredService<INavigationService>();
-        var paramDbFactory = Services!.GetRequiredService<IDbContextFactory<ParamDbContext>>();
-        await using var db = await paramDbFactory.CreateDbContextAsync();
+        var parameterService = Services!.GetRequiredService<IParameterService>();
 
-        if (db.Params.Any())
+        var isInstalled = await parameterService.GetValueAsync(AppParameter.IsInstalled);
+
+        if (isInstalled == "1")
         {
-            var isInstalledParam = await db.Params.FirstOrDefaultAsync(x => x.Name == "IsInstalled");
-
-            if (isInstalledParam is { Value: "1" })
-            {
-                navigationService.NavigateTo<OpenShiftPageViewModel>();
-                return;
-            }
+            navigationService.NavigateTo<OpenShiftPageViewModel>();
+            return;
         }
         
         navigationService.NavigateTo<InitialSetupPageViewModel>();

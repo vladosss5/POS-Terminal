@@ -13,7 +13,7 @@ public class TmsConnectionService : ITmsConnectionService
     private readonly ILogger<TmsConnectionService> _logger;
     private bool _isCrypto;
     private bool _isSynchro;
-    private POSFlags _posFlags;
+    private PosFlags _posFlags;
     
     public event Action<ulong>? OnDataReceived;
     public bool IsConnected => _tcpClient?.Connected == true;
@@ -33,7 +33,7 @@ public class TmsConnectionService : ITmsConnectionService
             _logger.LogInformation("[TMS] Подключен к {Host}:{Port}", serverHost, port);
  
             var startPacket = await ReceivePacketAsync(cancellationToken);
-            if (startPacket?.Cmd != SncCommand.StartPacket)
+            if (startPacket?.Cmd != SncProtocolCode.StartPacket)
             {
                 _logger.LogWarning("[TMS] Сервер не прислал StartPacket, но продолжаем");
             }
@@ -42,7 +42,7 @@ public class TmsConnectionService : ITmsConnectionService
             var authData = BuildAuthorizePacket(terminalId);
             await SendPacketAsync(new Packet 
             { 
-                Cmd = SncCommand.Authorize, 
+                Cmd = SncProtocolCode.Authorize, 
                 Data = authData, 
                 Length = (ushort)authData.Length 
             }, cancellationToken);
@@ -50,7 +50,7 @@ public class TmsConnectionService : ITmsConnectionService
             // 4. Получение ответа
             var response = await ReceivePacketAsync(cancellationToken);
         
-            if (response?.Cmd == SncCommand.Authorize && response.Data.Length >= 2 && response.Data[0] == 0)
+            if (response?.Cmd == SncProtocolCode.Authorize && response.Data.Length >= 2 && response.Data[0] == 0)
             {
                 // ... авторизация успешна
                 return true;
@@ -71,7 +71,7 @@ public class TmsConnectionService : ITmsConnectionService
         // TMS ожидает данные через команду SendTable (0x12)
         var packet = new Packet
         {
-            Cmd = SncCommand.SendTable,
+            Cmd = SncProtocolCode.SendTable,
             Data = data,
             Length = (ushort)data.Length
         };
@@ -79,7 +79,7 @@ public class TmsConnectionService : ITmsConnectionService
         
         // Ждем подтверждения
         var response = await ReceivePacketAsync(cancellationToken);
-        if (response?.Cmd == SncCommand.SendTable && response.Data.Length > 0 && response.Data[0] != 0)
+        if (response?.Cmd == SncProtocolCode.SendTable && response.Data.Length > 0 && response.Data[0] != 0)
         {
             _logger.LogError("[TMS] Ошибка отправки данных. Код: {Code}", response.Data[0]);
             throw new Exception($"SendData failed with code {response.Data[0]}");
@@ -92,7 +92,7 @@ public class TmsConnectionService : ITmsConnectionService
         {
             try
             {
-                await SendPacketAsync(new Packet { Cmd = SncCommand.EndDialog }, CancellationToken.None);
+                await SendPacketAsync(new Packet { Cmd = SncProtocolCode.EndDialog }, CancellationToken.None);
             }
             catch { }
         }
@@ -106,7 +106,7 @@ public class TmsConnectionService : ITmsConnectionService
     private byte[] BuildAuthorizePacket(ulong terminalId)
     {
         // Формат из TMS: BaseChanel.Authorize ожидает:
-        // [TerminalId: 12 байт] + [Version: 20 байт] + [ProtocolVersion: 1 байт] + [POSFlags: 2 байта]
+        // [TerminalId: 12 байт] + [Version: 20 байт] + [ProtocolVersion: 1 байт] + [PosFlags: 2 байта]
         var result = new byte[12 + 20 + 1 + 2];
         
         // Terminal ID (12 байт, ASCII, нуль-терминированная строка)
@@ -122,8 +122,8 @@ public class TmsConnectionService : ITmsConnectionService
         // Protocol Version (1 байт) — 1 = расширенный протокол
         result[32] = 0x01;
         
-        // POSFlags (2 байта) — поддерживаемые флаги (CRC32, GPRS и т.д.)
-        var flagsBytes = BitConverter.GetBytes((ushort)POSFlags.CRC32);
+        // PosFlags (2 байта) — поддерживаемые флаги (CRC32, GPRS и т.д.)
+        var flagsBytes = BitConverter.GetBytes((ushort)PosFlags.CRC32);
         Array.Copy(flagsBytes, 0, result, 33, 2);
         
         return result;
@@ -183,7 +183,7 @@ public class TmsConnectionService : ITmsConnectionService
         
         var packet = new Packet
         {
-            Cmd = (SncCommand)cmdByte.Value,
+            Cmd = (SncProtocolCode)cmdByte.Value,
             Offset = 0,
             Length = 0
         };

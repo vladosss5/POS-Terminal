@@ -1,7 +1,7 @@
 ﻿namespace Terminal.Core.Enums;
 
 [Flags]
-public enum POSFlags : ushort
+public enum PosFlags : ushort
 {
     None    = 0x00,
     CRC32   = 0x01,

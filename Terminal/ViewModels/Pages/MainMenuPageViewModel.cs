@@ -8,7 +8,9 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
@@ -58,6 +60,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     private readonly ITmsConnectionService _tmsService;
 
+    private readonly IIncassationService _incassationService;
+
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -78,7 +82,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IConfigurationService configurationService, 
         IAuthPageFactory authPageFactory, 
         IParameterService parameterService, 
-        ITmsConnectionService tmsService) 
+        ITmsConnectionService tmsService, 
+        IIncassationService incassationService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -92,6 +97,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _authPageFactory = authPageFactory;
         _parameterService = parameterService;
         _tmsService = tmsService;
+        _incassationService = incassationService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -251,6 +257,42 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var success = await _tmsService.ConnectAndAuthorizeAsync(terminalId, serverHost, port);
     }
     
+    private async Task PerformIncassation()
+    {
+        try
+        {
+            var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+        
+            if (openShift == null)
+            {
+                await _messageBoxService.ShowMessageBoxAsync(
+                    "Ошибка", 
+                    "Смена не открыта. Инкассация невозможна.",
+                    ButtonEnum.Ok,
+                    Icon.Error);
+                return;
+            }
+        
+            // var confirmed = await _messageBoxService.ShowMessageBoxAsync(
+            //     "Подтверждение",
+            //     $"Выполнить инкассацию для смены №{openShift.ShiftKey}?\n" +
+            //     "Будут собраны и отправлены все данные о продажах и операциях.",
+            //     ButtonEnum.YesNo,
+            //     Icon.Question);
+            
+            
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при выполнении инкассации");
+            await _messageBoxService.ShowMessageBoxAsync(
+                "Ошибка",
+                $"Ошибка: {ex.Message}",
+                ButtonEnum.Ok,
+                Icon.Error);
+        }
+    }
+    
     /// <summary>
     /// Создать кнопки главного меню.
     /// </summary>
@@ -289,7 +331,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Инкассация"
+                Title = "Инкассация",
+                Command = new AsyncRelayCommand(PerformIncassation)
             },
             new MainMenuItemModel
             {

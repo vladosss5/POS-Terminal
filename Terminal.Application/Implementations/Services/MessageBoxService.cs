@@ -8,12 +8,11 @@ namespace Terminal.Application.Implementations.Services;
 public class MessageBoxService : IMessageBoxService
 {
     /// <inheritdoc/>
-    public async Task ShowMessageBoxAsync(
-        string title, 
-        string message, 
-        ButtonEnum buttonEnum = ButtonEnum.Ok, 
+    public async Task<ButtonResult> ShowMessageBoxAsync(string title,
+        string message,
+        ButtonEnum buttonEnum = ButtonEnum.Ok,
         Icon icon = Icon.None)
     {
-        await MessageBoxManager.GetMessageBoxStandard(title, message, buttonEnum, icon).ShowAsync();
+        return await MessageBoxManager.GetMessageBoxStandard(title, message, buttonEnum, icon).ShowAsync();
     }
 }

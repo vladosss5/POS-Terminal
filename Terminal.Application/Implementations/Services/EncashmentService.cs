@@ -1,0 +1,613 @@
+﻿using System.Data.Common;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Models;
+using System.IO.Compression;
+using System.Text;
+
+namespace Terminal.Application.Implementations.Services;
+
+/// <summary>
+/// Сервис инкассации - отвечает за обмен данными с TMS сервером
+/// </summary>
+public class EncashmentService : IEncashmentService
+{
+    private readonly EncashmentConfig _config;
+    private readonly ITmsClient _tmsClient;
+    private readonly ILogger _logger;
+    private readonly string _connectionString;
+    
+    /// <summary>
+    /// Событие для отслеживания прогресса
+    /// </summary>
+    public event Func<string, Task>? ProgressUpdated;
+    
+    public EncashmentService(
+        ITmsClient tmsClient,
+        ILogger<EncashmentService> logger)
+    {
+        _config = new EncashmentConfig();
+        _tmsClient = tmsClient;
+        _logger = logger;
+        _connectionString = $"Data Source={_config.DatabasePath}";
+    }
+    
+    /// <summary>
+    /// Выполнить инкассацию - полный цикл обмена с сервером
+    /// Соответствует CSncProtocol::SendTransactions()
+    /// </summary>
+    public async Task<EncashmentResult> ExecuteEncashmentAsync(CancellationToken cancellationToken = default)
+    {
+        var result = new EncashmentResult
+        {
+            Success = true,
+            Data = { StartDate = DateTime.Now }
+        };
+        
+        try
+        {
+            Directory.CreateDirectory(_config.OutPath);
+            Directory.CreateDirectory(_config.InPath);
+            Directory.CreateDirectory(_config.UpdatePath);
+            
+            await OnProgressAsync("Подключение к серверу...");
+            if (!await _tmsClient.ConnectAsync(cancellationToken))
+            {
+                result.Success = false;
+                result.ErrorMessage = "Не удалось подключиться к серверу";
+                return result;
+            }
+            
+            await OnProgressAsync("Авторизация...");
+            var auth = await _tmsClient.AuthorizeAsync(cancellationToken);
+            result.Data.AuthSuccess = auth.Success;
+            
+            if (!auth.Success)
+            {
+                result.Success = false;
+                result.ErrorMessage = auth.ErrorMessage ?? "Ошибка авторизации";
+                return result;
+            }
+            
+            await OnProgressAsync("Проверка обновлений...");
+            var updates = await _tmsClient.ReceiveUpdatesAsync(cancellationToken);
+            if (updates is { Success: true, SavedFiles.Count: > 0 })
+            {
+                var updateResult = await ApplyUpdatesAsync(updates.SavedFiles[0], cancellationToken);
+                result.NeedRestart = updateResult;
+            }
+            
+            // 4. Получение обновлений таблиц (справочников)
+            await OnProgressAsync("Получение справочников...");
+            var tables = await _tmsClient.ReceiveTablesAsync(cancellationToken);
+            if (tables.Success && tables.SavedFiles.Count > 0)
+            {
+                await ApplyTablesAsync(tables.SavedFiles, cancellationToken);
+            }
+            
+            // 5. Отправка данных по каждому типу таблиц
+            var hasData = await SendAllTablesAsync(cancellationToken, result);
+            
+            // 6. Отправка файла конфигурации (если требуется)
+            await SendConfigurationFileAsync(cancellationToken);
+            
+            // 7. Завершение сеанса
+            await OnProgressAsync("Завершение сеанса...");
+            await _tmsClient.EndDialogAsync(cancellationToken);
+            
+            result.HasData = hasData;
+            result.Data.EndDate = DateTime.Now;
+            
+            if (!hasData)
+                await OnProgressAsync("Нет данных для передачи");
+            else
+                await OnProgressAsync("Инкассация завершена");
+            
+            // 8. Печать отчета об инкассации (если есть принтер)
+            await PrintIncassationReportAsync(result.Data, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            result.Success = false;
+            result.ErrorMessage = ex.Message;
+            _logger.LogError(ex, "Encashment failed");
+        }
+        finally
+        {
+            await _tmsClient.DisconnectAsync();
+        }
+        
+        return result;
+    }
+    
+    /// <summary>
+    /// Отправка всех таблиц с данными на сервер
+    /// </summary>
+    private async Task<bool> SendAllTablesAsync(CancellationToken cancellationToken, EncashmentResult result)
+    {
+        var hasData = false;
+
+        await using var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken);
+        
+        foreach (var table in GetTablesToSend())
+        {
+            await OnProgressAsync($"Подготовка {table.DisplayName}...");
+            
+            // Получаем непереданные записи (ErrorCode = 0 - не отправлено)
+            var unsentData = await GetUnsentDataAsync(connection, table.Name, table.KeyField, cancellationToken);
+            
+            var incassItem = new IncassationItem
+            {
+                TableName = table.Name,
+                TableKey = table.KeyField,
+                IncassBefore = unsentData.Count,
+                Message = table.DisplayName,
+                DoNotPrintIfEmpty = table.DoNotPrintIfEmpty
+            };
+            
+            if (unsentData.Count == 0)
+            {
+                result.Data.Items.Add(incassItem);
+                continue;
+            }
+            
+            hasData = true;
+            
+            await OnProgressAsync($"Отправка {table.DisplayName} ({unsentData.Count} записей)...");
+            
+            // Создаем zip архив с данными
+            var zipData = await CreateDataArchiveAsync(table.Name, table.KeyField, unsentData, cancellationToken);
+            
+            // Отправляем на сервер
+            var sendResult = await _tmsClient.SendTableAsync(table.Name, table.KeyField, zipData, cancellationToken);
+            
+            if (sendResult.Success && sendResult.ResponseData != null)
+            {
+                await ProcessServerResponseAsync(connection, table.Name, table.KeyField, sendResult.ResponseData, cancellationToken);
+            }
+            
+            incassItem.IncassAfter = await GetUnsentCountAsync(connection, table.Name, cancellationToken);
+            incassItem.Success = sendResult.Success;
+            
+            result.Data.Items.Add(incassItem);
+        }
+        
+        return hasData;
+    }
+    
+    /// <summary>
+    /// Получение непереданных записей из таблицы
+    /// </summary>
+    private async Task<List<Dictionary<string, object?>>> GetUnsentDataAsync(
+        SqliteConnection connection, 
+        string tableName, 
+        string keyField,
+        CancellationToken cancellationToken)
+    {
+        var result = new List<Dictionary<string, object?>>();
+        
+        // Запрос на получение непереданных записей (ErrorCode = 0)
+        var sql = $"SELECT * FROM {tableName} WHERE IFNULL(ErrorCode, 0) = 0";
+
+        await using var command = new SqliteCommand(sql, connection);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        
+        // Получаем схему таблицы
+        var schema = reader.GetColumnSchema();
+        var columnNames = schema.Select(c => c.ColumnName).ToList();
+        
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var record = new Dictionary<string, object?>();
+            foreach (var column in columnNames)
+            {
+                record[column] = reader[column];
+            }
+            result.Add(record);
+        }
+        
+        return result;
+    }
+    
+    /// <summary>
+    /// Получение количества непереданных записей
+    /// </summary>
+    private async Task<int> GetUnsentCountAsync(SqliteConnection connection, string tableName, CancellationToken cancellationToken)
+    {
+        var sql = $"SELECT COUNT(*) FROM {tableName} WHERE IFNULL(ErrorCode, 0) = 0";
+        using var command = new SqliteCommand(sql, connection);
+        return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
+    }
+    
+    /// <summary>
+    /// Создание zip архива с данными для отправки
+    /// Формат соответствует ожиданиям сервера (SendTable)
+    /// </summary>
+    private async Task<byte[]> CreateDataArchiveAsync(
+        string tableName, 
+        string keyField, 
+        List<Dictionary<string, object?>> records,
+        CancellationToken cancellationToken)
+    {
+        using var memoryStream = new MemoryStream();
+        
+        using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+        {
+            // Формируем info файл: имя_таблицы;колонки;ключевое_поле
+            var columns = records.Count > 0 
+                ? string.Join(",", records[0].Keys) 
+                : string.Empty;
+            var infoContent = $"{tableName};{columns};{keyField}";
+            var infoEntry = zip.CreateEntry("info");
+            using var infoStream = infoEntry.Open();
+            var infoBytes = Encoding.UTF8.GetBytes(infoContent);
+            await infoStream.WriteAsync(infoBytes, cancellationToken);
+            
+            // Формируем data файл: значения полей через табуляцию
+            var dataContent = new StringBuilder();
+            foreach (var record in records)
+            {
+                var values = record.Values.Select(v => FormatValueForExport(v));
+                dataContent.AppendLine(string.Join("\t", values));
+            }
+            
+            var dataEntry = zip.CreateEntry("data");
+            using var dataStream = dataEntry.Open();
+            var dataBytes = Encoding.UTF8.GetBytes(dataContent.ToString());
+            await dataStream.WriteAsync(dataBytes, cancellationToken);
+        }
+        
+        memoryStream.Position = 0;
+        return memoryStream.ToArray();
+    }
+    
+    /// <summary>
+    /// Форматирование значения для экспорта
+    /// </summary>
+    private string FormatValueForExport(object? value)
+    {
+        if (value == null || value == DBNull.Value)
+            return "\\N";
+        
+        return value switch
+        {
+            DateTime dt => dt.ToString("yyyy-MM-dd HH:mm:ss"),
+            decimal d => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            double d => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            float f => f.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            bool b => b ? "1" : "0",
+            byte[] bytes => Convert.ToBase64String(bytes),
+            _ => value.ToString()?.Replace("\t", " ").Replace("\n", " ") ?? "\\N"
+        };
+    }
+    
+    /// <summary>
+    /// Обработка ответа сервера после отправки таблицы
+    /// Обновляет ErrorCode для отправленных записей
+    /// </summary>
+    private async Task ProcessServerResponseAsync(
+        SqliteConnection connection,
+        string tableName,
+        string keyField,
+        SendTableResponseData responseData,
+        CancellationToken cancellationToken)
+    {
+        using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        
+        try
+        {
+            // Обновляем успешно отправленные записи (ErrorCode = 0 -> успех)
+            if (responseData.SuccessKeys.Count > 0)
+            {
+                var keys = string.Join(",", responseData.SuccessKeys);
+                var sql = $"UPDATE {tableName} SET ErrorCode = 0 WHERE {keyField} IN ({keys})";
+                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+            }
+            
+            // Обновляем записи с ошибками (ErrorCode = 1)
+            if (responseData.ErrorKeys.Count > 0)
+            {
+                var keys = string.Join(",", responseData.ErrorKeys);
+                var sql = $"UPDATE {tableName} SET ErrorCode = 1 WHERE {keyField} IN ({keys})";
+                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+            }
+            
+            // Обновляем записи с ошибками сохранения (ErrorCode = 2)
+            if (responseData.ErrorSaveKeys.Count > 0)
+            {
+                var keys = string.Join(",", responseData.ErrorSaveKeys);
+                var sql = $"UPDATE {tableName} SET ErrorCode = 2 WHERE {keyField} IN ({keys})";
+                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+            }
+            
+            await transaction.CommitAsync(cancellationToken);
+            _logger.LogInformation($"Processed server response for {tableName}: Success={responseData.SuccessKeys.Count}, Errors={responseData.ErrorKeys.Count}, ErrorSave={responseData.ErrorSaveKeys.Count}");
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, $"Failed to process server response for {tableName}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Применение обновлений ПО
+    /// </summary>
+    public async Task<bool> ApplyUpdatesAsync(string updatePath, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await OnProgressAsync("Применение обновлений...");
+            
+            // TODO: Полная реализация требует:
+            // 1. Распаковку zip архива с обновлением
+            // 2. Проверку целостности и подписи
+            // 3. Остановку сервисов
+            // 4. Замену файлов
+            // 5. Перезапуск приложения
+            
+            _logger.LogInformation($"Update received: {updatePath}");
+            
+            // Проверяем наличие файла обновления
+            if (!File.Exists(updatePath))
+            {
+                _logger.LogWarning($"Update file not found: {updatePath}");
+                return false;
+            }
+            
+            // Распаковываем обновление во временную директорию
+            var extractPath = Path.Combine(_config.UpdatePath, "temp_" + Guid.NewGuid());
+            Directory.CreateDirectory(extractPath);
+            
+            ZipFile.ExtractToDirectory(updatePath, extractPath, true);
+            
+            // Проверяем наличие версии
+            var versionFile = Path.Combine(extractPath, "terminal.info");
+            if (File.Exists(versionFile))
+            {
+                var version = await File.ReadAllTextAsync(versionFile, cancellationToken);
+                _logger.LogInformation($"Update version: {version}");
+            }
+            
+            // TODO: Здесь должна быть логика применения обновления
+            // В зависимости от содержимого update.zip
+            
+            // Очищаем временные файлы
+            Directory.Delete(extractPath, true);
+            File.Delete(updatePath);
+            
+            return true; // true если требуется перезагрузка
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Apply updates failed");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Применение полученных таблиц (справочников)
+    /// </summary>
+    public async Task<bool> ApplyTablesAsync(IEnumerable<string> tableFiles, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await OnProgressAsync("Применение справочников...");
+
+            await using var connection = new SqliteConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken);
+
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+            
+            foreach (var file in tableFiles)
+            {
+                await OnProgressAsync($"Обработка {Path.GetFileName(file)}...");
+
+                await using var zip = await ZipFile.OpenReadAsync(file, cancellationToken);
+                
+                // Читаем info файл
+                var infoEntry = zip.GetEntry("info");
+                if (infoEntry == null)
+                {
+                    _logger.LogWarning($"No info file in {file}");
+                    continue;
+                }
+
+                await using var infoStream = await infoEntry.OpenAsync(cancellationToken);
+                using var infoReader = new StreamReader(infoStream, Encoding.UTF8);
+                var infoContent = await infoReader.ReadToEndAsync(cancellationToken);
+                var infoParts = infoContent.Split(';');
+                
+                if (infoParts.Length < 3)
+                {
+                    _logger.LogWarning($"Invalid info format in {file}");
+                    continue;
+                }
+                
+                var tableName = infoParts[0];
+                // var columns = infoParts[1];
+                // var keyField = infoParts[2];
+                
+                // Читаем data файл
+                var dataEntry = zip.GetEntry("data");
+                if (dataEntry == null)
+                {
+                    _logger.LogWarning($"No data file in {file}");
+                    continue;
+                }
+
+                await using var dataStream = dataEntry.Open();
+                using var dataReader = new StreamReader(dataStream, Encoding.UTF8);
+                
+                // Очищаем таблицу перед вставкой (если требуется)
+                // TODO: В зависимости от типа таблицы, возможно нужно использовать REPLACE или MERGE
+                var clearSql = $"DELETE FROM {tableName}";
+                await using var clearCmd = new SqliteCommand(clearSql, connection, (SqliteTransaction)transaction);
+                await clearCmd.ExecuteNonQueryAsync(cancellationToken);
+                
+                // Читаем и выполняем SQL скрипты
+                var sqlContent = await dataReader.ReadToEndAsync(cancellationToken);
+                var statements = SplitSqlStatements(sqlContent);
+                
+                foreach (var statement in statements.Where(statement => !string.IsNullOrWhiteSpace(statement)))
+                {
+                    await using var cmd = new SqliteCommand(statement, connection, (SqliteTransaction)transaction);
+                    await cmd.ExecuteNonQueryAsync(cancellationToken);
+                }
+            }
+            
+            await transaction.CommitAsync(cancellationToken);
+            
+            // Очищаем временные файлы
+            foreach (var file in tableFiles)
+            {
+                try { File.Delete(file); } catch { }
+            }
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Apply tables failed");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Разделение SQL скрипта на отдельные statements
+    /// </summary>
+    private List<string> SplitSqlStatements(string sql)
+    {
+        var statements = new List<string>();
+        var currentStatement = new StringBuilder();
+        var inString = false;
+        var inQuote = false;
+        
+        foreach (var c in sql)
+        {
+            switch (c)
+            {
+                case '\'' when !inQuote:
+                    inString = !inString;
+                    break;
+                case '"' when !inString:
+                    inQuote = !inQuote;
+                    break;
+            }
+            
+            if (!inString && !inQuote && c == ';')
+            {
+                statements.Add(currentStatement.ToString().Trim());
+                currentStatement.Clear();
+                continue;
+            }
+            
+            currentStatement.Append(c);
+        }
+        
+        var lastStatement = currentStatement.ToString().Trim();
+        if (!string.IsNullOrEmpty(lastStatement))
+            statements.Add(lastStatement);
+        
+        return statements;
+    }
+    
+    /// <summary>
+    /// Отправка файла конфигурации на сервер
+    /// </summary>
+    private async Task SendConfigurationFileAsync(CancellationToken cancellationToken)
+    {
+        var configPath = Path.Combine(_config.OutPath, "config.zip");
+        if (!File.Exists(configPath))
+        {
+            configPath = await CreateConfigurationZipAsync(cancellationToken);
+        }
+        
+        if (File.Exists(configPath))
+        {
+            await _tmsClient.SendFileAsync(configPath, "config.zip", cancellationToken);
+            File.Delete(configPath);
+        }
+    }
+    
+    /// <summary>
+    /// Создание zip архива с конфигурацией
+    /// Соответствует CSncProtocol::MakeConfigCopy()
+    /// </summary>
+    private async Task<string> CreateConfigurationZipAsync(CancellationToken cancellationToken)
+    {
+        var configPath = Path.Combine(_config.OutPath, $"config_{DateTime.Now:yyyyMMddHHmmss}.zip");
+        Directory.CreateDirectory(_config.OutPath);
+
+        await using var zip = await ZipFile.OpenAsync(configPath, ZipArchiveMode.Create, cancellationToken);
+        
+        // Добавляем файлы конфигурации
+        var filesToAdd = new[]
+        {
+            ("terminal.db", "terminal.db"),
+            ("terminal.info", "terminal.info"),
+            ("config.xml", "config.xml"),
+            ("menu.xml", "menu.xml"),
+            ("params.xml", "params.xml"),
+            ("chanels.xml", "chanels.xml"),
+            ("schema.xml", "schema.xml"),
+            ("limitation.xml", "limitation.xml")
+        };
+        
+        foreach (var (source, dest) in filesToAdd)
+        {
+            var sourcePath = Path.Combine(AppContext.BaseDirectory, source);
+            if (File.Exists(sourcePath))
+            {
+                await zip.CreateEntryFromFileAsync(sourcePath, dest, cancellationToken);
+            }
+        }
+        
+        // TODO: Добавить сертификат (cert.pem)
+        
+        return configPath;
+    }
+    
+    /// <summary>
+    /// Печать отчета об инкассации
+    /// </summary>
+    private async Task PrintIncassationReportAsync(IncassationData data, CancellationToken cancellationToken)
+    {
+        // TODO: Реализация печати отчета
+        // Формирование чека инкассации аналогично CPrinterTaskIncassation
+        _logger.LogInformation($"Incassation completed: Start={data.StartDate}, End={data.EndDate}, AuthSuccess={data.AuthSuccess}");
+    }
+    
+    
+    /// <summary>
+    /// Получение списка таблиц для отправки
+    /// Порядок соответствует C++ клиенту
+    /// </summary>
+    private List<(string Name, string KeyField, string DisplayName, bool DoNotPrintIfEmpty)> GetTablesToSend()
+    {
+        return
+        [
+            ("selling", "TransactionShopKey", "транзакций", false),
+            ("shift", "ShiftShopKey", "смен", false),
+            ("card_update", "CardUpdateKey", "корректировок", false),
+            ("repayment", "RepaymentShopKey", "возвратов", false),
+            ("ProtocolFilingForm", "ProtokolFillingFormKey", "журнала событий", false),
+            ("payment", "PaymentShopKey", "платежей", true),
+            ("pos_update", "PosUpdateShopKey", "обновлений POS", true),
+            ("dispenser", "DispenserShopKey", "остатков", true)
+        ];
+    }
+    
+    private async Task OnProgressAsync(string message)
+    {
+        _logger.LogInformation(message);
+        if (ProgressUpdated != null)
+            await ProgressUpdated.Invoke(message);
+    }
+}

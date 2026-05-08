@@ -60,8 +60,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     private readonly ITmsConnectionService _tmsService;
 
-    private readonly IIncassationService _incassationService;
-
+    private readonly IEncashmentService _encashmentService;
+    
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -83,7 +83,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IAuthPageFactory authPageFactory, 
         IParameterService parameterService, 
         ITmsConnectionService tmsService, 
-        IIncassationService incassationService) 
+        IEncashmentService encashmentService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -97,7 +97,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _authPageFactory = authPageFactory;
         _parameterService = parameterService;
         _tmsService = tmsService;
-        _incassationService = incassationService;
+        _encashmentService = encashmentService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -257,7 +257,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var success = await _tmsService.ConnectAndAuthorizeAsync(terminalId, serverHost, port);
     }
     
-    private async Task PerformIncassation()
+    private async Task ExecuteEncashmentAsync()
     {
         try
         {
@@ -272,6 +272,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                     Icon.Error);
                 return;
             }
+            
+            var result = await _encashmentService.ExecuteEncashmentAsync();
         
             // var confirmed = await _messageBoxService.ShowMessageBoxAsync(
             //     "Подтверждение",
@@ -332,7 +334,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Инкассация",
-                Command = new AsyncRelayCommand(PerformIncassation)
+                Command = new AsyncRelayCommand(ExecuteEncashmentAsync)
             },
             new MainMenuItemModel
             {

@@ -10,8 +10,8 @@ namespace Terminal.Application.Implementations.Services;
 
 public class TmsClient : ITmsClient
 {
-    private readonly TmsClientConfig _config;
-    private readonly ILogger _logger;
+    private readonly TmsClientConfig _config = new();
+    private readonly ILogger<TmsClient> _logger;
     private TcpClient? _tcpClient;
     private NetworkStream? _stream;
     private SerialPort? _serialPort;
@@ -53,16 +53,27 @@ public class TmsClient : ITmsClient
     private const int VersionLen = 20;
     private const int ProtocolVersionLen = 1;
     private const int ProtocolMaskLen = 2;
-    
+
+    private readonly IParameterService _parameterService;
     private readonly SemaphoreSlim _packetSemaphore = new(0, 1);
     private IPacket? _receivedPacket;
     
     public bool IsConnected => _isConnected;
     
-    public TmsClient(TmsClientConfig config, ILogger logger)
+    public TmsClient(
+        ILogger<TmsClient> logger, 
+        IParameterService parameterService)
     {
-        _config = config;
         _logger = logger;
+        _parameterService = parameterService;
+        
+        ConfigureThis().GetAwaiter().GetResult();
+    }
+
+    private async Task ConfigureThis()
+    {
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        _config.TerminalNumber = terminalNumber;
     }
     
     public async Task<bool> ConnectAsync(CancellationToken cancellationToken = default)
@@ -93,7 +104,6 @@ public class TmsClient : ITmsClient
             _isConnected = true;
             _logger.LogInformation($"Connected to TMS server via {_config.ConnectionType}");
             
-            // Запускаем прием пакетов
             _ = Task.Run(() => ReceivePacketsAsync(cancellationToken), cancellationToken);
             
             return true;
@@ -154,7 +164,7 @@ public class TmsClient : ITmsClient
             var packet = new SncPacket((byte)SncProtocolCode.Authorize, 0, data);
             
             // Отправляем и ждем ответ
-            if (!await WritePacketWithWaitAsync(packet, timeoutMs: _config.TimeoutMs, cancellationToken))
+            if (!(await WritePacketWithWaitAsync(packet, timeoutMs: _config.TimeoutMs, cancellationToken)).Success)
             {
                 result.ErrorMessage = "No response for authorize";
                 return result;
@@ -233,10 +243,9 @@ public class TmsClient : ITmsClient
         
         try
         {
-            // Запрос на получение таблиц
-            var packet = new SncPacket((byte)SncProtocolCode.Receive, 0, Array.Empty<byte>());
+            var packet = new SncPacket((byte)SncProtocolCode.Receive, 0, []);
             
-            if (!await WritePacketWithWaitAsync(packet, timeoutMs: 20000, cancellationToken))
+            if (!(await WritePacketWithWaitAsync(packet, timeoutMs: 20000, cancellationToken)).Success)
             {
                 result.Success = false;
                 return result;
@@ -249,33 +258,31 @@ public class TmsClient : ITmsClient
                 return result;
             }
             
-            // Количество пакетов
             result.PacketCount = response.Data[1] | (response.Data[2] << 8);
             
-            // Получаем каждый пакет
             for (ushort i = 0; i < result.PacketCount && !cancellationToken.IsCancellationRequested; i++)
             {
                 await OnUpdateProgressAsync($"Получение пакета {i + 1} из {result.PacketCount}");
                 
                 var dataPacket = new SncPacket((byte)SncProtocolCode.DataI, i, BitConverter.GetBytes(i));
                 
-                if (!await WritePacketWithWaitAsync(dataPacket, timeoutMs: _config.TimeoutMs, cancellationToken))
+                if (!(await WritePacketWithWaitAsync(dataPacket, timeoutMs: _config.TimeoutMs, cancellationToken)).Success)
                 {
                     _logger.LogWarning($"Failed to receive packet {i}");
                     continue;
                 }
                 
                 var dataResponse = _receivedPacket as SncPacket;
-                if (dataResponse?.Data != null && dataResponse.Data.Length > 0)
-                {
-                    var fileName = Path.Combine(GetIncomingPath(), $"file{i:D3}.zip");
-                    await File.WriteAllBytesAsync(fileName, dataResponse.Data, cancellationToken);
-                    result.SavedFiles.Add(fileName);
-                }
+                
+                if (dataResponse?.Data is not { Length: > 0 }) 
+                    continue;
+                
+                var fileName = Path.Combine(GetIncomingPath(), $"file{i:D3}.zip");
+                await File.WriteAllBytesAsync(fileName, dataResponse.Data, cancellationToken);
+                result.SavedFiles.Add(fileName);
             }
             
-            // Завершение приема файлов
-            var endPacket = new SncPacket((byte)SncProtocolCode.EndFile, 0, Array.Empty<byte>());
+            var endPacket = new SncPacket((byte)SncProtocolCode.EndFile, 0, []);
             await WritePacketWithWaitAsync(endPacket, timeoutMs: _config.TimeoutMs, cancellationToken);
             
             result.Success = true;
@@ -299,7 +306,7 @@ public class TmsClient : ITmsClient
             
             var packet = new SncPacket((byte)SncProtocolCode.ReceiveUpdate, 0, Array.Empty<byte>());
             
-            if (!await WritePacketWithWaitAsync(packet, timeoutMs: 20000, cancellationToken))
+            if (!(await WritePacketWithWaitAsync(packet, timeoutMs: 20000, cancellationToken)).Success)
             {
                 result.Success = false;
                 return result;
@@ -322,18 +329,19 @@ public class TmsClient : ITmsClient
                 
                 var dataPacket = new SncPacket((byte)SncProtocolCode.DataI, i, BitConverter.GetBytes(i));
                 
-                if (!await WritePacketWithWaitAsync(dataPacket, timeoutMs: _config.TimeoutMs, cancellationToken))
+                if (!(await WritePacketWithWaitAsync(dataPacket, timeoutMs: _config.TimeoutMs, cancellationToken)).Success)
                 {
                     _logger.LogWarning($"Failed to receive update packet {i}");
                     continue;
                 }
                 
                 var dataResponse = _receivedPacket as SncPacket;
-                if (dataResponse?.Data != null && dataResponse.Data.Length > 0)
-                {
-                    await using var fs = new FileStream(updatePath, FileMode.Append, FileAccess.Write);
-                    await fs.WriteAsync(dataResponse.Data, cancellationToken);
-                }
+                
+                if (dataResponse?.Data is not { Length: > 0 }) 
+                    continue;
+                
+                await using var fs = new FileStream(updatePath, FileMode.Append, FileAccess.Write);
+                await fs.WriteAsync(dataResponse.Data, cancellationToken);
             }
             
             var endPacket = new SncPacket((byte)SncProtocolCode.EndUpdate, 0, Array.Empty<byte>());
@@ -360,26 +368,22 @@ public class TmsClient : ITmsClient
             await OnUpdateProgressAsync($"Отправка {tableName}...");
             
             var packet = new SncPacket((byte)SncProtocolCode.SendTable, 0, data);
+
+            var writingPocket = await WritePacketWithWaitAsync(packet, timeoutMs: _config.TimeoutMs, cancellationToken);
             
-            if (!await WritePacketWithWaitAsync(packet, out var response, timeoutMs: _config.TimeoutMs, cancellationToken))
+            if (!writingPocket.Success)
             {
                 result.Success = false;
                 return result;
             }
             
-            var responsePacket = response as SncPacket;
-            if (responsePacket?.Data == null || responsePacket.Data.Length < 1)
+            var responsePacket = writingPocket.Response as SncPacket;
+            if (responsePacket?.Data == null || responsePacket.Data.Length < 1 || responsePacket.Data[0] != 0)
             {
                 result.Success = false;
                 return result;
             }
-            
-            if (responsePacket.Data[0] != 0)
-            {
-                result.Success = false;
-                return result;
-            }
-            
+
             // Распарсить ответ с ключами (success, errors, errorsSave)
             // TODO: Расшифровка zip с результатами
             // Формат ответа: zip с файлами success, errors, errorsSave
@@ -622,18 +626,6 @@ public class TmsClient : ITmsClient
         {
             buffer.Add(data);
         }
-    }
-    
-    /// <summary>
-    /// Отправить пакет и дождаться ответа (без возврата ответа)
-    /// </summary>
-    private async Task<bool> WritePacketWithWaitAsync(
-        IPacket packet, 
-        int timeoutMs = 5000, 
-        CancellationToken cancellationToken = default)
-    {
-        var (success, _) = await WritePacketWithWaitAsync(packet, timeoutMs, cancellationToken);
-        return success;
     }
     
     /// <summary>

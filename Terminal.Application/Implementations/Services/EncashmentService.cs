@@ -5,6 +5,8 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models;
 using System.IO.Compression;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Terminal.Data.Context;
 
 namespace Terminal.Application.Implementations.Services;
 
@@ -18,6 +20,8 @@ public class EncashmentService : IEncashmentService
     private readonly ILogger _logger;
     private readonly string _connectionString;
     
+    private readonly IDbContextFactory<DataContext> _dbFactory;
+    
     /// <summary>
     /// Событие для отслеживания прогресса
     /// </summary>
@@ -25,11 +29,13 @@ public class EncashmentService : IEncashmentService
     
     public EncashmentService(
         ITmsClient tmsClient,
-        ILogger<EncashmentService> logger)
+        ILogger<EncashmentService> logger, 
+        IDbContextFactory<DataContext> dbFactory)
     {
         _config = new EncashmentConfig();
         _tmsClient = tmsClient;
         _logger = logger;
+        _dbFactory = dbFactory;
         _connectionString = $"Data Source={_config.DatabasePath}";
     }
     
@@ -127,16 +133,15 @@ public class EncashmentService : IEncashmentService
     private async Task<bool> SendAllTablesAsync(CancellationToken cancellationToken, EncashmentResult result)
     {
         var hasData = false;
-
-        await using var connection = new SqliteConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken);
+        var tablesToSend = GetTablesToSend();
         
-        foreach (var table in GetTablesToSend())
+        await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        
+        foreach (var table in tablesToSend)
         {
             await OnProgressAsync($"Подготовка {table.DisplayName}...");
             
-            // Получаем непереданные записи (ErrorCode = 0 - не отправлено)
-            var unsentData = await GetUnsentDataAsync(connection, table.Name, table.KeyField, cancellationToken);
+            var unsentData = await GetUnsentDataAsync(db, table.Name, table.KeyField, cancellationToken);
             
             var incassItem = new IncassationItem
             {
@@ -165,10 +170,10 @@ public class EncashmentService : IEncashmentService
             
             if (sendResult.Success && sendResult.ResponseData != null)
             {
-                await ProcessServerResponseAsync(connection, table.Name, table.KeyField, sendResult.ResponseData, cancellationToken);
+                await ProcessServerResponseAsync(db, table.Name, table.KeyField, sendResult.ResponseData, cancellationToken);
             }
             
-            incassItem.IncassAfter = await GetUnsentCountAsync(connection, table.Name, cancellationToken);
+            incassItem.IncassAfter = await GetUnsentCountAsync(db, table.Name, cancellationToken);
             incassItem.Success = sendResult.Success;
             
             result.Data.Items.Add(incassItem);
@@ -181,21 +186,24 @@ public class EncashmentService : IEncashmentService
     /// Получение непереданных записей из таблицы
     /// </summary>
     private async Task<List<Dictionary<string, object?>>> GetUnsentDataAsync(
-        SqliteConnection connection, 
+        DataContext dbContext, 
         string tableName, 
         string keyField,
         CancellationToken cancellationToken)
     {
         var result = new List<Dictionary<string, object?>>();
         
-        // Запрос на получение непереданных записей (ErrorCode = 0)
         var sql = $"SELECT * FROM {tableName} WHERE IFNULL(ErrorCode, 0) = 0";
 
-        await using var command = new SqliteCommand(sql, connection);
+        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
+        command.CommandText = sql;
+        
+        if (command.Connection?.State != System.Data.ConnectionState.Open)
+            await dbContext.Database.OpenConnectionAsync(cancellationToken);
+
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         
-        // Получаем схему таблицы
-        var schema = reader.GetColumnSchema();
+        var schema = await reader.GetColumnSchemaAsync(cancellationToken);
         var columnNames = schema.Select(c => c.ColumnName).ToList();
         
         while (await reader.ReadAsync(cancellationToken))
@@ -203,7 +211,8 @@ public class EncashmentService : IEncashmentService
             var record = new Dictionary<string, object?>();
             foreach (var column in columnNames)
             {
-                record[column] = reader[column];
+                var value = reader[column];
+                record[column] = value == DBNull.Value ? null : value;
             }
             result.Add(record);
         }
@@ -214,51 +223,63 @@ public class EncashmentService : IEncashmentService
     /// <summary>
     /// Получение количества непереданных записей
     /// </summary>
-    private async Task<int> GetUnsentCountAsync(SqliteConnection connection, string tableName, CancellationToken cancellationToken)
+    private async Task<int> GetUnsentCountAsync(
+        DataContext dbContext,
+        string tableName, 
+        CancellationToken cancellationToken)
     {
         var sql = $"SELECT COUNT(*) FROM {tableName} WHERE IFNULL(ErrorCode, 0) = 0";
-        using var command = new SqliteCommand(sql, connection);
-        return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
+
+        await using var command = dbContext.Database.GetDbConnection().CreateCommand();
+        command.CommandText = sql;
+        
+        if (command.Connection?.State != System.Data.ConnectionState.Open)
+            await dbContext.Database.OpenConnectionAsync(cancellationToken);
+        
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return Convert.ToInt32(result);
     }
     
     /// <summary>
     /// Создание zip архива с данными для отправки
-    /// Формат соответствует ожиданиям сервера (SendTable)
     /// </summary>
     private async Task<byte[]> CreateDataArchiveAsync(
-        string tableName, 
-        string keyField, 
+        string tableName,
+        string keyField,
         List<Dictionary<string, object?>> records,
         CancellationToken cancellationToken)
     {
         using var memoryStream = new MemoryStream();
-        
-        using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+
+        await using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
         {
-            // Формируем info файл: имя_таблицы;колонки;ключевое_поле
             var columns = records.Count > 0 
                 ? string.Join(",", records[0].Keys) 
                 : string.Empty;
             var infoContent = $"{tableName};{columns};{keyField}";
-            var infoEntry = zip.CreateEntry("info");
-            using var infoStream = infoEntry.Open();
             var infoBytes = Encoding.UTF8.GetBytes(infoContent);
-            await infoStream.WriteAsync(infoBytes, cancellationToken);
-            
-            // Формируем data файл: значения полей через табуляцию
+        
+            var infoEntry = zip.CreateEntry("info");
+            await using (var infoStream = await infoEntry.OpenAsync(cancellationToken))
+            {
+                await infoStream.WriteAsync(infoBytes, cancellationToken);
+            }
+        
             var dataContent = new StringBuilder();
             foreach (var record in records)
             {
                 var values = record.Values.Select(v => FormatValueForExport(v));
                 dataContent.AppendLine(string.Join("\t", values));
             }
-            
-            var dataEntry = zip.CreateEntry("data");
-            using var dataStream = dataEntry.Open();
             var dataBytes = Encoding.UTF8.GetBytes(dataContent.ToString());
-            await dataStream.WriteAsync(dataBytes, cancellationToken);
-        }
         
+            var dataEntry = zip.CreateEntry("data");
+            await using (var dataStream = await dataEntry.OpenAsync(cancellationToken))
+            {
+                await dataStream.WriteAsync(dataBytes, cancellationToken);
+            }
+        }
+    
         memoryStream.Position = 0;
         return memoryStream.ToArray();
     }
@@ -285,26 +306,25 @@ public class EncashmentService : IEncashmentService
     
     /// <summary>
     /// Обработка ответа сервера после отправки таблицы
-    /// Обновляет ErrorCode для отправленных записей
     /// </summary>
     private async Task ProcessServerResponseAsync(
-        SqliteConnection connection,
+        DataContext db,
         string tableName,
         string keyField,
         SendTableResponseData responseData,
         CancellationToken cancellationToken)
     {
-        using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        // Правильно: BeginTransactionAsync вызывается через db.Database
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         
         try
         {
-            // Обновляем успешно отправленные записи (ErrorCode = 0 -> успех)
+            // Обновляем успешно отправленные записи (ErrorCode = 0)
             if (responseData.SuccessKeys.Count > 0)
             {
                 var keys = string.Join(",", responseData.SuccessKeys);
                 var sql = $"UPDATE {tableName} SET ErrorCode = 0 WHERE {keyField} IN ({keys})";
-                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await db.Database.ExecuteSqlRawAsync(sql, cancellationToken);
             }
             
             // Обновляем записи с ошибками (ErrorCode = 1)
@@ -312,8 +332,7 @@ public class EncashmentService : IEncashmentService
             {
                 var keys = string.Join(",", responseData.ErrorKeys);
                 var sql = $"UPDATE {tableName} SET ErrorCode = 1 WHERE {keyField} IN ({keys})";
-                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await db.Database.ExecuteSqlRawAsync(sql, cancellationToken);
             }
             
             // Обновляем записи с ошибками сохранения (ErrorCode = 2)
@@ -321,12 +340,14 @@ public class EncashmentService : IEncashmentService
             {
                 var keys = string.Join(",", responseData.ErrorSaveKeys);
                 var sql = $"UPDATE {tableName} SET ErrorCode = 2 WHERE {keyField} IN ({keys})";
-                await using var cmd = new SqliteCommand(sql, connection, (SqliteTransaction)transaction);
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await db.Database.ExecuteSqlRawAsync(sql, cancellationToken);
             }
             
             await transaction.CommitAsync(cancellationToken);
-            _logger.LogInformation($"Processed server response for {tableName}: Success={responseData.SuccessKeys.Count}, Errors={responseData.ErrorKeys.Count}, ErrorSave={responseData.ErrorSaveKeys.Count}");
+            _logger.LogInformation($"Processed server response for {tableName}: " +
+                $"Success={responseData.SuccessKeys.Count}, " +
+                $"Errors={responseData.ErrorKeys.Count}, " +
+                $"ErrorSave={responseData.ErrorSaveKeys.Count}");
         }
         catch (Exception ex)
         {
@@ -399,19 +420,19 @@ public class EncashmentService : IEncashmentService
         try
         {
             await OnProgressAsync("Применение справочников...");
-
-            await using var connection = new SqliteConnection(_connectionString);
-            await connection.OpenAsync(cancellationToken);
-
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             
-            foreach (var file in tableFiles)
+            await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            
+            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+            var tableFilesArray = tableFiles as string[] ?? tableFiles.ToArray();
+            
+            foreach (var file in tableFilesArray)
             {
                 await OnProgressAsync($"Обработка {Path.GetFileName(file)}...");
 
                 await using var zip = await ZipFile.OpenReadAsync(file, cancellationToken);
                 
-                // Читаем info файл
                 var infoEntry = zip.GetEntry("info");
                 if (infoEntry == null)
                 {
@@ -431,41 +452,31 @@ public class EncashmentService : IEncashmentService
                 }
                 
                 var tableName = infoParts[0];
-                // var columns = infoParts[1];
-                // var keyField = infoParts[2];
                 
-                // Читаем data файл
                 var dataEntry = zip.GetEntry("data");
                 if (dataEntry == null)
                 {
                     _logger.LogWarning($"No data file in {file}");
                     continue;
                 }
-
-                await using var dataStream = dataEntry.Open();
+                
+                using var dataStream = dataEntry.Open();
                 using var dataReader = new StreamReader(dataStream, Encoding.UTF8);
-                
-                // Очищаем таблицу перед вставкой (если требуется)
-                // TODO: В зависимости от типа таблицы, возможно нужно использовать REPLACE или MERGE
-                var clearSql = $"DELETE FROM {tableName}";
-                await using var clearCmd = new SqliteCommand(clearSql, connection, (SqliteTransaction)transaction);
-                await clearCmd.ExecuteNonQueryAsync(cancellationToken);
-                
-                // Читаем и выполняем SQL скрипты
                 var sqlContent = await dataReader.ReadToEndAsync(cancellationToken);
                 var statements = SplitSqlStatements(sqlContent);
                 
-                foreach (var statement in statements.Where(statement => !string.IsNullOrWhiteSpace(statement)))
+                // Очищаем таблицу перед вставкой
+                await db.Database.ExecuteSqlRawAsync($"DELETE FROM {tableName}", cancellationToken);
+                
+                foreach (var statement in statements.Where(s => !string.IsNullOrWhiteSpace(s)))
                 {
-                    await using var cmd = new SqliteCommand(statement, connection, (SqliteTransaction)transaction);
-                    await cmd.ExecuteNonQueryAsync(cancellationToken);
+                    await db.Database.ExecuteSqlRawAsync(statement, cancellationToken);
                 }
             }
             
             await transaction.CommitAsync(cancellationToken);
             
-            // Очищаем временные файлы
-            foreach (var file in tableFiles)
+            foreach (var file in tableFilesArray)
             {
                 try { File.Delete(file); } catch { }
             }

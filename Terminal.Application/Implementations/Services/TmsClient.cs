@@ -58,6 +58,8 @@ public class TmsClient : ITmsClient
     private readonly SemaphoreSlim _packetSemaphore = new(0, 1);
     private IPacket? _receivedPacket;
     
+    private TaskCompletionSource<IPacket?>? _pendingResponse;
+    private readonly object _pendingLock = new();
     public bool IsConnected => _isConnected;
     
     public TmsClient(
@@ -146,7 +148,15 @@ public class TmsClient : ITmsClient
         
         try
         {
-            // Формируем пакет авторизации
+            // 1. Отправляем StartPacket
+            _logger.LogDebug("Sending StartPacket");
+            var startPacket = new SncPacket((byte)SncProtocolCode.StartPacket, 0, Array.Empty<byte>());
+            await WritePacketAsync(startPacket, cancellationToken);
+            
+            // Небольшая задержка перед отправкой Authorize
+            await Task.Delay(100, cancellationToken);
+            
+            // 2. Формируем пакет авторизации
             var packetLen = TerminalNumberLen + VersionLen + ProtocolVersionLen;
             var data = new byte[packetLen];
             
@@ -163,14 +173,21 @@ public class TmsClient : ITmsClient
             
             var packet = new SncPacket((byte)SncProtocolCode.Authorize, 0, data);
             
-            // Отправляем и ждем ответ
-            if (!(await WritePacketWithWaitAsync(packet, timeoutMs: _config.TimeoutMs, cancellationToken)).Success)
+            _logger.LogInformation("Sending Authorize packet, waiting for response...");
+            
+            // 3. Отправляем и ждем ответ - ИСПОЛЬЗУЕМ возвращаемый Response
+            var (success, responsePacket) = await WritePacketWithWaitAsync(packet, timeoutMs: _config.TimeoutMs, cancellationToken);
+            
+            if (!success || responsePacket == null)
             {
                 result.ErrorMessage = "No response for authorize";
+                _logger.LogError(result.ErrorMessage);
                 return result;
             }
             
-            var response = _receivedPacket as SncPacket;
+            _logger.LogInformation("Received authorize response, Cmd:0x{Command:X2}", responsePacket.Cmd);
+            
+            var response = responsePacket as SncPacket;
             if (response?.Data == null || response.Data.Length < 1)
             {
                 result.ErrorMessage = "Invalid authorize response";
@@ -208,20 +225,9 @@ public class TmsClient : ITmsClient
                 offset += 8;
             }
             
-            // Получение конфигурации
-            if (result.Flags.HasFlag(AuthorizeFlags.GetConfiguration))
-            {
-                // TODO: Запрос конфигурации
-            }
-            
             // Шифрование
-            if (result.Flags.HasFlag(AuthorizeFlags.Crypto) && result.Flags.HasFlag(AuthorizeFlags.Crypto))
+            if (result.Flags.HasFlag(AuthorizeFlags.Crypto))
             {
-                // TODO: Загрузка сертификата и обмен ключами
-                // Это потребует реализации:
-                // 1. Проверка сертификата сервера
-                // 2. Генерация ключей Vmpc
-                // 3. Отправка ключей через AuthorizeKey
                 _isCrypto = true;
             }
             
@@ -499,7 +505,6 @@ public class TmsClient : ITmsClient
     
     private void ProcessByte(byte data)
     {
-        // Обработка escape последовательностей
         if (data == Fesk)
         {
             _isFend = true;
@@ -566,7 +571,18 @@ public class TmsClient : ITmsClient
                 if (calcCrc == _receivedCrc)
                 {
                     _receivedPacket = packet;
-                    _packetSemaphore.Release();
+                    
+                    lock (_pendingLock)
+                    {
+                        _pendingResponse?.TrySetResult(packet);
+                        _pendingResponse = null;
+                    }
+                    
+                    _logger.LogDebug($"Packet received: Cmd={_packetCmd}, Len={_packetLen}");
+                }
+                else
+                {
+                    _logger.LogWarning($"CRC mismatch: expected={calcCrc}, received={_receivedCrc}");
                 }
                 
                 ResetState();
@@ -637,25 +653,38 @@ public class TmsClient : ITmsClient
         int timeoutMs = 5000, 
         CancellationToken cancellationToken = default)
     {
-        _receivedPacket = null;
-    
-        await WritePacketAsync(packet, cancellationToken);
-    
-        if (timeoutMs == 0)
-            return (true, null);
-    
+        var tcs = new TaskCompletionSource<IPacket?>();
+        
+        lock (_pendingLock)
+            _pendingResponse = tcs;
+        
         try
         {
+            await WritePacketAsync(packet, cancellationToken);
+            _logger.LogDebug($"Packet sent: Cmd={packet.Cmd}, waiting for response...");
+        
             using var cts = new CancellationTokenSource(timeoutMs);
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
-        
-            await _packetSemaphore.WaitAsync(linkedCts.Token);
-            return (true, _receivedPacket);
+
+            await using (linkedCts.Token.Register(() => tcs.TrySetResult(null)))
+            {
+                var response = await tcs.Task;
+
+                if (response != null) 
+                    return (true, response);
+                
+                _logger.LogWarning($"Timeout waiting for response to packet Cmd={packet.Cmd}");
+                return (false, null);
+
+            }
         }
-        catch (OperationCanceledException)
+        finally
         {
-            _logger.LogWarning($"Wait timeout for packet {packet.Cmd}");
-            return (false, null);
+            lock (_pendingLock)
+            {
+                if (_pendingResponse == tcs)
+                    _pendingResponse = null;
+            }
         }
     }
     

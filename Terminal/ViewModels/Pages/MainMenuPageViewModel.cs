@@ -275,6 +275,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             
             var result = await _encashmentService.ExecuteEncashmentAsync();
         
+            await _messageBoxService.ShowMessageBoxAsync(
+                "Подтверждение",
+                result.ErrorMessage,
+                ButtonEnum.Ok,
+                Icon.Info);
             // var confirmed = await _messageBoxService.ShowMessageBoxAsync(
             //     "Подтверждение",
             //     $"Выполнить инкассацию для смены №{openShift.ShiftKey}?\n" +

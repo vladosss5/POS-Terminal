@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 
 namespace Terminal.Services;
@@ -22,6 +24,16 @@ public class ConfigurationService : IConfigurationService
     /// Путь к конфигурации в файловой системе.
     /// </summary>
     private readonly string _configFilePath;
+    
+    /// <summary>
+    /// Название файла таблиц выгружаемых в TMS.
+    /// </summary>
+    private const string TableToSendFileName = "TablesToSend.json";
+    
+    /// <summary>
+    /// Путь к файлу таблиц выгружаемых в TMS.
+    /// </summary>
+    private readonly string _tableToSendFilePath;
 
     private readonly ILogger<ConfigurationService> _logger;
     
@@ -62,6 +74,7 @@ public class ConfigurationService : IConfigurationService
             : AppContext.BaseDirectory;
 
         _configFilePath = Path.Combine(baseDirectory, ConfigFileName);
+        _tableToSendFilePath = Path.Combine(baseDirectory, TableToSendFileName);
     }
 
     public SettingsModel CurrentSetting
@@ -99,7 +112,7 @@ public class ConfigurationService : IConfigurationService
             try
             {
                 if (!File.Exists(_configFilePath) || IsDebugBuild())
-                    CopyConfigFromResources();
+                    CopyConfigFromResources(ConfigFileName, _configFilePath);
                 
                 if (File.Exists(_configFilePath))
                 {
@@ -145,10 +158,29 @@ public class ConfigurationService : IConfigurationService
         }
     }
 
+    public List<TableToSendDto> GetTablesToSend()
+    {
+        if (!File.Exists(_tableToSendFilePath) || IsDebugBuild())
+            CopyConfigFromResources(TableToSendFileName, _tableToSendFilePath);
+
+        List<TableToSendDto> tables = [];
+
+        if (!File.Exists(_tableToSendFilePath)) 
+            return tables;
+        
+        var jsonFromFile = File.ReadAllText(_tableToSendFilePath);
+        var tablesInFile = JsonSerializer.Deserialize<TableToSendDto[]>(jsonFromFile, _jsonOptions);
+
+        if (tablesInFile != null)
+            tables.AddRange(tablesInFile);
+
+        return tables;
+    }
+
     /// <summary>
     /// Скопировать файл конфигурации из ресурсов в файловую систему.
     /// </summary>
-    private void CopyConfigFromResources()
+    private void CopyConfigFromResources(string fileName, string filePath)
     {
         Stream? stream = null;
     
@@ -156,7 +188,7 @@ public class ConfigurationService : IConfigurationService
         var resourceNames = assembly.GetManifestResourceNames();
     
         var resourceName = Array.Find(resourceNames, r => 
-            r.EndsWith(ConfigFileName, StringComparison.OrdinalIgnoreCase));
+            r.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
     
         if (resourceName != null)
             stream = assembly.GetManifestResourceStream(resourceName);
@@ -164,11 +196,11 @@ public class ConfigurationService : IConfigurationService
         if (stream == null) 
             return;
         
-        var directory = Path.GetDirectoryName(_configFilePath);
+        var directory = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             Directory.CreateDirectory(directory);
 
-        using var fileStream = File.Create(_configFilePath);
+        using var fileStream = File.Create(filePath);
         stream.CopyTo(fileStream);
     }
     

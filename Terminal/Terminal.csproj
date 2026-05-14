@@ -19,6 +19,10 @@
         <EmbeddedResource Include="SQL\FillUsersTable.sql" />
         <None Remove="SQL\report.sql" />
         <EmbeddedResource Include="SQL\report.sql" />
+        <None Remove="TablesToSend.json" />
+        <EmbeddedResource Include="TablesToSend.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>

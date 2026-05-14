@@ -21,6 +21,8 @@ public class EncashmentService : IEncashmentService
     private readonly string _connectionString;
     
     private readonly IDbContextFactory<DataContext> _dbFactory;
+
+    private readonly IConfigurationService _configurationService;
     
     /// <summary>
     /// Событие для отслеживания прогресса
@@ -30,12 +32,14 @@ public class EncashmentService : IEncashmentService
     public EncashmentService(
         ITmsClient tmsClient,
         ILogger<EncashmentService> logger, 
-        IDbContextFactory<DataContext> dbFactory)
+        IDbContextFactory<DataContext> dbFactory, 
+        IConfigurationService configurationService)
     {
         _config = new EncashmentConfig();
         _tmsClient = tmsClient;
         _logger = logger;
         _dbFactory = dbFactory;
+        _configurationService = configurationService;
         _connectionString = $"Data Source={_config.DatabasePath}";
     }
     
@@ -133,7 +137,7 @@ public class EncashmentService : IEncashmentService
     private async Task<bool> SendAllTablesAsync(CancellationToken cancellationToken, EncashmentResult result)
     {
         var hasData = false;
-        var tablesToSend = GetTablesToSend();
+        var tablesToSend = _configurationService.GetTablesToSend();
         
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
         
@@ -593,26 +597,6 @@ public class EncashmentService : IEncashmentService
         // TODO: Реализация печати отчета
         // Формирование чека инкассации аналогично CPrinterTaskIncassation
         _logger.LogInformation($"Incassation completed: Start={data.StartDate}, End={data.EndDate}, AuthSuccess={data.AuthSuccess}");
-    }
-    
-    
-    /// <summary>
-    /// Получение списка таблиц для отправки
-    /// Порядок соответствует C++ клиенту
-    /// </summary>
-    private List<(string Name, string KeyField, string DisplayName, bool DoNotPrintIfEmpty)> GetTablesToSend()
-    {
-        return
-        [
-            ("selling", "TransactionShopKey", "транзакций", false),
-            ("shift", "ShiftShopKey", "смен", false),
-            ("card_update", "CardUpdateKey", "корректировок", false),
-            ("repayment", "RepaymentShopKey", "возвратов", false),
-            ("ProtocolFilingForm", "ProtokolFillingFormKey", "журнала событий", false),
-            ("payment", "PaymentShopKey", "платежей", true),
-            ("pos_update", "PosUpdateShopKey", "обновлений POS", true),
-            ("dispenser", "DispenserShopKey", "остатков", true)
-        ];
     }
     
     private async Task OnProgressAsync(string message)

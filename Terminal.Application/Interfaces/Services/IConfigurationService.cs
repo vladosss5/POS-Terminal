@@ -1,4 +1,5 @@
-﻿using Terminal.Core.Models.Settings;
+﻿using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 
 namespace Terminal.Application.Interfaces.Services;
 
@@ -16,4 +17,6 @@ public interface IConfigurationService
     /// Сохранить изменения конфигурации в файл.
     /// </summary>
     public void SaveSettingsToFile();
+
+    public List<TableToSendDto> GetTablesToSend();
 }

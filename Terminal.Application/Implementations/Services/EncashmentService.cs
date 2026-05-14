@@ -6,6 +6,7 @@ using Terminal.Core.Models;
 using System.IO.Compression;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Terminal.Data.EventDB;
 using Terminal.Data.MainDB;
 
 namespace Terminal.Application.Implementations.Services;
@@ -22,6 +23,8 @@ public class EncashmentService : IEncashmentService
     
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
+    private readonly IDbContextFactory<EventDbContext> _eventDbFactory;
+
     private readonly IConfigurationService _configurationService;
     
     /// <summary>
@@ -32,7 +35,8 @@ public class EncashmentService : IEncashmentService
     public EncashmentService(
         ITmsClient tmsClient,
         ILogger<EncashmentService> logger, 
-        IDbContextFactory<DataContext> dbFactory, 
+        IDbContextFactory<DataContext> dbFactory,
+        IDbContextFactory<EventDbContext> eventDbFactory,
         IConfigurationService configurationService)
     {
         _config = new EncashmentConfig();
@@ -40,6 +44,7 @@ public class EncashmentService : IEncashmentService
         _logger = logger;
         _dbFactory = dbFactory;
         _configurationService = configurationService;
+        _eventDbFactory = eventDbFactory;
         _connectionString = $"Data Source={_config.DatabasePath}";
     }
     
@@ -140,12 +145,24 @@ public class EncashmentService : IEncashmentService
         var tablesToSend = _configurationService.GetTablesToSend();
         
         await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        await using var eventDb = await _eventDbFactory.CreateDbContextAsync(cancellationToken);
         
         foreach (var table in tablesToSend)
         {
             await OnProgressAsync($"Подготовка {table.DisplayName}...");
-            
-            var unsentData = await GetUnsentDataAsync(db, table.Name, table.KeyField, cancellationToken);
+
+            List<Dictionary<string, object?>> unsentData = [];
+
+            switch (table.DbName)
+            {
+                case "DataContext":
+                    unsentData = await GetUnsentDataAsync(db, table.Name, table.KeyField, cancellationToken);
+                    break;
+                
+                case "EventDb":
+                    unsentData = await GetUnsentDataAsync(eventDb, table.Name, table.KeyField, cancellationToken);
+                    break;
+            }
             
             var incassItem = new IncassationItem
             {
@@ -166,16 +183,11 @@ public class EncashmentService : IEncashmentService
             
             await OnProgressAsync($"Отправка {table.DisplayName} ({unsentData.Count} записей)...");
             
-            // Создаем zip архив с данными
             var zipData = await CreateDataArchiveAsync(table.Name, table.KeyField, unsentData, cancellationToken);
-            
-            // Отправляем на сервер
             var sendResult = await _tmsClient.SendTableAsync(table.Name, table.KeyField, zipData, cancellationToken);
             
-            if (sendResult.Success && sendResult.ResponseData != null)
-            {
+            if (sendResult is { Success: true, ResponseData: not null })
                 await ProcessServerResponseAsync(db, table.Name, table.KeyField, sendResult.ResponseData, cancellationToken);
-            }
             
             incassItem.IncassAfter = await GetUnsentCountAsync(db, table.Name, cancellationToken);
             incassItem.Success = sendResult.Success;
@@ -190,7 +202,7 @@ public class EncashmentService : IEncashmentService
     /// Получение непереданных записей из таблицы
     /// </summary>
     private async Task<List<Dictionary<string, object?>>> GetUnsentDataAsync(
-        DataContext dbContext, 
+        DbContext dbContext, 
         string tableName, 
         string keyField,
         CancellationToken cancellationToken)

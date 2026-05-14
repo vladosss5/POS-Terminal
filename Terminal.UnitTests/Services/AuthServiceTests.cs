@@ -4,8 +4,8 @@ using Moq;
 using NUnit.Framework;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
-using Terminal.Data.Context;
+using Terminal.Core.DbEntities.MainDb;
+using Terminal.Data.MainDB;
 
 namespace Terminal.UnitTests.Services;
 

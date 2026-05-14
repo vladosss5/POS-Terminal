@@ -6,7 +6,7 @@ using Terminal.Core.Models;
 using System.IO.Compression;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 
 namespace Terminal.Application.Implementations.Services;
 

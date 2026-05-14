@@ -12,9 +12,9 @@ using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;

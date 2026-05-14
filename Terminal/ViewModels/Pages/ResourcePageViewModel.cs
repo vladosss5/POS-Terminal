@@ -6,10 +6,10 @@ using AvaloniaEdit.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 
 namespace Terminal.ViewModels.Pages;
 

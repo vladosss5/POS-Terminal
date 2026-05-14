@@ -1,4 +1,4 @@
-﻿using Terminal.Core.DbEntities;
+﻿using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Models;
 
 namespace Terminal.Application.Interfaces.Mappers;

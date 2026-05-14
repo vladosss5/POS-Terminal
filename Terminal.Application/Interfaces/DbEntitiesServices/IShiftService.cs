@@ -1,4 +1,4 @@
-﻿using Terminal.Core.DbEntities;
+﻿using Terminal.Core.DbEntities.MainDb;
 
 namespace Terminal.Application.Interfaces.DbEntitiesServices;
 

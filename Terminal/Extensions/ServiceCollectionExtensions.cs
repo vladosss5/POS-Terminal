@@ -12,7 +12,9 @@ using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
-using Terminal.Data.Context;
+using Terminal.Data.EventDB;
+using Terminal.Data.MainDB;
+using Terminal.Data.ParamDB;
 using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
@@ -77,6 +79,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static void AddDataContext(this IServiceCollection collection)
     {
+        // Main DataContext
         var dbPath = DataContext.GetDefaultDbPath();
         var dir = Path.GetDirectoryName(dbPath);
         
@@ -95,7 +98,7 @@ public static class ServiceCollectionExtensions
 #endif
         });
 
-        
+        // ParamDbContext
         var paramDbPath = ParamDbContext.GetDefaultDbPath();
         var paramDbDir = Path.GetDirectoryName(paramDbPath);
         
@@ -105,6 +108,18 @@ public static class ServiceCollectionExtensions
         collection.AddDbContextFactory<ParamDbContext>(options =>
         {
             options.UseSqlite($"Data Source={paramDbPath}");
+        });
+        
+        // EventDbContext
+        var eventDbPath = EventDbContext.GetDefaultDbPath();
+        var eventDbDir = Path.GetDirectoryName(eventDbPath);
+        
+        if (eventDbDir != null)
+            Directory.CreateDirectory(eventDbDir);
+
+        collection.AddDbContextFactory<EventDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={eventDbPath}");
         });
     }
 

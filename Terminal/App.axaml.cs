@@ -12,7 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
-using Terminal.Data.Context;
+using Terminal.Data.EventDB;
+using Terminal.Data.MainDB;
+using Terminal.Data.ParamDB;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -107,6 +109,10 @@ public partial class App : Avalonia.Application
             var paramDbFactory = Services!.GetRequiredService<IDbContextFactory<ParamDbContext>>();
             await using var paramDb = await paramDbFactory.CreateDbContextAsync();
             await paramDb.Database.MigrateAsync();
+            
+            var eventDbFactory = Services!.GetRequiredService<IDbContextFactory<EventDbContext>>();
+            await using var eventDb = await eventDbFactory.CreateDbContextAsync();
+            await eventDb.Database.MigrateAsync();
             
             var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
             await using var context = await factory.CreateDbContextAsync();

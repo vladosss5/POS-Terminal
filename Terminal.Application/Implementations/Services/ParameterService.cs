@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.DbEntities.ParamDb;
 using Terminal.Core.Enums;
-using Terminal.Core.ParamDbEntities;
-using Terminal.Data.Context;
+using Terminal.Data.ParamDB;
 
 namespace Terminal.Application.Implementations.Services;
 

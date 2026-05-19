@@ -68,10 +68,13 @@ public class ConfigurationService : IConfigurationService
     private readonly string _settingFromPosOfficeFilePath;
     
     /// <summary>
-    /// Флаг, указывающий, что настройки загружены.
+    /// Настройки из PosOffice загружены?
     /// </summary>
     private bool _isLoadedSettingsFromPosOffice;
 
+    /// <summary>
+    /// Настройки из PosOffice изменены?
+    /// </summary>
     private bool _settingsFromPosOfficeIsChanged;
     
     /// <summary>
@@ -80,7 +83,7 @@ public class ConfigurationService : IConfigurationService
     private readonly Lock _lockForSettingsFromPosOffice = new();
 
     /// <summary>
-    /// Настроки из PosOffice.
+    /// Настройки из PosOffice.
     /// </summary>
     private SettingsFromPosOffice? _settingsFromPosOffice;
     
@@ -99,6 +102,7 @@ public class ConfigurationService : IConfigurationService
         _settingFromPosOfficeFilePath = Path.Combine(baseDirectory, SettingFromPosOfficeFileName);
     }
 
+    /// <inheritdoc/>
     public SettingsModel CurrentSetting
     {
         get => _isLoaded && _currentSetting != null 
@@ -116,6 +120,7 @@ public class ConfigurationService : IConfigurationService
         }
     }
 
+    /// <inheritdoc/>
     public SettingsFromPosOffice SettingsFromPosOffice
     {
         get => _isLoadedSettingsFromPosOffice && _settingsFromPosOffice != null 
@@ -132,6 +137,10 @@ public class ConfigurationService : IConfigurationService
         }
     }
     
+    /// <summary>
+    /// Загрузить из файла настройки приложения.
+    /// </summary>
+    /// <returns>Настройки.</returns>
     private SettingsModel GetSettingsModel()
     {
         lock (_lockForSettings)
@@ -162,6 +171,10 @@ public class ConfigurationService : IConfigurationService
         return _currentSetting;
     }
 
+    /// <summary>
+    /// Загрузить из файла настройки из PosOffice.
+    /// </summary>
+    /// <returns>Настройки.</returns>
     private SettingsFromPosOffice GetSettingsFromPosOffice()
     {
         lock (_lockForSettingsFromPosOffice)

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
+using Terminal.Core.Models.SettingsFromPosOffice;
 
 namespace Terminal.Services;
 
@@ -15,6 +17,20 @@ namespace Terminal.Services;
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
+    /// <inheritdoc cref="ILogger" />
+    private readonly ILogger<ConfigurationService> _logger;
+    
+    /// <summary>
+    /// Настройки сериализации.
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions = new() 
+    { 
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+    
     /// <summary>
     /// Относительный путь к файлу конфигурации
     /// </summary>
@@ -35,33 +51,54 @@ public class ConfigurationService : IConfigurationService
     /// </summary>
     private readonly string _tableToSendFilePath;
 
-    private readonly ILogger<ConfigurationService> _logger;
-    
-    /// <summary>
-    /// Настройки сериализации.
-    /// </summary>
-    private readonly JsonSerializerOptions _jsonOptions = new() 
-    { 
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
     /// <summary>
     /// Флаг, указывающий, что настройки загружены.
     /// </summary>
     private bool _isLoaded;
+
+    private bool _appSettingsIsChanged;
     
     /// <summary>
     /// Объект для синхронизации потоков.
     /// </summary>
-    private readonly Lock _lock = new();
+    private readonly Lock _lockForSettings = new();
 
     /// <summary>
     /// Внутреннее поле для хранения настроек.
     /// </summary>
     private SettingsModel? _currentSetting;
+
+    
+    /// <summary>
+    /// Путь к файлу настроек из PosOffice.
+    /// </summary>
+    private const string SettingFromPosOfficeFileName = "SettingsFromPosOffice.xml";
+    
+    /// <summary>
+    /// Путь к конфигурации в файловой системе.
+    /// </summary>
+    private readonly string _settingFromPosOfficeFilePath;
+    
+    /// <summary>
+    /// Настройки из PosOffice загружены?
+    /// </summary>
+    private bool _isLoadedSettingsFromPosOffice;
+
+    /// <summary>
+    /// Настройки из PosOffice изменены?
+    /// </summary>
+    private bool _settingsFromPosOfficeIsChanged;
+    
+    /// <summary>
+    /// Объект для синхронизации потоков.
+    /// </summary>
+    private readonly Lock _lockForSettingsFromPosOffice = new();
+
+    /// <summary>
+    /// Настройки из PosOffice.
+    /// </summary>
+    private SettingsFromPosOffice? _settingsFromPosOffice;
+    
     
     /// <summary>
     /// Конструктор.
@@ -74,22 +111,21 @@ public class ConfigurationService : IConfigurationService
             : AppContext.BaseDirectory;
 
         _configFilePath = Path.Combine(baseDirectory, ConfigFileName);
+        _settingFromPosOfficeFilePath = Path.Combine(baseDirectory, SettingFromPosOfficeFileName);
         _tableToSendFilePath = Path.Combine(baseDirectory, TableToSendFileName);
     }
 
+    /// <inheritdoc/>
     public SettingsModel CurrentSetting
     {
-        get
-        {
-            if (!_isLoaded)
-                LoadSettings();
-
-            return _currentSetting ?? new SettingsModel();
-        }
+        get => _isLoaded && _currentSetting != null 
+            ? _currentSetting 
+            : GetSettingsModel();
         set
         {
-            lock (_lock)
+            lock (_lockForSettings)
             {
+                _appSettingsIsChanged = true;
                 _currentSetting = value;
                 _isLoaded = true;
                 SaveSettingsToFile();
@@ -97,18 +133,31 @@ public class ConfigurationService : IConfigurationService
         }
     }
 
-
+    /// <inheritdoc/>
+    public SettingsFromPosOffice SettingsFromPosOffice
+    {
+        get => _isLoadedSettingsFromPosOffice && _settingsFromPosOffice != null 
+            ? _settingsFromPosOffice 
+            : GetSettingsFromPosOffice();
+        set
+        {
+            lock (_lockForSettingsFromPosOffice)
+            {
+                _settingsFromPosOffice = value;
+                _isLoadedSettingsFromPosOffice = true;
+                SaveSettingsToFile();
+            }
+        }
+    }
     
     /// <summary>
-    /// Загрузить настройки из файла.
+    /// Загрузить из файла настройки приложения.
     /// </summary>
-    private void LoadSettings()
+    /// <returns>Настройки.</returns>
+    private SettingsModel GetSettingsModel()
     {
-        lock (_lock)
+        lock (_lockForSettings)
         {
-            if (_isLoaded)
-                return;
-            
             try
             {
                 if (!File.Exists(_configFilePath) || IsDebugBuild())
@@ -122,7 +171,6 @@ public class ConfigurationService : IConfigurationService
                 
                 _currentSetting ??= new SettingsModel();
                 _currentSetting.PaymentTypes ??= [];
-                _currentSetting.Organisation ??= new SettingOrganisation();
                 
                 _isLoaded = true;
             }
@@ -132,29 +180,99 @@ public class ConfigurationService : IConfigurationService
                 _isLoaded = true;
             }
         }
+
+        return _currentSetting;
     }
-    
+
+    /// <summary>
+    /// Загрузить из файла настройки из PosOffice.
+    /// </summary>
+    /// <returns>Настройки.</returns>
+    private SettingsFromPosOffice GetSettingsFromPosOffice()
+    {
+        lock (_lockForSettingsFromPosOffice)
+        {
+            try
+            {
+                if (!File.Exists(_settingFromPosOfficeFilePath) || IsDebugBuild())
+                    CopyConfigFromResources(SettingFromPosOfficeFileName, _settingFromPosOfficeFilePath);
+
+                if (File.Exists(_settingFromPosOfficeFilePath))
+                {
+                    var xmlFromFile = File
+                        .ReadAllText(_settingFromPosOfficeFilePath)
+                        .Replace(">False<", ">false<")
+                        .Replace(">True<", ">true<");
+                    
+                    var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
+                    using var reader = new StringReader(xmlFromFile);
+                        
+                    _settingsFromPosOffice = (SettingsFromPosOffice)
+                        (serializer.Deserialize(reader) ?? new SettingsFromPosOffice());
+                }
+
+                _isLoadedSettingsFromPosOffice = true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Ошибка загрузки настроек из PosOffice {e.Message}");
+                _isLoaded = false;
+            }
+        }
+            
+        return _settingsFromPosOffice!;
+    }
+
     /// <summary>
     /// Сохранить настройки в файл.
     /// </summary>
     public void SaveSettingsToFile()
     {
-        if (_currentSetting == null)
-            return;
-        
-        try
+        if (_appSettingsIsChanged && _currentSetting != null)
         {
-            var directory = Path.GetDirectoryName(_configFilePath);
-            
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-            
-            var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
-            File.WriteAllText(_configFilePath, json);
+            try
+            {
+                var directory = Path.GetDirectoryName(_configFilePath);
+
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
+                File.WriteAllText(_configFilePath, json);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+            }
+            finally
+            {
+                _appSettingsIsChanged = false;
+            }
         }
-        catch (Exception e)
+
+        if (_settingsFromPosOfficeIsChanged)
         {
-            _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+            try
+            {
+                var directory = Path.GetDirectoryName(_settingFromPosOfficeFilePath);
+
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+                
+                var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
+                using var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, _settingsFromPosOffice);
+                var xml = stringWriter.ToString();
+                File.WriteAllText(_settingFromPosOfficeFilePath, xml);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+            }
+            finally
+            {
+                _settingsFromPosOfficeIsChanged = false;
+            }
         }
     }
 

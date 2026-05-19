@@ -178,8 +178,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         
         var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
         
-        var divideByIssuers = _configurationService.CurrentSetting.ReportDivide;
-        var paymentTypes = _configurationService.CurrentSetting.ReportPaymentTypes!
+        var divideByIssuers = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportDivide;
+        var paymentTypes = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportPaymentTypes!
             .Split(',')
             .Select(x => Convert.ToInt32(x));
 

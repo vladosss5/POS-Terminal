@@ -33,28 +33,28 @@
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Топливный чек" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.ResourceCopy}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.ResourceCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Дисконтный чек" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.DiscountCopy}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.DiscountCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Платёжный чек" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.PaymentCopy}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.PaymentCopy}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Ведомственный чек" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.StatementCopy}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.StatementCopy}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -67,28 +67,28 @@
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Бонусная программа" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.BonusProgram}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.BonusProgram}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Сумма чека" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.Sum}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.Sum}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Блок продаж" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.SaleBlock}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.SaleBlock}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Цена" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.ShowPrice}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.ShowPrice}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -101,35 +101,35 @@
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоговое кол-во" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.TotalAmount}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.TotalAmount}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоговая скидка" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.TotalDiscount}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.TotalDiscount}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Итоги эмитентов" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.ReportTotal}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.ReportTotal}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить эмитент" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.ReportDivide}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.ReportDivide}"/>
                         </Grid>
                         <Separator Classes="default-separator"/>
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Делить по топливу" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.DivideFuels}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.DivideFuels}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -142,7 +142,7 @@
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Grid.Column="0" Text="Удалять корректировки" Classes="text-items-control"/>
                             <ToggleSwitch Grid.Column="1" Classes="setting-switcher"
-                                          IsChecked="{Binding SettingsModel.RemoteUpdate}"/>
+                                          IsChecked="{Binding SettingsFromPosOffice.MainSettings.Print.RemoteUpdate}"/>
                         </Grid>
                     </StackPanel>
                 </Border>

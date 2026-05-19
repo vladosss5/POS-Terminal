@@ -140,7 +140,7 @@ public class AdminLoginPageViewModel : PageViewModelBase
     {
         StopInactivityTimer();
         
-        var hashPassword = _configurationService.CurrentSetting.ServicePassword;
+        var hashPassword = _configurationService.SettingsFromPosOffice.ServiceSettings.Password;
         var success = _hashService.VerifyPasswordWithMd5(Password, hashPassword);
 
         if (success)

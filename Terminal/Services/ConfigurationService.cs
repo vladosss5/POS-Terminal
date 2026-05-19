@@ -149,7 +149,6 @@ public class ConfigurationService : IConfigurationService
                 
                 _currentSetting ??= new SettingsModel();
                 _currentSetting.PaymentTypes ??= [];
-                _currentSetting.Organisation ??= new SettingOrganisation();
                 
                 _isLoaded = true;
             }

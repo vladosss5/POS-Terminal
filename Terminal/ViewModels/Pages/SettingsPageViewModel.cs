@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AvaloniaEdit.Utils;
-using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
+using Terminal.Core.Models.SettingsFromPosOffice;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -21,9 +20,14 @@ public class SettingsPageViewModel : PageViewModelBase
     private readonly IConfigurationService _configurationService;
 
     /// <summary>
-    /// Св-во для получения ссылки на экземпляр класса текущей конфигурации.
+    /// Ссылка на экземпляр класса настроек приложения.
     /// </summary>
     public SettingsModel SettingsModel { get; }
+    
+    /// <summary>
+    /// Ссылка на экземпляр класса настроек приложения из Pos Office.
+    /// </summary>
+    public SettingsFromPosOffice SettingsFromPosOffice { get; }
     
     /// <summary>
     /// Выбранный вариант времени ожидания ввода пароля.
@@ -68,7 +72,7 @@ public class SettingsPageViewModel : PageViewModelBase
             if (!SetProperty(ref field, value))
                 return;
             
-            _configurationService.CurrentSetting.AuthorizeType = (int)value;
+            _configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod = (int)value;
             _configurationService.SaveSettingsToFile();
         }
     }
@@ -91,6 +95,7 @@ public class SettingsPageViewModel : PageViewModelBase
         Title = "Настройки";
         
         SettingsModel = _configurationService.CurrentSetting;
+        SettingsFromPosOffice = _configurationService.SettingsFromPosOffice;
         
         InitializeData();
     }
@@ -115,6 +120,6 @@ public class SettingsPageViewModel : PageViewModelBase
         SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = timeOutValue };
         TimeoutValues.Add(SecondsAuthenticationCanceled);
 
-        SelectedAuthorizeType = (AuthorizeType)_configurationService.CurrentSetting.AuthorizeType;
+        SelectedAuthorizeType = (AuthorizeType)_configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod;
     }
 }

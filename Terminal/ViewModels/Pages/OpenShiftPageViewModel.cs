@@ -522,7 +522,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         var users = await db.Users.ToListAsync();
         Users.AddRange(users);
 
-        switch (_configurationService.CurrentSetting.AuthorizeType)
+        switch (_configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod)
         {
             case (int)AuthorizeType.Any:
                 IsAnyAuthorizeType = true;

@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using System.Text.Json.Serialization;
+using System.Xml.Serialization;
 
 namespace Terminal.Core.Models.SettingsFromPosOffice;
 
@@ -7,6 +8,12 @@ namespace Terminal.Core.Models.SettingsFromPosOffice;
 /// </summary>
 public class ModeSettings
 {
+    /// <summary>
+    /// Способ авторизации.
+    /// </summary>
+    [JsonPropertyName("authorizeMethod")]
+    public int AuthorizeMethod { get; set; }
+    
     /// <summary>
     /// Очищать при закрытии.
     /// </summary>

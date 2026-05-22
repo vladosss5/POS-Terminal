@@ -1,18 +1,29 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 
 namespace Terminal.Persistence.TmsClient;
 
+/// <inheritdoc/>
 public class TmsClient : ITmsClient
 {
+    /// <summary>
+    /// Http клиент. 
+    /// </summary>
     private readonly HttpClient _httpClient;
     
+    /// <summary>
+    /// Токен авторизации.
+    /// </summary>
     private string? _jwt;
 
+    /// <inheritdoc/>
     public TmsConnectionStatus ConnectionStatus { get; private set; }
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    /// <param name="addressBase">Базовая часть адреса TMS.</param>
     public TmsClient(string addressBase)
     {
         ConnectionStatus = TmsConnectionStatus.Disconnected;
@@ -22,6 +33,7 @@ public class TmsClient : ITmsClient
         _httpClient.BaseAddress = new Uri(addressBase);
     }
     
+    /// <inheritdoc/>
     public async Task AuthenticationAsync(string authData)
     {
         var json = JsonSerializer.Serialize(authData);

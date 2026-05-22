@@ -75,6 +75,9 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IParameterService, ParameterService>();
     }
 
+    /// <summary>
+    /// Регистрация TMS клиента.
+    /// </summary>
     public static void AddTmsClient(this IServiceCollection collection)
     {
         collection.AddSingleton<ITmsClient>(sp =>

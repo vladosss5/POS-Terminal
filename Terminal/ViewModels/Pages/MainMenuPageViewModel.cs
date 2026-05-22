@@ -54,15 +54,18 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
     
+    /// <inheritdoc cref="ICryptographyService" />
+    private readonly ICryptographyService _cryptographyService;
+    
+    /// <inheritdoc cref="ITmsClient" />
+    private readonly ITmsClient _tmsClient;
+    
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
-
-    private readonly ICryptographyService _cryptographyService;
     
-    private readonly ITmsClient _tmsClient;
     
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -271,7 +274,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "TMS",
-                Command = new AsyncRelayCommand(AuthInTms)
+                Command = new AsyncRelayCommand(AuthInTmsAsync)
             },
             new MainMenuItemModel
             {
@@ -324,7 +327,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         ]);
     }
 
-    private async Task AuthInTms()
+    /// <summary>
+    /// Аутентификация клиента в TMS.
+    /// </summary>
+    private async Task AuthInTmsAsync()
     {
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var plainText = terminalNumber + " " + Guid.NewGuid();

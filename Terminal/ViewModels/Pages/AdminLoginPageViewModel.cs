@@ -14,7 +14,7 @@ public class AdminLoginPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
 
-    /// <inheritdoc cref="IConfigurationService"/>
+    /// <inheritdoc cref="ICryptographyService"/>
     private readonly ICryptographyService _cryptographyService;
     
     /// <inheritdoc cref="IMessageBoxService"/>

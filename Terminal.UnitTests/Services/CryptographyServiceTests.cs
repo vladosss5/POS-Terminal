@@ -4,14 +4,14 @@ using Terminal.Application.Implementations.Services;
 namespace Terminal.UnitTests.Services;
 
 [TestFixture]
-public class HashServiceTests
+public class CryptographyServiceTests
 {
-    private HashService? _hashService;
+    private CryptographyService? _hashService;
 
     [SetUp]
     public void SetUp()
     {
-        _hashService = new HashService();
+        _hashService = new CryptographyService();
     }
 
     [TearDown]

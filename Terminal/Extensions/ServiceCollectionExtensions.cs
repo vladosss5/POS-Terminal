@@ -12,9 +12,11 @@ using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Converters;
+using Terminal.Core.Enums;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
+using Terminal.Persistence.TmsClient;
 using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
@@ -35,6 +37,8 @@ public static class ServiceCollectionExtensions
     public static void AddCommonServices(this IServiceCollection collection)
     {
         collection.AddSingleton<IConfigurationService, ConfigurationService>();
+        
+        collection.AddHttpClient();
         
         // ViewModels
         collection.AddTransient<MainViewModel>();
@@ -64,11 +68,25 @@ public static class ServiceCollectionExtensions
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
         collection.AddTransient<ICardReaderService, CommonCardReaderService>();
-        collection.AddSingleton<IHashService, HashService>();
+        collection.AddSingleton<ICryptographyService, CryptographyService>();
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
+    }
+
+    public static void AddTmsClient(this IServiceCollection collection)
+    {
+        collection.AddSingleton<ITmsClient>(sp =>
+        {
+            var parameterService = sp.GetRequiredService<IParameterService>();
+        
+            var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
+            var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
+            var addressBase = $"http://{ipTms}:{portTms}/";
+        
+            return new TmsClient(addressBase);
+        });
     }
     
     /// <summary>

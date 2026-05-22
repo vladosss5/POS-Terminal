@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
@@ -17,6 +18,7 @@ using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Persistence.MainDB;
 using Terminal.Dtos;
+using Terminal.Persistence.TmsClient;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
@@ -57,6 +59,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+
+    private readonly ICryptographyService _cryptographyService;
+    
+    private readonly ITmsClient _tmsClient;
     
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -77,7 +83,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory,
         IConfigurationService configurationService, 
         IAuthPageFactory authPageFactory, 
-        IParameterService parameterService) 
+        IParameterService parameterService,
+        ICryptographyService cryptographyService, 
+        ITmsClient tmsClient) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -90,6 +98,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _authPageFactory = authPageFactory;
         _parameterService = parameterService;
+        _cryptographyService = cryptographyService;
+        _tmsClient = tmsClient;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -261,6 +271,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "TMS",
+                Command = new AsyncRelayCommand(AuthInTms)
             },
             new MainMenuItemModel
             {
@@ -311,6 +322,28 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
             }
         ]);
+    }
+
+    private async Task AuthInTms()
+    {
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        var plainText = terminalNumber + " " + Guid.NewGuid();
+        
+        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
+        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
+        
+        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
+
+        await _tmsClient.AuthenticationAsync(workload);
+
+        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Успех", "Авторизация в TMS удачна");
+        }
+        else
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Авторизация в TMS не удачна");
+        }
     }
 
     /// <summary>

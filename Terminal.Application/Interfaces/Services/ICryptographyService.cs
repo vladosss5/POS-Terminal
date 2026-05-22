@@ -1,9 +1,9 @@
 ﻿namespace Terminal.Application.Interfaces.Services;
 
 /// <summary>
-/// Сервис хеширования.
+/// Сервис криптографии.
 /// </summary>
-public interface IHashService
+public interface ICryptographyService
 {
     /// <summary>
     /// Вычислить хеш строки с использованием MD5.
@@ -19,4 +19,13 @@ public interface IHashService
     /// <param name="hash">Сверочный хеш.</param>
     /// <returns>True - если совпало.</returns>
     public bool VerifyPasswordWithMd5(string password, string hash);
+
+    /// <summary>
+    /// Зашифровать текст с помощью AES.
+    /// </summary>
+    /// <param name="plainText">Текст.</param>
+    /// <param name="pass">Ключ.</param>
+    /// <param name="salt">Соль.</param>
+    /// <returns>Зашифрованное сообщение.</returns>
+    public string EncryptAes(string plainText, string pass, byte[] salt);
 }

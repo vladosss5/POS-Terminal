@@ -13,7 +13,7 @@ namespace Terminal.UnitTests.Services;
 public class AuthServiceTests
 {
     private DbContextOptions<DataContext>? _dbContextOptions;
-    private Mock<IHashService>? _hashServiceMock;
+    private Mock<ICryptographyService>? _hashServiceMock;
     private AuthService? _authService;
     private DataContext? _dbContext;
 
@@ -28,7 +28,7 @@ public class AuthServiceTests
             .Options;
             
         _dbContext = new DataContext(_dbContextOptions);
-        _hashServiceMock = new Mock<IHashService>();
+        _hashServiceMock = new Mock<ICryptographyService>();
         
         var dbFactoryMock = new Mock<IDbContextFactory<DataContext>>();
         dbFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))

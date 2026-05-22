@@ -58,10 +58,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
     
-    private readonly ITmsConnectionService _tmsService;
-
-    private readonly IEncashmentService _encashmentService;
-    
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -81,9 +77,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory,
         IConfigurationService configurationService, 
         IAuthPageFactory authPageFactory, 
-        IParameterService parameterService, 
-        ITmsConnectionService tmsService, 
-        IEncashmentService encashmentService) 
+        IParameterService parameterService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -96,8 +90,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _authPageFactory = authPageFactory;
         _parameterService = parameterService;
-        _tmsService = tmsService;
-        _encashmentService = encashmentService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -247,58 +239,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var authPage = _authPageFactory.Create(authParams);
         Navigation.NavigateToInstancePage(authPage);
     }
-
-    private async Task ConnectToTmsAsync()
-    {
-        var serverHost = await _parameterService.GetValueAsync(AppParameter.TmsIp);
-        var port = int.Parse(await _parameterService.GetValueAsync(AppParameter.TmsPort));
-        var terminalId = ulong.Parse(await _parameterService.GetValueAsync(AppParameter.SerialNO111));
-        
-        var success = await _tmsService.ConnectAndAuthorizeAsync(terminalId, serverHost, port);
-    }
-    
-    private async Task ExecuteEncashmentAsync()
-    {
-        try
-        {
-            var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
-        
-            if (openShift == null)
-            {
-                await _messageBoxService.ShowMessageBoxAsync(
-                    "Ошибка", 
-                    "Смена не открыта. Инкассация невозможна.",
-                    ButtonEnum.Ok,
-                    Icon.Error);
-                return;
-            }
-            
-            var result = await _encashmentService.ExecuteEncashmentAsync();
-        
-            await _messageBoxService.ShowMessageBoxAsync(
-                "Подтверждение",
-                result.ErrorMessage,
-                ButtonEnum.Ok,
-                Icon.Info);
-            // var confirmed = await _messageBoxService.ShowMessageBoxAsync(
-            //     "Подтверждение",
-            //     $"Выполнить инкассацию для смены №{openShift.ShiftKey}?\n" +
-            //     "Будут собраны и отправлены все данные о продажах и операциях.",
-            //     ButtonEnum.YesNo,
-            //     Icon.Question);
-            
-            
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка при выполнении инкассации");
-            await _messageBoxService.ShowMessageBoxAsync(
-                "Ошибка",
-                $"Ошибка: {ex.Message}",
-                ButtonEnum.Ok,
-                Icon.Error);
-        }
-    }
     
     /// <summary>
     /// Создать кнопки главного меню.
@@ -321,7 +261,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "TMS",
-                Command = new AsyncRelayCommand(ConnectToTmsAsync)
             },
             new MainMenuItemModel
             {
@@ -339,7 +278,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Инкассация",
-                Command = new AsyncRelayCommand(ExecuteEncashmentAsync)
             },
             new MainMenuItemModel
             {

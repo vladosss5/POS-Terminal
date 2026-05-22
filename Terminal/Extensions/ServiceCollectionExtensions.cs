@@ -68,10 +68,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
-        collection.AddSingleton<ITmsConnectionService, TmsConnectionService>();
         collection.AddSingleton<IParameterService, ParameterService>();
-        collection.AddTransient<ITmsClient, TmsClient>();
-        collection.AddSingleton<IEncashmentService, EncashmentService>();
     }
     
     /// <summary>

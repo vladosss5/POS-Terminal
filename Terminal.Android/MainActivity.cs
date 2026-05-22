@@ -26,6 +26,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         services.AddCommonServices();
         services.AddAndroidServices();
         services.AddDataContext();
+        services.AddTmsClient();
 
         var deviceManufacturer = DeviceInfo.Current.Manufacturer;
         if (deviceManufacturer == "alps")

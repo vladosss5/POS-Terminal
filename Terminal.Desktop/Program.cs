@@ -21,6 +21,7 @@ sealed class Program
         services.AddCommonServices();
         services.AddDesktopServices();
         services.AddDataContext();
+        services.AddTmsClient();
         
         App.Services = services.BuildServiceProvider();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

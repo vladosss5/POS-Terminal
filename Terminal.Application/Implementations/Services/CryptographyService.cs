@@ -5,7 +5,7 @@ using Terminal.Application.Interfaces.Services;
 namespace Terminal.Application.Implementations.Services;
 
 /// <inheritdoc/>
-public class HashService : IHashService
+public class CryptographyService : ICryptographyService
 {
     /// <inheritdoc/>
     public string ComputeMd5Hash(string input)
@@ -27,5 +27,29 @@ public class HashService : IHashService
             
         var passwordHash = ComputeMd5Hash(password);
         return passwordHash.Equals(hash, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <inheritdoc/>
+    public string EncryptAes(string plainText, string pass, byte[] salt)
+    {
+        using var aes = Aes.Create();
+        
+        var key = Rfc2898DeriveBytes.Pbkdf2(pass, salt, 10000, HashAlgorithmName.SHA256, 32);
+        var iv = Rfc2898DeriveBytes.Pbkdf2(pass, salt, 10000, HashAlgorithmName.SHA256, 16);
+        
+        aes.Key = key;
+        aes.IV = iv;
+
+        var encryptor = aes.CreateEncryptor();
+
+        using var ms = new MemoryStream();
+        using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+        
+        var plainBytes = Encoding.UTF8.GetBytes(plainText);
+        
+        cs.Write(plainBytes, 0, plainBytes.Length);
+        cs.FlushFinalBlock();
+        
+        return Convert.ToBase64String(ms.ToArray());
     }
 }

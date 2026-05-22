@@ -9,8 +9,8 @@ namespace Terminal.Application.Implementations.Services;
 /// <inheritdoc/>
 public class AuthService : IAuthService
 {
-    /// <inheritdoc cref="IHashService"/>
-    private readonly IHashService _hashService;
+    /// <inheritdoc cref="ICryptographyService"/>
+    private readonly ICryptographyService _cryptographyService;
 
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -21,10 +21,10 @@ public class AuthService : IAuthService
     /// Конструктор.
     /// </summary>
     public AuthService(
-        IHashService hashService, 
+        ICryptographyService cryptographyService, 
         IDbContextFactory<DataContext> dbFactory)
     {
-        _hashService = hashService;
+        _cryptographyService = cryptographyService;
         _dbFactory = dbFactory;
     }
     
@@ -38,7 +38,7 @@ public class AuthService : IAuthService
         if (user == null)
             return false;
         
-        if (!_hashService.VerifyPasswordWithMd5(password, user.UserPassword!))
+        if (!_cryptographyService.VerifyPasswordWithMd5(password, user.UserPassword!))
             return false;
 
         CurrentUser = user;
@@ -66,7 +66,7 @@ public class AuthService : IAuthService
 
     /// <inheritdoc/>
     public bool AuthenticateOperator(string password) 
-        => CurrentUser != null && _hashService.VerifyPasswordWithMd5(password, CurrentUser.UserPassword!);
+        => CurrentUser != null && _cryptographyService.VerifyPasswordWithMd5(password, CurrentUser.UserPassword!);
 
     /// <inheritdoc/>
     public void Logout() => CurrentUser = null;

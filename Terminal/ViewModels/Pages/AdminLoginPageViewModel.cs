@@ -14,8 +14,8 @@ public class AdminLoginPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
 
-    /// <inheritdoc cref="IConfigurationService"/>
-    private readonly IHashService _hashService;
+    /// <inheritdoc cref="ICryptographyService"/>
+    private readonly ICryptographyService _cryptographyService;
     
     /// <inheritdoc cref="IMessageBoxService"/>
     private readonly IMessageBoxService _messageBoxService;
@@ -81,12 +81,12 @@ public class AdminLoginPageViewModel : PageViewModelBase
     public AdminLoginPageViewModel(
         ILogger<PageViewModelBase> logger,
         IConfigurationService configurationService, 
-        IHashService hashService, 
+        ICryptographyService cryptographyService, 
         IMessageBoxService messageBoxService) 
         : base(logger)
     {
         _configurationService = configurationService;
-        _hashService = hashService;
+        _cryptographyService = cryptographyService;
         _messageBoxService = messageBoxService;
 
         _defaultRemainingSeconds = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
@@ -141,7 +141,7 @@ public class AdminLoginPageViewModel : PageViewModelBase
         StopInactivityTimer();
         
         var hashPassword = _configurationService.SettingsFromPosOffice.ServiceSettings.Password;
-        var success = _hashService.VerifyPasswordWithMd5(Password, hashPassword);
+        var success = _cryptographyService.VerifyPasswordWithMd5(Password, hashPassword);
 
         if (success)
         {

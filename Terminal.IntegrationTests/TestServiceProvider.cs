@@ -71,7 +71,7 @@ public static class TestServiceProvider
         
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutor>();
-        collection.AddScoped<IHashService, HashService>();
+        collection.AddScoped<ICryptographyService, CryptographyService>();
         collection.AddScoped<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();
     }

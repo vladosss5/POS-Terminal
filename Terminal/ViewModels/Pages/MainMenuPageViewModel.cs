@@ -8,12 +8,14 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 using Terminal.Dtos;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.NavigationService;
@@ -55,7 +57,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
-
+    
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>
@@ -258,6 +260,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
+                Title = "TMS",
+            },
+            new MainMenuItemModel
+            {
                 Title = "Возврат на счёт"
             },
             new MainMenuItemModel
@@ -271,7 +277,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Инкассация"
+                Title = "Инкассация",
             },
             new MainMenuItemModel
             {

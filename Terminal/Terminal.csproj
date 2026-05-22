@@ -23,6 +23,10 @@
         <EmbeddedResource Include="SettingsFromPosOffice.xml">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </EmbeddedResource>
+        <None Remove="TablesToSend.json" />
+        <EmbeddedResource Include="TablesToSend.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>

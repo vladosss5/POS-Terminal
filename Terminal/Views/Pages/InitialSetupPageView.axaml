@@ -49,6 +49,12 @@
                 
                         <TextBox Watermark="Номер терминала" Text="{Binding TerminalNumber}"
                                  Classes="Number"/>
+                        
+                        <TextBox Watermark="IP сервера TMS" Text="{Binding TmsIp}"
+                                 Classes="Number"/>
+                        
+                        <TextBox Watermark="Порт TMS" Text="{Binding TmsPort}"
+                                 Classes="Number"/>
                 </StackPanel>
                 <Button Grid.Row="1" Content="Сохранить" Command="{Binding SaveSetupAsync}"
                         VerticalAlignment="Bottom" HorizontalAlignment="Center"/>

@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <PackageReference Include="MessageBox.Avalonia" />
+      <PackageReference Include="System.IO.Ports" />
     </ItemGroup>
 
 </Project>

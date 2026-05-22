@@ -1,5 +1,5 @@
 ﻿using Terminal.Application.Interfaces.Mappers;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 

@@ -4,8 +4,9 @@ using Moq;
 using NUnit.Framework;
 using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.ParamDbEntities;
-using Terminal.Data.Context;
+using Terminal.Core.DbEntities.ParamDb;
+using Terminal.Data.MainDB;
+using Terminal.Data.ParamDB;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.IntegrationTests;

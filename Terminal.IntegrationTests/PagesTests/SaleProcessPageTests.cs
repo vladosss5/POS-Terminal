@@ -2,8 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Terminal.Application.Implementations.DbEntitiesServices;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.ViewModels.Pages;

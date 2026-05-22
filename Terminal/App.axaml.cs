@@ -12,7 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
-using Terminal.Data.Context;
+using Terminal.Data.EventDB;
+using Terminal.Data.MainDB;
+using Terminal.Data.ParamDB;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -108,6 +110,10 @@ public partial class App : Avalonia.Application
             await using var paramDb = await paramDbFactory.CreateDbContextAsync();
             await paramDb.Database.MigrateAsync();
             
+            var eventDbFactory = Services!.GetRequiredService<IDbContextFactory<EventDbContext>>();
+            await using var eventDb = await eventDbFactory.CreateDbContextAsync();
+            await eventDb.Database.MigrateAsync();
+            
             var factory = Services!.GetRequiredService<IDbContextFactory<DataContext>>();
             await using var context = await factory.CreateDbContextAsync();
             await context.Database.MigrateAsync();
@@ -162,15 +168,12 @@ public partial class App : Avalonia.Application
         var navigationService = Services!.GetRequiredService<INavigationService>();
         var parameterService = Services!.GetRequiredService<IParameterService>();
 
-        var isInstalled = await parameterService.GetValueAsync(AppParameter.IsInstalled);
+        var isInstalled = await parameterService.CheckSetupComplete();
 
-        if (isInstalled == "1")
-        {
+        if (isInstalled)
             navigationService.NavigateTo<OpenShiftPageViewModel>();
-            return;
-        }
-        
-        navigationService.NavigateTo<InitialSetupPageViewModel>();
+        else
+            navigationService.NavigateTo<InitialSetupPageViewModel>();
     }
     
     /// <summary>

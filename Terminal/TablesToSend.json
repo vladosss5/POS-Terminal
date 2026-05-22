@@ -1,0 +1,58 @@
+[
+  {
+    "Name": "selling",
+    "KeyField": "TransactionShopKey",
+    "DisplayName": "транзакций",
+    "DoNotPrintIfEmpty": false,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "shift",
+    "KeyField": "ShiftShopKey",
+    "DisplayName": "смен",
+    "DoNotPrintIfEmpty": false,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "card_update",
+    "KeyField": "CardUpdateKey",
+    "DisplayName": "корректировок",
+    "DoNotPrintIfEmpty": false,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "repayment",
+    "KeyField": "RepaymentShopKey",
+    "DisplayName": "возвратов",
+    "DoNotPrintIfEmpty": false,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "ProtocolFilingForm",
+    "KeyField": "ProtokolFillingFormKey",
+    "DisplayName": "журнала событий",
+    "DoNotPrintIfEmpty": false,
+    "DbName": "EventDb"
+  },
+  {
+    "Name": "payment",
+    "KeyField": "PaymentShopKey",
+    "DisplayName": "платежей",
+    "DoNotPrintIfEmpty": true,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "pos_update",
+    "KeyField": "PosUpdateShopKey",
+    "DisplayName": "обновлений POS",
+    "DoNotPrintIfEmpty": true,
+    "DbName": "DataContext"
+  },
+  {
+    "Name": "dispenser",
+    "KeyField": "DispenserShopKey",
+    "DisplayName": "остатков",
+    "DoNotPrintIfEmpty": true,
+    "DbName": "DataContext"
+  }
+]

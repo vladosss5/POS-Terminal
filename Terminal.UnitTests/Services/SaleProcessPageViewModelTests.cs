@@ -6,11 +6,11 @@ using NUnit.Framework.Legacy;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.UnitTests.Services;

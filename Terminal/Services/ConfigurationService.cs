@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
 
@@ -38,6 +40,16 @@ public class ConfigurationService : IConfigurationService
     /// Путь к конфигурации в файловой системе.
     /// </summary>
     private readonly string _configFilePath;
+    
+    /// <summary>
+    /// Название файла таблиц выгружаемых в TMS.
+    /// </summary>
+    private const string TableToSendFileName = "TablesToSend.json";
+    
+    /// <summary>
+    /// Путь к файлу таблиц выгружаемых в TMS.
+    /// </summary>
+    private readonly string _tableToSendFilePath;
 
     /// <summary>
     /// Флаг, указывающий, что настройки загружены.
@@ -100,6 +112,7 @@ public class ConfigurationService : IConfigurationService
 
         _configFilePath = Path.Combine(baseDirectory, ConfigFileName);
         _settingFromPosOfficeFilePath = Path.Combine(baseDirectory, SettingFromPosOfficeFileName);
+        _tableToSendFilePath = Path.Combine(baseDirectory, TableToSendFileName);
     }
 
     /// <inheritdoc/>
@@ -210,9 +223,7 @@ public class ConfigurationService : IConfigurationService
         return _settingsFromPosOffice!;
     }
 
-    /// <summary>
-    /// Сохранить настройки в файл.
-    /// </summary>
+    /// <inheritdoc/>
     public void SaveSettingsToFile()
     {
         if (_appSettingsIsChanged && _currentSetting != null)
@@ -261,6 +272,26 @@ public class ConfigurationService : IConfigurationService
                 _settingsFromPosOfficeIsChanged = false;
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public List<TableToSendDto> GetTablesToSend()
+    {
+        if (!File.Exists(_tableToSendFilePath) || IsDebugBuild())
+            CopyConfigFromResources(TableToSendFileName, _tableToSendFilePath);
+
+        List<TableToSendDto> tables = [];
+
+        if (!File.Exists(_tableToSendFilePath)) 
+            return tables;
+        
+        var jsonFromFile = File.ReadAllText(_tableToSendFilePath);
+        var tablesInFile = JsonSerializer.Deserialize<TableToSendDto[]>(jsonFromFile, _jsonOptions);
+
+        if (tablesInFile != null)
+            tables.AddRange(tablesInFile);
+
+        return tables;
     }
 
     /// <summary>

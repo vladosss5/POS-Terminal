@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
+using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
-using Terminal.Data.Context;
+using Terminal.Data.MainDB;
 
 namespace Terminal.Application.Implementations.DbEntitiesServices;
 

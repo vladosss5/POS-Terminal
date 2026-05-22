@@ -1,4 +1,5 @@
-﻿using Terminal.Core.Models.Settings;
+using Terminal.Core.Models;
+using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
 
 namespace Terminal.Application.Interfaces.Services;
@@ -22,4 +23,10 @@ public interface IConfigurationService
     /// Сохранить изменения конфигурации в файл.
     /// </summary>
     public void SaveSettingsToFile();
+
+    /// <summary>
+    /// Получить из конфигурации список таблиц из БД для отправки.
+    /// </summary>
+    /// <returns></returns>
+    public List<TableToSendDto> GetTablesToSend();
 }

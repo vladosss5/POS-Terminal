@@ -35,6 +35,24 @@ public class InitialSetupPageViewModel : PageViewModelBase
         get; 
         set => SetProperty(ref field, value);
     }
+
+    /// <summary>
+    /// Адрес TMS.
+    /// </summary>
+    public string TmsIp
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
+    
+    /// <summary>
+    /// Порт TMS.
+    /// </summary>
+    public string TmsPort
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
     
     /// <summary>
     /// Безопасная зона для интерфейсов при открытии клавиатуры.
@@ -66,9 +84,11 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         try
         {
-            await _parameterService.SetValueAsync(AppParameter.IsInstalled, "1");
             await _parameterService.SetValueAsync(AppParameter.IssuerId, IssuerNumber);
             await _parameterService.SetValueAsync(AppParameter.SerialNO111, TerminalNumber);
+            await _parameterService.SetValueAsync(AppParameter.TmsIp, TmsIp);
+            await _parameterService.SetValueAsync(AppParameter.TmsPort, TmsPort);
+            await _parameterService.SetValueAsync(AppParameter.IsInstalled, "1");
         
             Navigation!.NavigateTo<OpenShiftPageViewModel>();
         }

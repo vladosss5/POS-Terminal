@@ -8,6 +8,12 @@ namespace Terminal.Application.Interfaces.Services;
 public interface IParameterService
 {
     /// <summary>
+    /// Проверить закончена ли первичная настройка.
+    /// </summary>
+    /// <returns>True - когда всё настроено.</returns>
+    public Task<bool> CheckSetupComplete();
+    
+    /// <summary>
     /// Получить значение по названию параметра.
     /// </summary>
     /// <param name="parameterName">Название.</param>

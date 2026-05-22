@@ -10,7 +10,7 @@ public interface IParameterService
     /// <summary>
     /// Проверить закончена ли первичная настройка.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True - когда всё настроено.</returns>
     public Task<bool> CheckSetupComplete();
     
     /// <summary>

@@ -1,81 +1,137 @@
 ﻿namespace Terminal.Core.Enums;
 
+/// <summary>
+/// Объекты участвующие в логгируемых действиях.
+/// </summary>
 public enum SnkObjectType
 {
-    // ТРК
+    /// <summary>
+    /// ТРК.
+    /// </summary>
     Pump=1,
     
-    // Пользователь
+    /// <summary>
+    /// Пользователь.
+    /// </summary>
     User=2,
     
-    // Товар
+    /// <summary>
+    /// Товар.
+    /// </summary>
     Good=3,
     
-    // Приложение
+    /// <summary>
+    /// Приложение.
+    /// </summary>
     Application=4,
     
-    // Секция проекта 
+    /// <summary>
+    /// Секция проекта.
+    /// </summary>
     SectionProject=5,
     
-    // Личный Кабинет
+    /// <summary>
+    /// Личный Кабинет.
+    /// </summary>
     PersonalCabinet=6,
     
-    // Проект СНК
+    /// <summary>
+    /// Проект СНК.
+    /// </summary>
     Project=7,
     
-    // Платеж
+    /// <summary>
+    /// Платеж.
+    /// </summary>
     Pay=8,
     
-    // Контрагент
+    /// <summary>
+    /// Контрагент.
+    /// </summary>
     Contractor=9,
     
-    // Схема скидки
+    /// <summary>
+    /// Схема скидки.
+    /// </summary>
     Discrimination=10,
     
-    // Счет
+    /// <summary>
+    /// Счет.
+    /// </summary>
     Account=11,
     
-    // HASP-ключ
+    /// <summary>
+    /// HASP-ключ.
+    /// </summary>
     Hasp=12,
     
-    // Транзакция
+    /// <summary>
+    /// Транзакция.
+    /// </summary>
     Transaction=13,
     
-    // Пополнение
+    /// <summary>
+    /// Пополнение.
+    /// </summary>
     Storepurse=14,
     
-    // Карта
+    /// <summary>
+    /// Карта.
+    /// </summary>
     Card=15,
     
-    // Распределение
+    /// <summary>
+    /// Распределение.
+    /// </summary>
     Distribution=16,
     
-    // Ограничение
+    /// <summary>
+    /// Ограничение.
+    /// </summary>
     Limitation=17,
     
-    // Реквизит
+    /// <summary>
+    /// Реквизит.
+    /// </summary>
     Requisite=18,
     
-    // Секция справочника 
+    /// <summary>
+    /// Секция справочника.
+    /// </summary>
     Section=19,
     
-    // Опция справочника
+    /// <summary>
+    /// Опция справочника.
+    /// </summary>
     Option=20,
     
-    // Подразделение
+    /// <summary>
+    /// Подразделение.
+    /// </summary>
     Department=21,
     
-    // Точка обслуживания
+    /// <summary>
+    /// Точка обслуживания.
+    /// </summary>
     Pos=22,
     
-    // Схема накопления
+    /// <summary>
+    /// Схема накопления.
+    /// </summary>
     Accumulationscheme=23,
     
-    // Смена ТО 
+    /// <summary>
+    /// Смена ТО.
+    /// </summary>
     Shift=24,
     
-    // Контроллер ТРК
+    /// <summary>
+    /// Контроллер ТРК.
+    /// </summary>
     Controller=25,
     
+    /// <summary>
+    /// Принтер.
+    /// </summary>
     Printer =26
 }

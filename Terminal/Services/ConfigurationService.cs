@@ -223,9 +223,7 @@ public class ConfigurationService : IConfigurationService
         return _settingsFromPosOffice!;
     }
 
-    /// <summary>
-    /// Сохранить настройки в файл.
-    /// </summary>
+    /// <inheritdoc/>
     public void SaveSettingsToFile()
     {
         if (_appSettingsIsChanged && _currentSetting != null)
@@ -276,6 +274,7 @@ public class ConfigurationService : IConfigurationService
         }
     }
 
+    /// <inheritdoc/>
     public List<TableToSendDto> GetTablesToSend()
     {
         if (!File.Exists(_tableToSendFilePath) || IsDebugBuild())

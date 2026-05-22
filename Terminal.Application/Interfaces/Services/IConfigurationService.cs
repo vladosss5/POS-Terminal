@@ -24,5 +24,9 @@ public interface IConfigurationService
     /// </summary>
     public void SaveSettingsToFile();
 
+    /// <summary>
+    /// Получить из конфигурации список таблиц из БД для отправки.
+    /// </summary>
+    /// <returns></returns>
     public List<TableToSendDto> GetTablesToSend();
 }

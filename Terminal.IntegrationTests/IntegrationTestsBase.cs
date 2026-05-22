@@ -5,8 +5,8 @@ using NUnit.Framework;
 using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities.ParamDb;
-using Terminal.Data.MainDB;
-using Terminal.Data.ParamDB;
+using Terminal.Persistence.MainDB;
+using Terminal.Persistence.ParamDB;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.IntegrationTests;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 
 namespace Terminal.Application.Implementations.Services;
 

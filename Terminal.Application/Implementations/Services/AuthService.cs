@@ -2,7 +2,7 @@
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities;
 using Terminal.Core.DbEntities.MainDb;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 
 namespace Terminal.Application.Implementations.Services;
 

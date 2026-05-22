@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities.MainDb;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 
 namespace Terminal.UnitTests.Services;
 

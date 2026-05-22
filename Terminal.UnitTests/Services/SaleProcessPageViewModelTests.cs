@@ -10,7 +10,7 @@ using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.UnitTests.Services;

@@ -1,18 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
-using Android;
 using Android.Content;
-using Android.Content.PM;
-using Android.OS;
 using Android.Provider;
-using AndroidX.Core.App;
-using AndroidX.Core.Content;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 using Environment = Android.OS.Environment;
 
 namespace Terminal.Android.Services;

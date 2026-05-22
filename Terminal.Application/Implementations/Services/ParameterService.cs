@@ -2,7 +2,7 @@
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities.ParamDb;
 using Terminal.Core.Enums;
-using Terminal.Data.ParamDB;
+using Terminal.Persistence.ParamDB;
 
 namespace Terminal.Application.Implementations.Services;
 

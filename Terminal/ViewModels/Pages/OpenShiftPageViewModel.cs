@@ -12,7 +12,7 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
-using Terminal.Data.MainDB;
+using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;

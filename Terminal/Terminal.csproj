@@ -57,6 +57,6 @@
     <ItemGroup>
       <ProjectReference Include="..\Terminal.Application\Terminal.Application.csproj" />
       <ProjectReference Include="..\Terminal.Core\Terminal.Core.csproj" />
-      <ProjectReference Include="..\Terminal.Data\Terminal.Data.csproj" />
+      <ProjectReference Include="..\Terminal.Persistence\Terminal.Persistence.csproj" />
     </ItemGroup>
 </Project>

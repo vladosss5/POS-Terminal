@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProjectsForPlatforms", "Pro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Core", "Terminal.Core\Terminal.Core.csproj", "{CB11A300-0F14-4CA6-993D-88192936883F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Data", "Terminal.Data\Terminal.Data.csproj", "{38259EDE-3552-49B9-93B6-510AB95EF738}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Persistence", "Terminal.Persistence\Terminal.Persistence.csproj", "{38259EDE-3552-49B9-93B6-510AB95EF738}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Terminal.Application", "Terminal.Application\Terminal.Application.csproj", "{DCF77536-293B-4839-8295-CA6B2238D9D6}"
 EndProject

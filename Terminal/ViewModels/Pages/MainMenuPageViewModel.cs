@@ -65,6 +65,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+
+    private readonly IEncashmentService _encashmentService;
     
     
     /// <summary>
@@ -88,7 +90,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IAuthPageFactory authPageFactory, 
         IParameterService parameterService,
         ICryptographyService cryptographyService, 
-        ITmsClient tmsClient) 
+        ITmsClient tmsClient, 
+        IEncashmentService encashmentService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -103,6 +106,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _parameterService = parameterService;
         _cryptographyService = cryptographyService;
         _tmsClient = tmsClient;
+        _encashmentService = encashmentService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -292,6 +296,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Инкассация",
+                Command = new AsyncRelayCommand(EncashmentAsync)
             },
             new MainMenuItemModel
             {
@@ -325,6 +330,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
             }
         ]);
+    }
+
+    private async Task EncashmentAsync()
+    {
+        await _encashmentService.EncashmentAsync();
     }
 
     /// <summary>

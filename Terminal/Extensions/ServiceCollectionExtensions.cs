@@ -73,6 +73,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
+        collection.AddTransient<IEncashmentService, EncashmentService>();
     }
 
     /// <summary>

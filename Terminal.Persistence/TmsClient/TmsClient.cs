@@ -49,15 +49,12 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
-    public async Task SendEncashmentTablesAsync(
-        byte[] data, TableToSendDto table,
-        int batchNumber, int recordCount,
-        long originalSize, long compressedSize)
+    public async Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, int batchNumber, int recordCount)
     {
         const int maxRetries = 3;
         var attempt = 0;
 
-        while (attempt < maxRetries)
+        while (true)
         {
             try
             {
@@ -67,9 +64,7 @@ public class TmsClient : ITmsClient
                     ["DisplayName"] = table.DisplayName,
                     ["BatchNumber"] = batchNumber.ToString(),
                     ["RecordCount"] = recordCount.ToString(),
-                    ["OriginalSize"] = originalSize.ToString(),
-                    ["CompressedSize"] = compressedSize.ToString(),
-                    ["DatabaseName"] = table.DbName ?? "DataContext",
+                    ["DatabaseName"] = table.DbName,
                     ["Timestamp"] = DateTime.UtcNow.ToString("O"),
                     ["ContentType"] = "application/json+gzip"
                 };
@@ -94,11 +89,14 @@ public class TmsClient : ITmsClient
 
                 }
                 
-                break;
+                return true;
             }
             catch (Exception e)
             {
                 attempt++;
+
+                if (attempt >= maxRetries)
+                    return false;
             }
         }
     }

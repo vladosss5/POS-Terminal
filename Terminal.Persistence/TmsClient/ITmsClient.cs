@@ -26,11 +26,6 @@ public interface ITmsClient
     /// <param name="table">Таблица данные которой принадлежат.</param>
     /// <param name="batchNumber">Номер пакета.</param>
     /// <param name="recordCount">Кол-во пакетов</param>
-    /// <param name="originalSize">Размер до сжатия.</param>
-    /// <param name="compressedSize">Размер после сжатия.</param>
     /// <returns></returns>
-    Task SendEncashmentTablesAsync(
-        byte[] data, TableToSendDto table, 
-        int batchNumber, int recordCount,
-        long originalSize, long compressedSize);
+    Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, int batchNumber, int recordCount);
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,9 +10,7 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
@@ -60,13 +59,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ITmsClient" />
     private readonly ITmsClient _tmsClient;
     
+    /// <inheritdoc cref="IEncashmentService" />
+    private readonly IEncashmentService _encashmentService;
+    
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
-
-    private readonly IEncashmentService _encashmentService;
     
     
     /// <summary>
@@ -334,7 +334,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     private async Task EncashmentAsync()
     {
+        var stopwatch = Stopwatch.StartNew();
         await _encashmentService.EncashmentAsync();
+        stopwatch.Stop();
+    
+        await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");
     }
 
     /// <summary>

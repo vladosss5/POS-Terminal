@@ -28,13 +28,6 @@
     "DbName": "DataContext"
   },
   {
-    "Name": "ProtocolFilingForm",
-    "KeyField": "ProtokolFillingFormKey",
-    "DisplayName": "журнала событий",
-    "DoNotPrintIfEmpty": false,
-    "DbName": "EventDb"
-  },
-  {
     "Name": "payment",
     "KeyField": "PaymentShopKey",
     "DisplayName": "платежей",

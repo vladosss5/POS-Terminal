@@ -1,4 +1,5 @@
 ﻿using Terminal.Core.Enums;
+using Terminal.Core.Models;
 
 namespace Terminal.Persistence.TmsClient;
 
@@ -17,4 +18,19 @@ public interface ITmsClient
     /// </summary>
     /// <param name="authData">Данные аутентификации.</param>
     public Task AuthenticationAsync(string authData);
+
+    /// <summary>
+    /// Отправить пакет сжатой информации из БД на TMS.
+    /// </summary>
+    /// <param name="data">Массив байт сжатого файла.</param>
+    /// <param name="table">Таблица данные которой принадлежат.</param>
+    /// <param name="batchNumber">Номер пакета.</param>
+    /// <param name="recordCount">Кол-во пакетов</param>
+    /// <param name="originalSize">Размер до сжатия.</param>
+    /// <param name="compressedSize">Размер после сжатия.</param>
+    /// <returns></returns>
+    Task SendEncashmentTablesAsync(
+        byte[] data, TableToSendDto table, 
+        int batchNumber, int recordCount,
+        long originalSize, long compressedSize);
 }

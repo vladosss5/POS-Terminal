@@ -1,6 +1,9 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using Terminal.Core.Enums;
+using Terminal.Core.Models;
 
 namespace Terminal.Persistence.TmsClient;
 
@@ -43,5 +46,60 @@ public class TmsClient : ITmsClient
 
         if (!string.IsNullOrEmpty(_jwt))
             ConnectionStatus = TmsConnectionStatus.Authorized;
+    }
+
+    /// <inheritdoc/>
+    public async Task SendEncashmentTablesAsync(
+        byte[] data, TableToSendDto table,
+        int batchNumber, int recordCount,
+        long originalSize, long compressedSize)
+    {
+        const int maxRetries = 3;
+        var attempt = 0;
+
+        while (attempt < maxRetries)
+        {
+            try
+            {
+                var metadata = new Dictionary<string, string>
+                {
+                    ["TableName"] = table.Name,
+                    ["DisplayName"] = table.DisplayName,
+                    ["BatchNumber"] = batchNumber.ToString(),
+                    ["RecordCount"] = recordCount.ToString(),
+                    ["OriginalSize"] = originalSize.ToString(),
+                    ["CompressedSize"] = compressedSize.ToString(),
+                    ["DatabaseName"] = table.DbName ?? "DataContext",
+                    ["Timestamp"] = DateTime.UtcNow.ToString("O"),
+                    ["ContentType"] = "application/json+gzip"
+                };
+            
+                using var content = new MultipartFormDataContent();
+
+                var fileContent = new ByteArrayContent(data);
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/gzip");
+            
+                content.Add(
+                    fileContent, "file", $"encashment_{metadata["TableName"]}_batch_{metadata["BatchNumber"]}.json.gz");
+
+                foreach (var kvp in metadata)
+                    content.Add(new StringContent(kvp.Value), kvp.Key);
+
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _jwt);
+
+                var response = await _httpClient.PostAsync("/Encashment/upload", content);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+
+                }
+                
+                break;
+            }
+            catch (Exception e)
+            {
+                attempt++;
+            }
+        }
     }
 }

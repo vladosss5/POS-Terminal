@@ -72,14 +72,18 @@ public class EncashmentService : IEncashmentService
     
     public async Task EncashmentAsync()
     {
-        _logger.LogInformation($"Encashment start in {DateTime.Now.ToString("HH:mm:ss.ffffff")}");
-        // TODO: Запрос конфигураций у TMS
+        _logger.LogInformation($"Encashment start in {DateTime.Now:HH:mm:ss.ffffff}");
+        
         // TODO: Проверка закрытости смен
         
         await AuthenticationTmsClientAsync();
         
+        // TODO: Запрос конфигураций у TMS
+        // TODO: Запрос результата прошлой инкассации
+        
         var dbMain = await _dbFactory.CreateDbContextAsync();
         var dbEvent = await _eventDbFactory.CreateDbContextAsync();
+        
         foreach (var tableToSend in _tablesToSend)
         {
             switch (tableToSend.Name)
@@ -107,24 +111,26 @@ public class EncashmentService : IEncashmentService
                 .Where(x => x.TransactionShopKey > lastTransactionShopKey)
                 .Take(pageSize)
                 .ToListAsync();
+
+            var encashmentRows = sales
+                .Select(x => new EncashmentRowDto { JsonData = JsonSerializer.Serialize(x, JsonOptions) })
+                .ToList();
             
-            if (sales.Count == 0)
+            if (encashmentRows.Count == 0)
                 break;
 
             var batchNumber = lastTransactionShopKey / pageSize;
-            var compressedFilePath = await SaveAndCompressBatchAsync(sales, tableToSendDto, batchNumber);
-            
+            var compressedFilePath = await SaveAndCompressBatchAsync(encashmentRows, tableToSendDto, batchNumber);
             var compressedData = await File.ReadAllBytesAsync(compressedFilePath);
-            var transferSuccess = await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, batchNumber, sales.Count);
             
-            if (!transferSuccess)
-                File.Move(compressedFilePath, _failedDirectory);
+            await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, batchNumber, encashmentRows.Count);
             
             File.Delete(compressedFilePath);
             
             lastTransactionShopKey = sales.Last().TransactionShopKey;
-            hasMore = sales.Count == pageSize;
+            hasMore = encashmentRows.Count == pageSize;
             
+            encashmentRows.Clear();
             sales.Clear();
             
             if (batchNumber % 5 != 0) 
@@ -135,17 +141,21 @@ public class EncashmentService : IEncashmentService
         }
     }
 
-    private async Task<string> SaveAndCompressBatchAsync<T>(List<T> data, TableToSendDto table, int batchNumber)
+    private async Task<string> SaveAndCompressBatchAsync(List<EncashmentRowDto> encashmentRows, TableToSendDto table, int batchNumber)
     {
-        var jsonFilePath = Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.json");
-        var compressedFilePath = Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.json.gz");
+        var dateTimeNow = DateTime.UtcNow.ToString("HH.mm.ss.ff");
+        
+        var jsonFilePath = 
+            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.{dateTimeNow}.json");
+        var compressedFilePath = 
+            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.{dateTimeNow}.json.gz");
         
         try
         {
             await using (var jsonStream = File.Create(jsonFilePath))
             await using (var writer = new StreamWriter(jsonStream, Encoding.UTF8, 8192, leaveOpen: true))
             {
-                foreach (var item in data)
+                foreach (var item in encashmentRows)
                 {
                     var json = JsonSerializer.Serialize(item, JsonOptions);
                     await writer.WriteLineAsync(json);

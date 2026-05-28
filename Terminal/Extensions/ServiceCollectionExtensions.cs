@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
         var dbPath = DataContext.GetDefaultDbPath();
         var dir = Path.GetDirectoryName(dbPath);
         
-        if (dir != null)
+        if (!Path.Exists(dir) && dir != null)
             Directory.CreateDirectory(dir);
         
         collection.AddDbContextFactory<DataContext>(options =>
@@ -121,7 +121,7 @@ public static class ServiceCollectionExtensions
         var paramDbPath = ParamDbContext.GetDefaultDbPath();
         var paramDbDir = Path.GetDirectoryName(paramDbPath);
         
-        if (paramDbDir != null)
+        if (!Path.Exists(paramDbDir) && paramDbDir != null)
             Directory.CreateDirectory(paramDbDir);
 
         collection.AddDbContextFactory<ParamDbContext>(options =>
@@ -133,7 +133,7 @@ public static class ServiceCollectionExtensions
         var eventDbPath = EventDbContext.GetDefaultDbPath();
         var eventDbDir = Path.GetDirectoryName(eventDbPath);
         
-        if (eventDbDir != null)
+        if (!Path.Exists(eventDbDir) && eventDbDir != null)
             Directory.CreateDirectory(eventDbDir);
 
         collection.AddDbContextFactory<EventDbContext>(options =>

@@ -24,8 +24,10 @@ public interface ITmsClient
     /// </summary>
     /// <param name="data">Массив байт сжатого файла.</param>
     /// <param name="table">Таблица данные которой принадлежат.</param>
-    /// <param name="batchNumber">Номер пакета.</param>
+    /// <param name="fileName"></param>
     /// <param name="recordCount">Кол-во пакетов</param>
     /// <returns></returns>
-    Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, int batchNumber, int recordCount);
+    public Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, string fileName, int recordCount);
+
+    public Task StartEncashmentAsync();
 }

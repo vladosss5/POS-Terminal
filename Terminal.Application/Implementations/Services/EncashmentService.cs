@@ -14,13 +14,19 @@ using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Application.Implementations.Services;
 
+/// <inheritdoc/>
 public class EncashmentService : IEncashmentService
 {
+    /// <inheritdoc cref="ILogger" />
+    private readonly ILogger<EncashmentService> _logger;
+    
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
 
+    /// Фабрика экземпляров: <inheritdoc cref="EventDbContext"/>
     private readonly IDbContextFactory<EventDbContext> _eventDbFactory;
     
+    /// <inheritdoc cref="ICryptographyService" />
     private readonly ITmsClient _tmsClient;
     
     /// <inheritdoc cref="IParameterService" />
@@ -29,16 +35,22 @@ public class EncashmentService : IEncashmentService
     /// <inheritdoc cref="ICryptographyService" />
     private readonly ICryptographyService _cryptographyService;
     
+    /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
-    
-    private readonly ILogger<EncashmentService> _logger;
 
+    /// <summary>
+    /// Отправляемые таблицы.
+    /// </summary>
     private readonly List<TableToSendDto> _tablesToSend;
     
+    /// <summary>
+    /// Временная директория для файлов отправки в TMS.
+    /// </summary>
     private readonly string _tempDirectory;
     
-    private readonly string _failedDirectory;
-    
+    /// <summary>
+    /// Настройки сериализации.
+    /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
     
     /// <summary>
@@ -64,12 +76,11 @@ public class EncashmentService : IEncashmentService
         _tablesToSend = configurationService.GetTablesToSend();
         
         _tempDirectory = Path.Combine(Path.GetTempPath(), "TerminalEncashment");
-        _failedDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "failed_encashment");
         
         Directory.CreateDirectory(_tempDirectory);
-        Directory.CreateDirectory(_failedDirectory);
     }
     
+    /// <inheritdoc/>
     public async Task EncashmentAsync()
     {
         _logger.LogInformation($"Encashment start in {DateTime.Now:HH:mm:ss.ffffff}");
@@ -93,10 +104,17 @@ public class EncashmentService : IEncashmentService
                     break;
             }
         }
+
+        await _tmsClient.StartEncashmentAsync();
         
         _logger.LogInformation($"Encashment end in {DateTime.Now:HH:mm:ss.ffffff}");
     }
 
+    /// <summary>
+    ///  
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="tableToSendDto"></param>
     private async Task EncashmentSellingTable(DataContext context, TableToSendDto tableToSendDto)
     {
         const int pageSize = 300;
@@ -113,8 +131,11 @@ public class EncashmentService : IEncashmentService
                 .ToListAsync();
 
             var encashmentRows = sales
-                .Select(x => new EncashmentRowDto { JsonData = JsonSerializer.Serialize(x, JsonOptions) })
-                .ToList();
+                .Select(x => new EncashmentRowDto
+                {
+                    TableName = "Selling",
+                    JsonData = JsonSerializer.Serialize(x, JsonOptions)
+                }).ToList();
             
             if (encashmentRows.Count == 0)
                 break;
@@ -122,8 +143,9 @@ public class EncashmentService : IEncashmentService
             var batchNumber = lastTransactionShopKey / pageSize;
             var compressedFilePath = await SaveAndCompressBatchAsync(encashmentRows, tableToSendDto, batchNumber);
             var compressedData = await File.ReadAllBytesAsync(compressedFilePath);
+            var fileName = Path.GetFileName(compressedFilePath);
             
-            await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, batchNumber, encashmentRows.Count);
+            await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, fileName, encashmentRows.Count);
             
             File.Delete(compressedFilePath);
             
@@ -146,9 +168,9 @@ public class EncashmentService : IEncashmentService
         var dateTimeNow = DateTime.UtcNow.ToString("HH.mm.ss.ff");
         
         var jsonFilePath = 
-            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.{dateTimeNow}.json");
+            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json");
         var compressedFilePath = 
-            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}.{dateTimeNow}.json.gz");
+            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json.gz");
         
         try
         {

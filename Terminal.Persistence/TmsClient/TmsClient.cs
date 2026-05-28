@@ -49,7 +49,7 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
-    public async Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, int batchNumber, int recordCount)
+    public async Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, string fileName, int recordCount)
     {
         const int maxRetries = 3;
         var attempt = 0;
@@ -62,7 +62,6 @@ public class TmsClient : ITmsClient
                 {
                     ["TableName"] = table.Name,
                     ["DisplayName"] = table.DisplayName,
-                    ["BatchNumber"] = batchNumber.ToString(),
                     ["RecordCount"] = recordCount.ToString(),
                     ["DatabaseName"] = table.DbName,
                     ["Timestamp"] = DateTime.UtcNow.ToString("O"),
@@ -74,8 +73,7 @@ public class TmsClient : ITmsClient
                 var fileContent = new ByteArrayContent(data);
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/gzip");
             
-                content.Add(
-                    fileContent, "file", $"encashment_{metadata["TableName"]}_batch_{metadata["BatchNumber"]}.json.gz");
+                content.Add(fileContent, "file", fileName);
 
                 foreach (var kvp in metadata)
                     content.Add(new StringContent(kvp.Value), kvp.Key);
@@ -83,7 +81,7 @@ public class TmsClient : ITmsClient
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", _jwt);
 
-                var response = await _httpClient.PostAsync("/Encashment/upload", content);
+                var response = await _httpClient.PostAsync("/encashment/upload", content);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
 
@@ -99,5 +97,11 @@ public class TmsClient : ITmsClient
                     return false;
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task StartEncashmentAsync()
+    {
+        await _httpClient.GetAsync("/encashment/start");
     }
 }

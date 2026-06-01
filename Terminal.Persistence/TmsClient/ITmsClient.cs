@@ -19,6 +19,8 @@ public interface ITmsClient
     /// <param name="authData">Данные аутентификации.</param>
     public Task AuthenticationAsync(string authData);
 
+    public Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId);
+
     /// <summary>
     /// Отправить пакет сжатой информации из БД на TMS.
     /// </summary>

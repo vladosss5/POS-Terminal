@@ -48,6 +48,13 @@ public class TmsClient : ITmsClient
             ConnectionStatus = TmsConnectionStatus.Authorized;
     }
 
+    public async Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId)
+    {
+        var response = await _httpClient.GetAsync("/encashment/download-results");
+        var result = await response.Content.ReadAsByteArrayAsync();
+        return result;
+    }
+
     /// <inheritdoc/>
     public async Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, string fileName, int recordCount)
     {

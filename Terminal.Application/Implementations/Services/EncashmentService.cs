@@ -51,7 +51,14 @@ public class EncashmentService : IEncashmentService
     /// <summary>
     /// Настройки сериализации.
     /// </summary>
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
+    private static readonly JsonSerializerOptions JsonOptions = new() 
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip
+    };
     
     /// <summary>
     /// Конструктор.
@@ -90,7 +97,8 @@ public class EncashmentService : IEncashmentService
         await AuthenticationTmsClientAsync();
         
         // TODO: Запрос конфигураций у TMS
-        // TODO: Запрос результата прошлой инкассации
+
+        await ProcessingResultsEncashmentCollectionAsync();
         
         var dbMain = await _dbFactory.CreateDbContextAsync();
         var dbEvent = await _eventDbFactory.CreateDbContextAsync();
@@ -108,6 +116,40 @@ public class EncashmentService : IEncashmentService
         await _tmsClient.StartEncashmentAsync();
         
         _logger.LogInformation($"Encashment end in {DateTime.Now:HH:mm:ss.ffffff}");
+    }
+
+    private async Task ProcessingResultsEncashmentCollectionAsync()
+    {
+        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync("777");
+        
+        using var memoryStream = new MemoryStream(archiveBytes);
+        await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
+
+        foreach (var entry in archive.Entries.Where(e => e.Name.EndsWith(".json")))
+        {
+            await using var entryStream = await entry.OpenAsync();
+            var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
+            await SaveEncashmentIntoDataBaseAsync(encashmentRows);
+        }
+    }
+
+    private async Task SaveEncashmentIntoDataBaseAsync(IEnumerable<EncashmentResultRowDto>? encashmentRows)
+    {
+        if (encashmentRows == null)
+            return;
+
+        var rows = encashmentRows as EncashmentResultRowDto[] ?? encashmentRows.ToArray();
+        var dbContext = await _dbFactory.CreateDbContextAsync();
+        
+        var salesToDelete = rows
+            .Where(x => x.TableName == "Selling")
+            .Select(key => new Selling { TransactionShopKey = (int)key.IdRowFromTable })
+            .ToList();
+
+        if (salesToDelete.Count != 0)
+            dbContext.Sales.RemoveRange(salesToDelete);
+        
+        await dbContext.SaveChangesAsync();
     }
 
     /// <summary>

@@ -19,6 +19,11 @@ public interface ITmsClient
     /// <param name="authData">Данные аутентификации.</param>
     public Task AuthenticationAsync(string authData);
 
+    /// <summary>
+    /// Получить предыдущие результаты инкассаций. 
+    /// </summary>
+    /// <param name="terminalId">Номер терминала.</param>
+    /// <returns>Массив байт архива.</returns>
     public Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId);
 
     /// <summary>
@@ -26,10 +31,13 @@ public interface ITmsClient
     /// </summary>
     /// <param name="data">Массив байт сжатого файла.</param>
     /// <param name="table">Таблица данные которой принадлежат.</param>
-    /// <param name="fileName"></param>
-    /// <param name="recordCount">Кол-во пакетов</param>
-    /// <returns></returns>
+    /// <param name="fileName">Название файла.</param>
+    /// <param name="recordCount">Кол-во пакетов.</param>
+    /// <returns>Успешность передачи.</returns>
     public Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, string fileName, int recordCount);
 
-    public Task StartEncashmentAsync();
+    /// <summary>
+    /// Запустить на сервере процесс инкассации данных из переданных файлов.
+    /// </summary>
+    public Task StartEncashmentOnTmsAsync();
 }

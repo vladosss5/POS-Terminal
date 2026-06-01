@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.DbEntities.MainDb;
 using Terminal.Core.Enums;
@@ -113,14 +112,18 @@ public class EncashmentService : IEncashmentService
             }
         }
 
-        await _tmsClient.StartEncashmentAsync();
+        await _tmsClient.StartEncashmentOnTmsAsync();
         
         _logger.LogInformation($"Encashment end in {DateTime.Now:HH:mm:ss.ffffff}");
     }
 
+    /// <summary>
+    /// Обработка результатов прошлых инкассаций.
+    /// </summary>
     private async Task ProcessingResultsEncashmentCollectionAsync()
     {
-        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync("777");
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync(terminalNumber);
         
         using var memoryStream = new MemoryStream(archiveBytes);
         await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
@@ -129,11 +132,15 @@ public class EncashmentService : IEncashmentService
         {
             await using var entryStream = await entry.OpenAsync();
             var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
-            await SaveEncashmentIntoDataBaseAsync(encashmentRows);
+            await DeleteSuccessfulEncashmentsAsync(encashmentRows);
         }
     }
 
-    private async Task SaveEncashmentIntoDataBaseAsync(IEnumerable<EncashmentResultRowDto>? encashmentRows)
+    /// <summary>
+    /// Удалить успешно инкассированные строки из БД. 
+    /// </summary>
+    /// <param name="encashmentRows"></param>
+    private async Task DeleteSuccessfulEncashmentsAsync(IEnumerable<EncashmentResultRowDto>? encashmentRows)
     {
         if (encashmentRows == null)
             return;
@@ -142,7 +149,11 @@ public class EncashmentService : IEncashmentService
         var dbContext = await _dbFactory.CreateDbContextAsync();
         
         var salesToDelete = rows
-            .Where(x => x.TableName == "Selling")
+            .Where(x => x is
+            {
+                TableName: "Selling", 
+                Success: true
+            })
             .Select(key => new Selling { TransactionShopKey = (int)key.IdRowFromTable })
             .ToList();
 
@@ -153,10 +164,10 @@ public class EncashmentService : IEncashmentService
     }
 
     /// <summary>
-    ///  
+    /// Инкассировать таблицу продаж.
     /// </summary>
-    /// <param name="context"></param>
-    /// <param name="tableToSendDto"></param>
+    /// <param name="context">Контекст БД с таблицей продаж.</param>
+    /// <param name="tableToSendDto">Параметр отправляемых таблиц.</param>
     private async Task EncashmentSellingTable(DataContext context, TableToSendDto tableToSendDto)
     {
         const int pageSize = 300;
@@ -184,6 +195,10 @@ public class EncashmentService : IEncashmentService
 
             var batchNumber = lastTransactionShopKey / pageSize;
             var compressedFilePath = await SaveAndCompressBatchAsync(encashmentRows, tableToSendDto, batchNumber);
+
+            if (compressedFilePath == string.Empty)
+                return;
+            
             var compressedData = await File.ReadAllBytesAsync(compressedFilePath);
             var fileName = Path.GetFileName(compressedFilePath);
             
@@ -205,6 +220,13 @@ public class EncashmentService : IEncashmentService
         }
     }
 
+    /// <summary>
+    /// Сохранить и сжать пакет инкассируемых данных.
+    /// </summary>
+    /// <param name="encashmentRows">Список инкассируемых строк.</param>
+    /// <param name="table">Отправляемая таблица.</param>
+    /// <param name="batchNumber">Номер пакета в рамках инкассируемой таблицы.</param>
+    /// <returns>Путь к сжатому файлу.</returns>
     private async Task<string> SaveAndCompressBatchAsync(List<EncashmentRowDto> encashmentRows, TableToSendDto table, int batchNumber)
     {
         var dateTimeNow = DateTime.UtcNow.ToString("HH.mm.ss.ff");
@@ -219,11 +241,8 @@ public class EncashmentService : IEncashmentService
             await using (var jsonStream = File.Create(jsonFilePath))
             await using (var writer = new StreamWriter(jsonStream, Encoding.UTF8, 8192, leaveOpen: true))
             {
-                foreach (var item in encashmentRows)
-                {
-                    var json = JsonSerializer.Serialize(item, JsonOptions);
+                foreach (var json in encashmentRows.Select(item => JsonSerializer.Serialize(item, JsonOptions)))
                     await writer.WriteLineAsync(json);
-                }
 
                 await writer.FlushAsync();
             }
@@ -248,10 +267,15 @@ public class EncashmentService : IEncashmentService
             if (File.Exists(compressedFilePath)) 
                 File.Delete(compressedFilePath);
             
-            throw;
+            _logger.LogError(e.Message);
+            
+            return string.Empty;
         }
     }
     
+    /// <summary>
+    /// Аутентификация клиента в TMS.
+    /// </summary>
     private async Task AuthenticationTmsClientAsync()
     {
         if (_tmsClient.ConnectionStatus != TmsConnectionStatus.Authorized)

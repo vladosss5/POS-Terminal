@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 
@@ -10,6 +11,7 @@ namespace Terminal.Persistence.TmsClient;
 /// <inheritdoc/>
 public class TmsClient : ITmsClient
 {
+    private readonly ILogger<TmsClient> _logger;
     /// <summary>
     /// Http клиент. 
     /// </summary>
@@ -27,8 +29,12 @@ public class TmsClient : ITmsClient
     /// Конструктор.
     /// </summary>
     /// <param name="addressBase">Базовая часть адреса TMS.</param>
-    public TmsClient(string addressBase)
+    /// <param name="logger">Сервис логирования TMS клиента.</param>
+    public TmsClient(
+        string addressBase, 
+        ILogger<TmsClient> logger)
     {
+        _logger = logger;
         ConnectionStatus = TmsConnectionStatus.Disconnected;
         
         var socketsHandler = new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) };
@@ -39,20 +45,37 @@ public class TmsClient : ITmsClient
     /// <inheritdoc/>
     public async Task AuthenticationAsync(string authData)
     {
-        var json = JsonSerializer.Serialize(authData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync("Auth/Authentication", content);
-        _jwt = await response.Content.ReadAsStringAsync();
+        try
+        {
+            var json = JsonSerializer.Serialize(authData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("Auth/Authentication", content);
+            _jwt = await response.Content.ReadAsStringAsync();
 
-        if (!string.IsNullOrEmpty(_jwt))
-            ConnectionStatus = TmsConnectionStatus.Authorized;
+            if (!string.IsNullOrEmpty(_jwt))
+                ConnectionStatus = TmsConnectionStatus.Authorized;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
     }
 
+    /// <inheritdoc/>
     public async Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId)
     {
-        var response = await _httpClient.GetAsync("/encashment/download-results");
-        var result = await response.Content.ReadAsByteArrayAsync();
-        return result;
+        try
+        {
+            var response = await _httpClient.GetAsync("/encashment/download-results");
+            var result = await response.Content.ReadAsByteArrayAsync();
+            return result;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
     }
 
     /// <inheritdoc/>
@@ -98,6 +121,7 @@ public class TmsClient : ITmsClient
             }
             catch (Exception e)
             {
+                _logger.LogError($"An attempt number: {attempt} to send a {table.Name} table package failed", e.Message);
                 attempt++;
 
                 if (attempt >= maxRetries)
@@ -107,7 +131,7 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
-    public async Task StartEncashmentAsync()
+    public async Task StartEncashmentOnTmsAsync()
     {
         await _httpClient.GetAsync("/encashment/start");
     }

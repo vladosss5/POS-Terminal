@@ -84,12 +84,13 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ITmsClient>(sp =>
         {
             var parameterService = sp.GetRequiredService<IParameterService>();
+            var loggerService = sp.GetRequiredService<ILogger<TmsClient>>();
         
             var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
             var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
             var addressBase = $"http://{ipTms}:{portTms}/";
         
-            return new TmsClient(addressBase);
+            return new TmsClient(addressBase, loggerService);
         });
     }
     

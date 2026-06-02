@@ -334,11 +334,18 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     private async Task EncashmentAsync()
     {
-        var stopwatch = Stopwatch.StartNew();
-        await _encashmentService.EncashmentAsync();
-        stopwatch.Stop();
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            await _encashmentService.EncashmentAsync();
+            stopwatch.Stop();
     
-        await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");
+            await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+        }
     }
 
     /// <summary>

@@ -1,51 +1,58 @@
 [
   {
-    "Name": "selling",
+    "Name": "Sales",
     "KeyField": "TransactionShopKey",
     "DisplayName": "транзакций",
     "DoNotPrintIfEmpty": false,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 1
   },
   {
-    "Name": "shift",
+    "Name": "Shifts",
     "KeyField": "ShiftShopKey",
     "DisplayName": "смен",
     "DoNotPrintIfEmpty": false,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 2
   },
   {
-    "Name": "card_update",
+    "Name": "CardUpdates",
     "KeyField": "CardUpdateKey",
     "DisplayName": "корректировок",
     "DoNotPrintIfEmpty": false,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 3
   },
   {
-    "Name": "repayment",
+    "Name": "Repayments",
     "KeyField": "RepaymentShopKey",
     "DisplayName": "возвратов",
     "DoNotPrintIfEmpty": false,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 4
   },
   {
-    "Name": "payment",
+    "Name": "Payments",
     "KeyField": "PaymentShopKey",
     "DisplayName": "платежей",
     "DoNotPrintIfEmpty": true,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 5
   },
   {
-    "Name": "pos_update",
+    "Name": "PosUpdates",
     "KeyField": "PosUpdateShopKey",
     "DisplayName": "обновлений POS",
     "DoNotPrintIfEmpty": true,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 6
   },
   {
-    "Name": "dispenser",
+    "Name": "Dispensers",
     "KeyField": "DispenserShopKey",
     "DisplayName": "остатков",
     "DoNotPrintIfEmpty": true,
-    "DbName": "DataContext"
+    "DbName": "DataContext",
+    "Table": 7
   }
 ]

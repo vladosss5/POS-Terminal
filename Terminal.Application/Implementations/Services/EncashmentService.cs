@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -52,6 +53,7 @@ public class EncashmentService : IEncashmentService
     /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new() 
     {
+        Converters = { new JsonStringEnumConverter() },
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -97,7 +99,7 @@ public class EncashmentService : IEncashmentService
         
         // TODO: Запрос конфигураций у TMS
 
-        await ProcessingResultsEncashmentCollectionAsync();
+        await ProcessingResultLastEncashmentAsync();
         
         var dbMain = await _dbFactory.CreateDbContextAsync();
         var dbEvent = await _eventDbFactory.CreateDbContextAsync();
@@ -106,7 +108,7 @@ public class EncashmentService : IEncashmentService
         {
             switch (tableToSend.Name)
             {
-                case "selling":
+                case EncashmentTable.Sales:
                     await EncashmentSellingTable(dbMain, tableToSend);
                     break;
             }
@@ -120,20 +122,21 @@ public class EncashmentService : IEncashmentService
     /// <summary>
     /// Обработка результатов прошлых инкассаций.
     /// </summary>
-    private async Task ProcessingResultsEncashmentCollectionAsync()
+    private async Task ProcessingResultLastEncashmentAsync()
     {
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync(terminalNumber);
+
+        if (archiveBytes.Length == 0)
+            return;
         
         using var memoryStream = new MemoryStream(archiveBytes);
         await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
-
-        foreach (var entry in archive.Entries.Where(e => e.Name.EndsWith(".json")))
-        {
-            await using var entryStream = await entry.OpenAsync();
-            var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
-            await DeleteSuccessfulEncashmentsAsync(encashmentRows);
-        }
+        
+        await using var entryStream = await archive.Entries.First().OpenAsync();
+        var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
+        
+        await DeleteSuccessfulEncashmentsAsync(encashmentRows);
     }
 
     /// <summary>
@@ -151,7 +154,7 @@ public class EncashmentService : IEncashmentService
         var salesToDelete = rows
             .Where(x => x is
             {
-                TableName: "Selling", 
+                TableName: EncashmentTable.Sales,
                 Success: true
             })
             .Select(key => new Selling { TransactionShopKey = (int)key.IdRowFromTable })
@@ -186,7 +189,7 @@ public class EncashmentService : IEncashmentService
             var encashmentRows = sales
                 .Select(x => new EncashmentRowDto
                 {
-                    TableName = "Selling",
+                    TableName = EncashmentTable.Sales,
                     JsonData = JsonSerializer.Serialize(x, JsonOptions)
                 }).ToList();
             

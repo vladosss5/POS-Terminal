@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ public class ConfigurationService : IConfigurationService
     /// </summary>
     private readonly JsonSerializerOptions _jsonOptions = new() 
     { 
+        Converters = { new JsonStringEnumConverter() },
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,

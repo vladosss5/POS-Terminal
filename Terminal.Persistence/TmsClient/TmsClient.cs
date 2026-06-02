@@ -90,7 +90,7 @@ public class TmsClient : ITmsClient
             {
                 var metadata = new Dictionary<string, string>
                 {
-                    ["TableName"] = table.Name,
+                    ["TableName"] = table.Name.ToString(),
                     ["DisplayName"] = table.DisplayName,
                     ["RecordCount"] = recordCount.ToString(),
                     ["DatabaseName"] = table.DbName,

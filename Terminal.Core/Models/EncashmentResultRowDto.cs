@@ -1,4 +1,6 @@
-﻿namespace Terminal.Core.Models;
+﻿using Terminal.Core.Enums;
+
+namespace Terminal.Core.Models;
 
 /// <summary>
 /// Модель строки результата инкассации.
@@ -13,7 +15,7 @@ public class EncashmentResultRowDto
     /// <summary>
     /// Название таблицы откуда строка.
     /// </summary>
-    public string TableName { get; set; } = null!;
+    public EncashmentTable TableName { get; set; }
 
     /// <summary>
     /// Идентификатор записи внутри таблицы.

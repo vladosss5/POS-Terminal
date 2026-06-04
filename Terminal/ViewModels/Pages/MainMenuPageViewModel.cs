@@ -332,6 +332,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         ]);
     }
 
+    /// <summary>
+    /// Запустить инкассацию.
+    /// </summary>
     private async Task EncashmentAsync()
     {
         try

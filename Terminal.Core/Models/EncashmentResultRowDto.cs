@@ -20,7 +20,7 @@ public class EncashmentResultRowDto
     /// <summary>
     /// Идентификатор записи внутри таблицы.
     /// </summary>
-    public long IdRowFromTable { get; set; }
+    public string? IdRowFromTable { get; set; }
     
     /// <summary>
     /// Успешность вставки в БД TMS.

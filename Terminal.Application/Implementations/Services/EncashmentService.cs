@@ -157,7 +157,7 @@ public class EncashmentService : IEncashmentService
                 TableName: EncashmentTable.Sales,
                 Success: true
             })
-            .Select(key => new Selling { TransactionShopKey = (int)key.IdRowFromTable })
+            .Select(key => new Selling { TransactionShopKey = int.Parse(key.IdRowFromTable!) })
             .ToList();
 
         if (salesToDelete.Count != 0)
@@ -281,7 +281,7 @@ public class EncashmentService : IEncashmentService
     /// </summary>
     private async Task AuthenticationTmsClientAsync()
     {
-        if (_tmsClient.ConnectionStatus != TmsConnectionStatus.Authorized)
+        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
             return;
         
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);

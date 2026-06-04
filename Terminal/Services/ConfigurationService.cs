@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ public class ConfigurationService : IConfigurationService
     /// </summary>
     private readonly JsonSerializerOptions _jsonOptions = new() 
     { 
+        Converters = { new JsonStringEnumConverter() },
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
@@ -56,6 +58,9 @@ public class ConfigurationService : IConfigurationService
     /// </summary>
     private bool _isLoaded;
 
+    /// <summary>
+    /// Настройки приложения изменены, но не сохранены.
+    /// </summary>
     private bool _appSettingsIsChanged;
     
     /// <summary>
@@ -149,6 +154,77 @@ public class ConfigurationService : IConfigurationService
             }
         }
     }
+
+    /// <inheritdoc/>
+    public void SaveSettingsToFile()
+    {
+        if (_appSettingsIsChanged && _currentSetting != null)
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(_configFilePath);
+
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
+                File.WriteAllText(_configFilePath, json);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+            }
+            finally
+            {
+                _appSettingsIsChanged = false;
+            }
+        }
+
+        if (_settingsFromPosOfficeIsChanged)
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(_settingFromPosOfficeFilePath);
+
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+                
+                var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
+                using var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, _settingsFromPosOffice);
+                var xml = stringWriter.ToString();
+                File.WriteAllText(_settingFromPosOfficeFilePath, xml);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
+            }
+            finally
+            {
+                _settingsFromPosOfficeIsChanged = false;
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public List<TableToSendDto> GetTablesToSend()
+    {
+        if (!File.Exists(_tableToSendFilePath) || IsDebugBuild())
+            CopyConfigFromResources(TableToSendFileName, _tableToSendFilePath);
+
+        List<TableToSendDto> tables = [];
+
+        if (!File.Exists(_tableToSendFilePath)) 
+            return tables;
+        
+        var jsonFromFile = File.ReadAllText(_tableToSendFilePath);
+        var tablesInFile = JsonSerializer.Deserialize<TableToSendDto[]>(jsonFromFile, _jsonOptions);
+
+        if (tablesInFile != null)
+            tables.AddRange(tablesInFile);
+
+        return tables;
+    }
     
     /// <summary>
     /// Загрузить из файла настройки приложения.
@@ -221,77 +297,6 @@ public class ConfigurationService : IConfigurationService
         }
             
         return _settingsFromPosOffice!;
-    }
-
-    /// <inheritdoc/>
-    public void SaveSettingsToFile()
-    {
-        if (_appSettingsIsChanged && _currentSetting != null)
-        {
-            try
-            {
-                var directory = Path.GetDirectoryName(_configFilePath);
-
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-
-                var json = JsonSerializer.Serialize(_currentSetting, _jsonOptions);
-                File.WriteAllText(_configFilePath, json);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
-            }
-            finally
-            {
-                _appSettingsIsChanged = false;
-            }
-        }
-
-        if (_settingsFromPosOfficeIsChanged)
-        {
-            try
-            {
-                var directory = Path.GetDirectoryName(_settingFromPosOfficeFilePath);
-
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-                
-                var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
-                using var stringWriter = new StringWriter();
-                serializer.Serialize(stringWriter, _settingsFromPosOffice);
-                var xml = stringWriter.ToString();
-                File.WriteAllText(_settingFromPosOfficeFilePath, xml);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Не удалось сохранить конфигурацию: {e.InnerException}");
-            }
-            finally
-            {
-                _settingsFromPosOfficeIsChanged = false;
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public List<TableToSendDto> GetTablesToSend()
-    {
-        if (!File.Exists(_tableToSendFilePath) || IsDebugBuild())
-            CopyConfigFromResources(TableToSendFileName, _tableToSendFilePath);
-
-        List<TableToSendDto> tables = [];
-
-        if (!File.Exists(_tableToSendFilePath)) 
-            return tables;
-        
-        var jsonFromFile = File.ReadAllText(_tableToSendFilePath);
-        var tablesInFile = JsonSerializer.Deserialize<TableToSendDto[]>(jsonFromFile, _jsonOptions);
-
-        if (tablesInFile != null)
-            tables.AddRange(tablesInFile);
-
-        return tables;
     }
 
     /// <summary>

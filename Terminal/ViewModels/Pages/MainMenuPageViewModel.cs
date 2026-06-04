@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,9 +10,7 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
@@ -60,6 +59,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ITmsClient" />
     private readonly ITmsClient _tmsClient;
     
+    /// <inheritdoc cref="IEncashmentService" />
+    private readonly IEncashmentService _encashmentService;
+    
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
     
@@ -88,7 +90,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IAuthPageFactory authPageFactory, 
         IParameterService parameterService,
         ICryptographyService cryptographyService, 
-        ITmsClient tmsClient) 
+        ITmsClient tmsClient, 
+        IEncashmentService encashmentService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -103,6 +106,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _parameterService = parameterService;
         _cryptographyService = cryptographyService;
         _tmsClient = tmsClient;
+        _encashmentService = encashmentService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -292,6 +296,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Инкассация",
+                Command = new AsyncRelayCommand(EncashmentAsync)
             },
             new MainMenuItemModel
             {
@@ -325,6 +330,25 @@ public partial class MainMenuPageViewModel : PageViewModelBase
                 Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
             }
         ]);
+    }
+
+    /// <summary>
+    /// Запустить инкассацию.
+    /// </summary>
+    private async Task EncashmentAsync()
+    {
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            await _encashmentService.EncashmentAsync();
+            stopwatch.Stop();
+    
+            await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+        }
     }
 
     /// <summary>

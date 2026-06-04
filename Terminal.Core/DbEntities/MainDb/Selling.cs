@@ -194,7 +194,7 @@ public class Selling
     /// <summary>
     /// GUID транзакции.
     /// </summary>
-    public Guid? Guid { get; set; }
+    public string? Guid { get; set; }
 
     /// <summary>
     /// Код ошибки.
@@ -300,12 +300,12 @@ public class Selling
     /// <summary>
     /// GUID товара.
     /// </summary>
-    public Guid? CommodityGuid { get; set; }
+    public string? CommodityGuid { get; set; }
 
     /// <summary>
     /// GUID набора товаров.
     /// </summary>
-    public Guid? SetOfGoodsGuid { get; set; }
+    public string? SetOfGoodsGuid { get; set; }
 
     /// <summary>
     /// Начальная температура.

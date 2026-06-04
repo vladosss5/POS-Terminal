@@ -1,4 +1,6 @@
-﻿namespace Terminal.Core.Models;
+﻿using Terminal.Core.Enums;
+
+namespace Terminal.Core.Models;
 
 /// <summary>
 /// Таблица для отправки.
@@ -8,7 +10,7 @@ public record struct TableToSendDto
     /// <summary>
     /// Название таблицы.
     /// </summary>
-    public string Name { get; set; }
+    public EncashmentTable Name { get; set; }
     
     /// <summary>
     /// Поле являющееся идентификатором.

@@ -73,6 +73,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IShiftService, ShiftService>();
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
+        collection.AddTransient<IEncashmentService, EncashmentService>();
     }
 
     /// <summary>
@@ -83,12 +84,13 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ITmsClient>(sp =>
         {
             var parameterService = sp.GetRequiredService<IParameterService>();
+            var loggerService = sp.GetRequiredService<ILogger<TmsClient>>();
         
             var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
             var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
             var addressBase = $"http://{ipTms}:{portTms}/";
         
-            return new TmsClient(addressBase);
+            return new TmsClient(addressBase, loggerService);
         });
     }
     
@@ -101,7 +103,7 @@ public static class ServiceCollectionExtensions
         var dbPath = DataContext.GetDefaultDbPath();
         var dir = Path.GetDirectoryName(dbPath);
         
-        if (dir != null)
+        if (!Path.Exists(dir) && dir != null)
             Directory.CreateDirectory(dir);
         
         collection.AddDbContextFactory<DataContext>(options =>
@@ -120,7 +122,7 @@ public static class ServiceCollectionExtensions
         var paramDbPath = ParamDbContext.GetDefaultDbPath();
         var paramDbDir = Path.GetDirectoryName(paramDbPath);
         
-        if (paramDbDir != null)
+        if (!Path.Exists(paramDbDir) && paramDbDir != null)
             Directory.CreateDirectory(paramDbDir);
 
         collection.AddDbContextFactory<ParamDbContext>(options =>
@@ -132,7 +134,7 @@ public static class ServiceCollectionExtensions
         var eventDbPath = EventDbContext.GetDefaultDbPath();
         var eventDbDir = Path.GetDirectoryName(eventDbPath);
         
-        if (eventDbDir != null)
+        if (!Path.Exists(eventDbDir) && eventDbDir != null)
             Directory.CreateDirectory(eventDbDir);
 
         collection.AddDbContextFactory<EventDbContext>(options =>

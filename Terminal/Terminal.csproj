@@ -27,6 +27,8 @@
         <EmbeddedResource Include="TablesToSend.json">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </EmbeddedResource>
+        <None Remove="SQL\EncashTestData.sql" />
+        <EmbeddedResource Include="SQL\EncashTestData.sql" />
     </ItemGroup>
 
     <ItemGroup>

@@ -340,7 +340,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         try
         {
             var stopwatch = Stopwatch.StartNew();
+            
+            await _configurationService.UpdateSettingsFromPosOffice();
             await _encashmentService.EncashmentAsync();
+            
             stopwatch.Stop();
     
             await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");

@@ -154,7 +154,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         
                     if (closingShift != null)
                         await _shiftService.CloseShiftAsync(closingShift);
-        
+
+                    if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
+                        await EncashmentAsync();
+                    
                     Navigation.NavigateTo<OpenShiftPageViewModel>();
                 }
                 catch (Exception e)

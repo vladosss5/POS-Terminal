@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -92,9 +93,7 @@ public class EncashmentService : IEncashmentService
     public async Task EncashmentAsync()
     {
         _logger.LogInformation($"Encashment start in {DateTime.Now:HH:mm:ss.ffffff}");
-        
-        // TODO: Проверка закрытости смен
-        
+
         await AuthenticationTmsClientAsync();
         
         // TODO: Запрос конфигураций у TMS

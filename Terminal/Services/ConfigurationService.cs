@@ -4,12 +4,15 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
+using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Services;
 
@@ -20,6 +23,12 @@ public class ConfigurationService : IConfigurationService
 {
     /// <inheritdoc cref="ILogger" />
     private readonly ILogger<ConfigurationService> _logger;
+
+    /// <inheritdoc cref="ITmsClient" />
+    private readonly ITmsClient _tmsClient;
+
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
     
     /// <summary>
     /// Настройки сериализации.
@@ -108,9 +117,15 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService(ILogger<ConfigurationService> logger)
+    public ConfigurationService(
+        ILogger<ConfigurationService> logger, 
+        ITmsClient tmsClient, 
+        IParameterService parameterService)
     {
         _logger = logger;
+        _tmsClient = tmsClient;
+        _parameterService = parameterService;
+        
         var baseDirectory = OperatingSystem.IsAndroid() 
             ? Environment.GetFolderPath(Environment.SpecialFolder.Personal) 
             : AppContext.BaseDirectory;
@@ -153,6 +168,20 @@ public class ConfigurationService : IConfigurationService
                 SaveSettingsToFile();
             }
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task UpdateSettingsFromPosOffice()
+    {
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        var configString = (await _tmsClient.GetConfigurationAsync(terminalNumber))
+            .Replace(">False<", ">false<")
+            .Replace(">True<", ">true<");
+        
+        var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
+        using var reader = new StringReader(configString);
+        
+        _settingsFromPosOffice = (SettingsFromPosOffice)(serializer.Deserialize(reader) ?? new SettingsFromPosOffice());
     }
 
     /// <inheritdoc/>

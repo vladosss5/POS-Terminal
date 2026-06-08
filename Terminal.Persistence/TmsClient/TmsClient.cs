@@ -63,6 +63,22 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
+    public async Task<string> GetConfigurationAsync(string terminalId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/encashment/configuration");
+            var result = await response.Content.ReadAsStringAsync();
+            return result;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId)
     {
         try

@@ -20,6 +20,13 @@ public interface ITmsClient
     public Task AuthenticationAsync(string authData);
 
     /// <summary>
+    /// Получить конфигурацию.
+    /// </summary>
+    /// <param name="terminalId">Номер терминала.</param>
+    /// <returns>XML конфиг в виде строки.</returns>
+    public Task<string> GetConfigurationAsync(string terminalId);
+
+    /// <summary>
     /// Получить предыдущие результаты инкассаций. 
     /// </summary>
     /// <param name="terminalId">Номер терминала.</param>

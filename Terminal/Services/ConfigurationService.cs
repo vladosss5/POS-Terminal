@@ -7,11 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Implementations.Helpers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
+using Terminal.Core.TmsDtos.TerminalUpdate;
 using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Services;
@@ -174,14 +176,29 @@ public class ConfigurationService : IConfigurationService
     public async Task UpdateSettingsFromPosOffice()
     {
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var configString = (await _tmsClient.GetConfigurationAsync(terminalNumber))
+        var request = new TerminalUpdateRequestDto
+        {
+            TerminalId = Convert.ToInt64(terminalNumber),
+            SettingType = SettingsType.Config
+        };
+
+        var response = await _tmsClient.GetConfigurationAsync(request);
+        if (response == null) 
+            return;
+        
+        var decodedString = Base64Helper.DecodeFromBase64(response.Value);
+        if (string.IsNullOrEmpty(decodedString)) 
+            return;
+        
+        var configString = decodedString
             .Replace(">False<", ">false<")
             .Replace(">True<", ">true<");
         
         var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
         using var reader = new StringReader(configString);
-        
         _settingsFromPosOffice = (SettingsFromPosOffice)(serializer.Deserialize(reader) ?? new SettingsFromPosOffice());
+
+        await _tmsClient.SendConfirmationUpdatingAsync([response.PosSettingsKey]);
     }
 
     /// <inheritdoc/>

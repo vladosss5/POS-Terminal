@@ -20,6 +20,11 @@ public interface IConfigurationService
     public SettingsFromPosOffice SettingsFromPosOffice { get; set; }
 
     /// <summary>
+    /// Обновить настройки из PosOffice.
+    /// </summary>
+    public Task UpdateSettingsFromPosOffice();
+
+    /// <summary>
     /// Сохранить изменения конфигурации в файл.
     /// </summary>
     public void SaveSettingsToFile();

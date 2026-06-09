@@ -1,5 +1,6 @@
 ﻿using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Core.TmsDtos.TerminalUpdate;
 
 namespace Terminal.Persistence.TmsClient;
 
@@ -18,6 +19,19 @@ public interface ITmsClient
     /// </summary>
     /// <param name="authData">Данные аутентификации.</param>
     public Task AuthenticationAsync(string authData);
+
+    /// <summary>
+    /// Получить конфигурацию.
+    /// </summary>
+    /// <param name="requestDto">Запрос на обновление терминала.</param>
+    /// <returns>Base64 строка с данными.</returns>
+    public Task<TerminalUpdateResponseDto?> GetConfigurationAsync(TerminalUpdateRequestDto requestDto);
+
+    /// <summary>
+    /// Отправить подтверждение обновлений.
+    /// </summary>
+    /// <param name="updatedSettingIds">Идентификаторы обновлённых настроек.</param>
+    public Task SendConfirmationUpdatingAsync(int[] updatedSettingIds);
 
     /// <summary>
     /// Получить предыдущие результаты инкассаций. 

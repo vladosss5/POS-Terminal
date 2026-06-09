@@ -329,11 +329,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         try
         {
             var stopwatch = Stopwatch.StartNew();
+            
+            await _configurationService.UpdateSettingsFromPosOffice();
 
             if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
                 await PrintInterimReport(cancellationToken);
                     
             await _encashmentService.EncashmentAsync();
+            
             stopwatch.Stop();
     
             await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");

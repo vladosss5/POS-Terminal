@@ -1,10 +1,12 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Core.TmsDtos.TerminalUpdate;
 
 namespace Terminal.Persistence.TmsClient;
 
@@ -54,6 +56,41 @@ public class TmsClient : ITmsClient
 
             if (!string.IsNullOrEmpty(_jwt))
                 ConnectionStatus = TmsConnectionStatus.Authorized;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<TerminalUpdateResponseDto?> GetConfigurationAsync(TerminalUpdateRequestDto requestDto)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(requestDto);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("/terminal-updating/updates", content);
+            var result = await response.Content.ReadFromJsonAsync<TerminalUpdateResponseDto>();
+            
+            return result;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task SendConfirmationUpdatingAsync(int[] updatedSettingIds)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(updatedSettingIds);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            await _httpClient.PostAsync("/terminal-updating/confirmations", content);
         }
         catch (Exception e)
         {

@@ -13,7 +13,6 @@ using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
-using Terminal.Core.TmsDtos.TerminalUpdate;
 using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Services;
@@ -29,9 +28,6 @@ public class ConfigurationService : IConfigurationService
     /// <inheritdoc cref="ITmsClient" />
     private readonly ITmsClient _tmsClient;
 
-    /// <inheritdoc cref="IParameterService" />
-    private readonly IParameterService _parameterService;
-    
     /// <summary>
     /// Настройки сериализации.
     /// </summary>
@@ -121,13 +117,11 @@ public class ConfigurationService : IConfigurationService
     /// </summary>
     public ConfigurationService(
         ILogger<ConfigurationService> logger, 
-        ITmsClient tmsClient, 
-        IParameterService parameterService)
+        ITmsClient tmsClient)
     {
         _logger = logger;
         _tmsClient = tmsClient;
-        _parameterService = parameterService;
-        
+
         var baseDirectory = OperatingSystem.IsAndroid() 
             ? Environment.GetFolderPath(Environment.SpecialFolder.Personal) 
             : AppContext.BaseDirectory;
@@ -175,14 +169,7 @@ public class ConfigurationService : IConfigurationService
     /// <inheritdoc/>
     public async Task UpdateSettingsFromPosOffice()
     {
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var request = new TerminalUpdateRequestDto
-        {
-            TerminalId = Convert.ToInt64(terminalNumber),
-            SettingType = SettingsType.Config
-        };
-
-        var response = await _tmsClient.GetConfigurationAsync(request);
+        var response = await _tmsClient.GetConfigurationAsync(SettingsType.Config);
         if (response == null) 
             return;
         

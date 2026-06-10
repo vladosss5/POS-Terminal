@@ -51,8 +51,9 @@ public class TmsClient : ITmsClient
         {
             var json = JsonSerializer.Serialize(authData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("Auth/Authentication", content);
+            var response = await _httpClient.PostAsync("authentication", content);
             _jwt = await response.Content.ReadAsStringAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwt);
 
             if (!string.IsNullOrEmpty(_jwt))
                 ConnectionStatus = TmsConnectionStatus.Authorized;
@@ -65,13 +66,11 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
-    public async Task<TerminalUpdateResponseDto?> GetConfigurationAsync(TerminalUpdateRequestDto requestDto)
+    public async Task<TerminalUpdateResponseDto?> GetConfigurationAsync(SettingsType settingType)
     {
         try
         {
-            var json = JsonSerializer.Serialize(requestDto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("/terminal-updating/updates", content);
+            var response = await _httpClient.GetAsync($"/terminal-updating/updates/{(int)settingType}");
             var result = await response.Content.ReadFromJsonAsync<TerminalUpdateResponseDto>();
             
             return result;
@@ -100,7 +99,7 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
-    public async Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId)
+    public async Task<byte[]> GetResultsEncashmentCollectionAsync()
     {
         try
         {

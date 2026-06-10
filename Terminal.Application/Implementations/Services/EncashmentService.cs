@@ -29,15 +29,6 @@ public class EncashmentService : IEncashmentService
     
     /// <inheritdoc cref="ICryptographyService" />
     private readonly ITmsClient _tmsClient;
-    
-    /// <inheritdoc cref="IParameterService" />
-    private readonly IParameterService _parameterService;
-    
-    /// <inheritdoc cref="ICryptographyService" />
-    private readonly ICryptographyService _cryptographyService;
-    
-    /// <inheritdoc cref="IConfigurationService" />
-    private readonly IConfigurationService _configurationService;
 
     /// <summary>
     /// Отправляемые таблицы.
@@ -70,17 +61,12 @@ public class EncashmentService : IEncashmentService
         IDbContextFactory<DataContext> dbFactory, 
         IDbContextFactory<EventDbContext> eventDbFactory, 
         ILogger<EncashmentService> logger, 
-        ITmsClient tmsClient, 
-        IParameterService parameterService, 
-        ICryptographyService cryptographyService)
+        ITmsClient tmsClient)
     {
-        _configurationService = configurationService;
         _dbFactory = dbFactory;
         _eventDbFactory = eventDbFactory;
         _logger = logger;
         _tmsClient = tmsClient;
-        _parameterService = parameterService;
-        _cryptographyService = cryptographyService;
 
         _tablesToSend = configurationService.GetTablesToSend();
         
@@ -119,8 +105,7 @@ public class EncashmentService : IEncashmentService
     /// </summary>
     private async Task ProcessingResultLastEncashmentAsync()
     {
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync(terminalNumber);
+        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync();
 
         if (archiveBytes.Length == 0)
             return;

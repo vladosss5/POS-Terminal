@@ -94,10 +94,6 @@ public class EncashmentService : IEncashmentService
     {
         _logger.LogInformation($"Encashment start in {DateTime.Now:HH:mm:ss.ffffff}");
 
-        await AuthenticationTmsClientAsync();
-        
-        // TODO: Запрос конфигураций у TMS
-
         await ProcessingResultLastEncashmentAsync();
         
         var dbMain = await _dbFactory.CreateDbContextAsync();
@@ -273,24 +269,5 @@ public class EncashmentService : IEncashmentService
             
             return string.Empty;
         }
-    }
-    
-    /// <summary>
-    /// Аутентификация клиента в TMS.
-    /// </summary>
-    private async Task AuthenticationTmsClientAsync()
-    {
-        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
-            return;
-        
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var plainText = terminalNumber + " " + Guid.NewGuid();
-        
-        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
-        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
-        
-        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
-
-        await _tmsClient.AuthenticationAsync(workload);
     }
 }

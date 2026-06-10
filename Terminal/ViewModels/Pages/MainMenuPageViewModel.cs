@@ -241,45 +241,52 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <param name="arg">Токен отмены.</param>
     private async Task PrintInterimReport(CancellationToken arg)
     {
-        var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
-
-        if (openShift == null)
+        try
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
-            return;
+            var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+            if (openShift == null)
+            {
+                await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
+                return;
+            }
+        
+            var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
+        
+            var divideByIssuers = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportDivide;
+            var paymentTypes = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportPaymentTypes!
+                .Split(',')
+                .Select(x => Convert.ToInt32(x));
+
+            var sales = await GetReportAsync(
+                paymentTypes: paymentTypes,
+                issuerList: [Convert.ToInt32(issuerNumber)], 
+                shiftKey: openShift.ShiftKey ?? 0,
+                elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber), 
+                devideOrg: false, 
+                cancellationToken: arg);
+
+            var receiptNumber = await GetNumberLastReceipt(arg);
+        
+            var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+            var operatorName = _authService.CurrentUser?.Name;
+
+            var reportData = new ShiftReportDataDto
+            {
+                ReceiptNumber = receiptNumber,
+                IssuerNumber = issuerNumber,
+                TerminalNumber = terminalNumber,
+                Shift = openShift,
+                SalesList = sales,
+                OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
+            };
+
+            await _receiptPrintService.PrintShiftReportAsync(reportData);
         }
-        
-        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
-        
-        var divideByIssuers = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportDivide;
-        var paymentTypes = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportPaymentTypes!
-            .Split(',')
-            .Select(x => Convert.ToInt32(x));
-
-        var sales = await GetReportAsync(
-            paymentTypes: paymentTypes,
-            issuerList: [Convert.ToInt32(issuerNumber)], 
-            shiftKey: openShift.ShiftKey ?? 0,
-            elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber), 
-            devideOrg: false, 
-            cancellationToken: arg);
-
-        var receiptNumber = await GetNumberLastReceipt(arg);
-        
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var operatorName = _authService.CurrentUser?.Name;
-
-        var reportData = new ShiftReportDataDto
+        catch (Exception e)
         {
-            ReceiptNumber = receiptNumber,
-            IssuerNumber = issuerNumber,
-            TerminalNumber = terminalNumber,
-            Shift = openShift,
-            SalesList = sales,
-            OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
-        };
-
-        await _receiptPrintService.PrintShiftReportAsync(reportData);
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+        }
     }
 
     /// <summary>
@@ -330,6 +337,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         {
             var stopwatch = Stopwatch.StartNew();
             
+            await AuthenticationTmsClientAsync();
+            
             await _configurationService.UpdateSettingsFromPosOffice();
 
             if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
@@ -345,6 +354,25 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         {
             await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
         }
+    }
+    
+    /// <summary>
+    /// Аутентификация клиента в TMS.
+    /// </summary>
+    private async Task AuthenticationTmsClientAsync()
+    {
+        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
+            return;
+        
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        var plainText = terminalNumber + " " + Guid.NewGuid();
+        
+        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
+        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
+        
+        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
+
+        await _tmsClient.AuthenticationAsync(workload);
     }
 
     /// <summary>
@@ -393,7 +421,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         parameters.AddRange(issuerArray.Select((t, i) => new SqliteParameter($"@iss{i}", t)));
         
         var result = await db.Set<SalesReportResult>()
-            .FromSqlRaw(finalSql, parameters)
+            .FromSqlRaw(finalSql, parameters.ToArray())
             .ToListAsync(cancellationToken: cancellationToken);
 
         return result;

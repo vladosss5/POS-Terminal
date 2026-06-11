@@ -104,7 +104,10 @@ public partial class SettingsPageViewModel : PageViewModelBase
         get;
         set
         {
-            if (SetProperty(ref field, value))
+            if (!SetProperty(ref field, value))
+                return;
+
+            if (PortRegex().IsMatch(field))
                 _parameterService.SetValueAsync(AppParameter.TmsPort, field);
         }
     }
@@ -165,4 +168,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
 
     [GeneratedRegex(@"^((25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(25[0-5]|2[0-4]\d|1?\d?\d)$")]
     private static partial Regex IpRegex();
+    
+    [GeneratedRegex(@"^(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{1,3}|\d)$")]
+    private static partial Regex PortRegex();
 }

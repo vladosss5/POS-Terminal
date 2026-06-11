@@ -23,7 +23,7 @@
             </Button>
         </Grid>
         
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer Grid.Row="1" Margin="{Binding SafeArea}">
             <StackPanel>
                 <!-- Копирование чеков -->
                 <Border Classes="group-setting">
@@ -224,11 +224,36 @@
                         </ItemsControl>
                     </StackPanel>
                 </Border>
+                
+                <!-- Подключение к TMS -->
+                <Border Classes="group-setting" Padding="0,15,0,15">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="TMS" Classes="group-title"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="IP адрес" Classes="text-items-control"/>
+                            <TextBox Grid.Column="1" Text="{Binding TmsIpAddress}" Classes="textbox"/>
+                        </Grid>
+                        
+                        <Separator Classes="default-separator"/>
+                        
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Порт" Classes="text-items-control"/>
+                            <TextBox Grid.Column="1" Text="{Binding TmsPort}" Classes="textbox"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>
     
     <UserControl.Styles>
+        <Style Selector="TextBox.textbox">
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"></Setter>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
         <Style Selector="TextBlock.text-items-control">
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>

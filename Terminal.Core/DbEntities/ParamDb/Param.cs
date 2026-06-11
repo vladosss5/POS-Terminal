@@ -1,12 +1,12 @@
 ﻿namespace Terminal.Core.DbEntities.ParamDb;
 
 /// <summary>
-/// Парамерты приложения.
+/// Параметры приложения.
 /// </summary>
 public class Param
 {
     /// <summary>
-    /// Название парамерта.
+    /// Название параметра.
     /// </summary>
     public string Name { get; set; } = null!;
 

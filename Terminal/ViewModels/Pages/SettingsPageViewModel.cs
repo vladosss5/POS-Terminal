@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
+using Avalonia;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
 using Terminal.Core.Models.Settings;
 using Terminal.Core.Models.SettingsFromPosOffice;
-using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
 
 /// <summary>
 /// Логика работы страницы с настройками.
 /// </summary>
-public class SettingsPageViewModel : PageViewModelBase
+public partial class SettingsPageViewModel : PageViewModelBase
 {
     /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
+    
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
 
     /// <summary>
     /// Ссылка на экземпляр класса настроек приложения.
@@ -78,20 +81,54 @@ public class SettingsPageViewModel : PageViewModelBase
     }
     
     /// <summary>
-    /// Коллекция пунктов меню.
+    /// Ip адрес TMS. Наблюдаемое св-во. При изменении автоматически сохраняет в значение БД.
     /// </summary>
-    public ObservableCollection<SettingsMenuItemModel> MenuItems { get; } = [];
+    public string TmsIpAddress 
+    { 
+        get; 
+        set
+        {
+            if (!SetProperty(ref field, value)) 
+                return;
+            
+            if (IpRegex().IsMatch(field))
+                _parameterService.SetValueAsync(AppParameter.TmsIp, field);
+        }
+    }
     
+    /// <summary>
+    /// Порт TMS. Наблюдаемое св-во. При изменении автоматически сохраняет в значение БД.
+    /// </summary>
+    public string TmsPort
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value))
+                _parameterService.SetValueAsync(AppParameter.TmsPort, field);
+        }
+    }
+    
+    /// <summary>
+    /// Безопасная зона для интерфейсов при открытии клавиатуры.
+    /// </summary>
+    public Thickness SafeArea
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
+
     /// <summary>
     /// Конструктор.
     /// </summary>
-    /// <param name="logger"></param>
     public SettingsPageViewModel(
         ILogger<PageViewModelBase> logger,
-        IConfigurationService configurationService) 
+        IConfigurationService configurationService, 
+        IParameterService parameterService) 
         : base(logger)
     {
         _configurationService = configurationService;
+        _parameterService = parameterService;
         Title = "Настройки";
         
         SettingsModel = _configurationService.CurrentSetting;
@@ -113,7 +150,7 @@ public class SettingsPageViewModel : PageViewModelBase
     /// <summary>
     /// Инициализировать данные.
     /// </summary>
-    private void InitializeData()
+    private async void InitializeData()
     {
         var timeOutValue = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -121,5 +158,11 @@ public class SettingsPageViewModel : PageViewModelBase
         TimeoutValues.Add(SecondsAuthenticationCanceled);
 
         SelectedAuthorizeType = (AuthorizeType)_configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod;
+
+        TmsIpAddress = await _parameterService.GetValueAsync(AppParameter.TmsIp);
+        TmsPort = await _parameterService.GetValueAsync(AppParameter.TmsPort);
     }
+
+    [GeneratedRegex(@"^((25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(25[0-5]|2[0-4]\d|1?\d?\d)$")]
+    private static partial Regex IpRegex();
 }

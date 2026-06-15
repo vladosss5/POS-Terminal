@@ -341,8 +341,12 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             
             await _configurationService.UpdateSettingsFromPosOffice();
 
+            stopwatch.Stop();
+            
             if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
                 await PrintInterimReport(cancellationToken);
+            
+            stopwatch.Start();
                     
             await _encashmentService.EncashmentAsync();
             

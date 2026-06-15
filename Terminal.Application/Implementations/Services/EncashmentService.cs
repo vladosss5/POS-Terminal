@@ -29,6 +29,11 @@ public class EncashmentService : IEncashmentService
     
     /// <inheritdoc cref="ICryptographyService" />
     private readonly ITmsClient _tmsClient;
+    
+    /// <summary>
+    /// Кол-во инкассируемых записей в отправляемом пакете.
+    /// </summary>
+    private const int PageSize = 300;
 
     /// <summary>
     /// Отправляемые таблицы.
@@ -90,7 +95,52 @@ public class EncashmentService : IEncashmentService
             switch (tableToSend.Name)
             {
                 case EncashmentTable.Sales:
-                    await EncashmentSellingTable(dbMain, tableToSend);
+                    await EncashmentTableAsync<Selling>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.TransactionShopKey),
+                        x => x.TransactionShopKey,
+                        nameof(Selling.TransactionShopKey));
+                    break;
+                
+                case EncashmentTable.Shifts:
+                    await EncashmentTableAsync<Shift>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.ShiftShopKey),
+                        x => x.ShiftShopKey,
+                        nameof(Shift.ShiftShopKey));
+                    break;
+                
+                case EncashmentTable.CardUpdates:
+                    await EncashmentTableAsync<CardUpdate>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.CardUpdateKey),
+                        x => x.CardUpdateKey,
+                        nameof(CardUpdate.CardUpdateKey));
+                    break;
+                
+                case EncashmentTable.Repayments:
+                    await EncashmentTableAsync<Repayment>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.RepaymentShopKey),
+                        x => x.RepaymentShopKey,
+                        nameof(Repayment.RepaymentShopKey));
+                    break;
+                
+                case EncashmentTable.Payments:
+                    await EncashmentTableAsync<Payment>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.PaymentShopKey),
+                        x => x.PaymentShopKey,
+                        nameof(Payment.PaymentShopKey));
+                    break;
+                
+                case EncashmentTable.PosUpdates:
+                    await EncashmentTableAsync<PosUpdate>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.PosUpdateShopKey),
+                        x => x.PosUpdateShopKey,
+                        nameof(PosUpdate.PosUpdateShopKey));
+                    break;
+                
+                case EncashmentTable.Dispensers:
+                    await EncashmentTableAsync<Dispenser>(dbMain, tableToSend,
+                        q => q.OrderBy(x => x.DispenserShopKey),
+                        x => x.DispenserShopKey,
+                        nameof(Dispenser.DispenserShopKey));
                     break;
             }
         }
@@ -116,22 +166,12 @@ public class EncashmentService : IEncashmentService
         await using var entryStream = await archive.Entries.First().OpenAsync();
         var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
         
-        await DeleteSuccessfulEncashmentsAsync(encashmentRows);
-    }
-
-    /// <summary>
-    /// Удалить успешно инкассированные строки из БД. 
-    /// </summary>
-    /// <param name="encashmentRows"></param>
-    private async Task DeleteSuccessfulEncashmentsAsync(IEnumerable<EncashmentResultRowDto>? encashmentRows)
-    {
         if (encashmentRows == null)
             return;
 
-        var rows = encashmentRows as EncashmentResultRowDto[] ?? encashmentRows.ToArray();
         var dbContext = await _dbFactory.CreateDbContextAsync();
         
-        var salesToDelete = rows
+        var salesToDelete = encashmentRows
             .Where(x => x is
             {
                 TableName: EncashmentTable.Sales,
@@ -147,62 +187,66 @@ public class EncashmentService : IEncashmentService
     }
 
     /// <summary>
-    /// Инкассировать таблицу продаж.
+    /// Выполняет инкассацию таблицы с постраничной выгрузкой данных на сервер TMS.
     /// </summary>
-    /// <param name="context">Контекст БД с таблицей продаж.</param>
-    /// <param name="tableToSendDto">Параметр отправляемых таблиц.</param>
-    private async Task EncashmentSellingTable(DataContext context, TableToSendDto tableToSendDto)
+    /// <typeparam name="T">Тип сущности БД.</typeparam>
+    /// <param name="context">Контекст БД.</param>
+    /// <param name="tableToSendDto">Метаданные отправляемой таблицы.</param>
+    /// <param name="orderBy">Выражение сортировки (должно быть по возрастанию ключа).</param>
+    /// <param name="keySelector">Функция получения ключа сущности для пагинации.</param>
+    /// <param name="keyFieldName">Имя ключевого поля в БД.</param>
+    private async Task EncashmentTableAsync<T>(
+        DataContext context,
+        TableToSendDto tableToSendDto,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy,
+        Func<T, int> keySelector,
+        string keyFieldName) where T : class
     {
-        const int pageSize = 300;
-        var lastTransactionShopKey = 0;
+        var lastKey = 0;
         var hasMore = true;
-        
+
         while (hasMore)
         {
-            var sales = await context.Sales
-                .AsNoTracking()
-                .OrderBy(x => x.TransactionShopKey)
-                .Where(x => x.TransactionShopKey > lastTransactionShopKey)
-                .Take(pageSize)
+            var entities = await orderBy(context.Set<T>().AsNoTracking())
+                .Where(x => EF.Property<int>(x, keyFieldName) > lastKey)
+                .Take(PageSize)
                 .ToListAsync();
-
-            var encashmentRows = sales
+            
+            if (entities.Count == 0) break;
+            
+            var encashmentRows = entities
                 .Select(x => new EncashmentRowDto
                 {
-                    TableName = EncashmentTable.Sales,
+                    TableName = tableToSendDto.Name,
                     JsonData = JsonSerializer.Serialize(x, JsonOptions)
-                }).ToList();
-            
-            if (encashmentRows.Count == 0)
-                break;
+                })
+                .ToList();
 
-            var batchNumber = lastTransactionShopKey / pageSize;
+            var batchNumber = lastKey / PageSize;
             var compressedFilePath = await SaveAndCompressBatchAsync(encashmentRows, tableToSendDto, batchNumber);
 
-            if (compressedFilePath == string.Empty)
-                return;
-            
+            if (compressedFilePath == string.Empty) return;
+
             var compressedData = await File.ReadAllBytesAsync(compressedFilePath);
             var fileName = Path.GetFileName(compressedFilePath);
-            
+
             await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, fileName, encashmentRows.Count);
-            
+
             File.Delete(compressedFilePath);
-            
-            lastTransactionShopKey = sales.Last().TransactionShopKey;
-            hasMore = encashmentRows.Count == pageSize;
-            
+
+            lastKey = keySelector(entities.Last());
+            hasMore = encashmentRows.Count == PageSize;
+
             encashmentRows.Clear();
-            sales.Clear();
-            
-            if (batchNumber % 5 != 0) 
-                continue;
-            
+            entities.Clear();
+
+            if (batchNumber % 5 != 0) continue;
+
             GC.Collect();
             await Task.Factory.StartNew(GC.WaitForPendingFinalizers, TaskCreationOptions.LongRunning);
         }
     }
-
+    
     /// <summary>
     /// Сохранить и сжать пакет инкассируемых данных.
     /// </summary>
@@ -213,11 +257,8 @@ public class EncashmentService : IEncashmentService
     private async Task<string> SaveAndCompressBatchAsync(List<EncashmentRowDto> encashmentRows, TableToSendDto table, int batchNumber)
     {
         var dateTimeNow = DateTime.UtcNow.ToString("HH.mm.ss.ff");
-        
-        var jsonFilePath = 
-            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json");
-        var compressedFilePath = 
-            Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json.gz");
+        var jsonFilePath = Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json");
+        var compressedFilePath = Path.Combine(_tempDirectory, $"{table.Name}_batch_{batchNumber}_{dateTimeNow}.json.gz");
         
         try
         {

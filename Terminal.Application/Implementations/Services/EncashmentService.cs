@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -57,6 +56,20 @@ public class EncashmentService : IEncashmentService
         AllowTrailingCommas = true,
         ReadCommentHandling = JsonCommentHandling.Skip
     };
+    
+    /// <summary>
+    /// Кортеж с названиями таблицы и скриптами удаления записей по Id.
+    /// </summary>
+    private static readonly (EncashmentTable Table, string Sql)[] Deletions =
+    [
+        (EncashmentTable.Sales, "DELETE FROM Selling WHERE TransactionShopKey IN ({0})"),
+        (EncashmentTable.Shifts, "DELETE FROM Shift WHERE ShiftShopKey IN ({0})"),
+        (EncashmentTable.CardUpdates, "DELETE FROM card_update WHERE CardUpdateKey IN ({0})"),
+        (EncashmentTable.Repayments, "DELETE FROM repayment WHERE RepaymentShopKey IN ({0})"),
+        (EncashmentTable.Payments, "DELETE FROM payment WHERE PaymentShopKey IN ({0})"),
+        (EncashmentTable.PosUpdates, "DELETE FROM pos_update WHERE PosUpdateShopKey IN ({0})"),
+        (EncashmentTable.Dispensers, "DELETE FROM dispenser WHERE DispenserShopKey IN ({0})")
+    ];
     
     /// <summary>
     /// Конструктор.
@@ -157,8 +170,7 @@ public class EncashmentService : IEncashmentService
     {
         var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync();
 
-        if (archiveBytes.Length == 0)
-            return;
+        if (archiveBytes.Length == 0) return;
         
         using var memoryStream = new MemoryStream(archiveBytes);
         await using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Read);
@@ -166,24 +178,23 @@ public class EncashmentService : IEncashmentService
         await using var entryStream = await archive.Entries.First().OpenAsync();
         var encashmentRows = await JsonSerializer.DeserializeAsync<List<EncashmentResultRowDto>>(entryStream, JsonOptions);
         
-        if (encashmentRows == null)
-            return;
+        if (encashmentRows == null) return;
 
         var dbContext = await _dbFactory.CreateDbContextAsync();
         
-        var salesToDelete = encashmentRows
-            .Where(x => x is
-            {
-                TableName: EncashmentTable.Sales,
-                Success: true
-            })
-            .Select(key => new Selling { TransactionShopKey = int.Parse(key.IdRowFromTable!) })
-            .ToList();
-
-        if (salesToDelete.Count != 0)
-            dbContext.Sales.RemoveRange(salesToDelete);
+        foreach (var (table, sql) in Deletions)
+        {
+            var ids = encashmentRows
+                .Where(x => x.TableName == table && x.Success)
+                .Select(x => x.IdEntityFromTable)
+                .Select(int.Parse)
+                .ToArray();
         
-        await dbContext.SaveChangesAsync();
+            if (ids.Length == 0) continue;
+        
+            var affected = await dbContext.Database.ExecuteSqlRawAsync(string.Format(sql, string.Join(",", ids)));
+            _logger.LogInformation("Deleted {Count} {Table} records", affected, table);
+        }
     }
 
     /// <summary>
@@ -217,6 +228,7 @@ public class EncashmentService : IEncashmentService
             var encashmentRows = entities
                 .Select(x => new EncashmentRowDto
                 {
+                    IdEntityFromTable = keySelector(x).ToString(),
                     TableName = tableToSendDto.Name,
                     JsonData = JsonSerializer.Serialize(x, JsonOptions)
                 })

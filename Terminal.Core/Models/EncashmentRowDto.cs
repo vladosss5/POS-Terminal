@@ -10,10 +10,10 @@ public class EncashmentRowDto
     /// <summary>
     /// Идентификатор строки.
     /// </summary>
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public string? IdEntityFromTable { get; set; }
     
     /// <summary>
-    /// Название таблицы откуда данные.
+    /// Название таблицы откуда данные. 
     /// </summary>
     public EncashmentTable TableName { get; set; }
 

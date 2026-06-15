@@ -10,17 +10,12 @@ public class EncashmentResultRowDto
     /// <summary>
     /// Идентификатор строки.
     /// </summary>
-    public Guid Id { get; set; }
+    public string IdEntityFromTable { get; set; } = null!;
     
     /// <summary>
     /// Название таблицы откуда строка.
     /// </summary>
     public EncashmentTable TableName { get; set; }
-
-    /// <summary>
-    /// Идентификатор записи внутри таблицы.
-    /// </summary>
-    public string? IdRowFromTable { get; set; }
     
     /// <summary>
     /// Успешность вставки в БД TMS.

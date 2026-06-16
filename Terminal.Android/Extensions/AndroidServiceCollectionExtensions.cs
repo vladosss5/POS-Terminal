@@ -23,6 +23,7 @@ public static class AndroidServiceCollectionExtensions
             collection.AddScoped<IFileExplorer, AndroidFileExplorer>();
             collection.AddTransient<IReceiptPrintService, AndroidPrintService>();
             collection.AddSingleton<IDeviceInfoService, AndroidDeviceInfoService>();
+            collection.AddSingleton<IUpdateInstallerService, AndroidUpdateInstallerService>();
         }
 
         /// <summary>

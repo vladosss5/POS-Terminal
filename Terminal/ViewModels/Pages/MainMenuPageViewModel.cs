@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
@@ -61,6 +62,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="IEncashmentService" />
     private readonly IEncashmentService _encashmentService;
+
+    /// <inheritdoc cref="IUpdatingService" />
+    private readonly IUpdatingService _updatingService;
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -91,7 +95,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IParameterService parameterService,
         ICryptographyService cryptographyService, 
         ITmsClient tmsClient, 
-        IEncashmentService encashmentService) 
+        IEncashmentService encashmentService, 
+        IUpdatingService updatingService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -107,6 +112,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _cryptographyService = cryptographyService;
         _tmsClient = tmsClient;
         _encashmentService = encashmentService;
+        _updatingService = updatingService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -122,18 +128,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             {
                 Title = "Заправка", 
                 Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на карту"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на счёт"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Инфо по карте"
             },
             new MainMenuItemModel
             {
@@ -167,12 +161,52 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
+                Title = "Проверить обновления", 
+                Command = new AsyncRelayCommand(UpdateApplicationAsync)
+            },
+            new MainMenuItemModel
+            {
                 Title = "Копировать БД", 
                 Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на карту"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на счёт"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инфо по карте"
             }
         ]);
     }
-    
+
+    /// <summary>
+    /// Обновить приложение.
+    /// </summary>
+    private async Task UpdateApplicationAsync()
+    {
+        var newVersionExists = await _updatingService.CheckNewVersionAsync();
+        if (!newVersionExists)
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Инфо", "Обновлений не найдено", ButtonEnum.Ok, Icon.Info);
+            return;
+        }
+        
+        var confirmUpdate = await _messageBoxService.ShowMessageBoxAsync(
+            "Подтверждение", "Установить новую версию", 
+            ButtonEnum.YesNo, Icon.Success);
+
+        if (confirmUpdate == ButtonResult.No)
+            return;
+        
+        await _updatingService.DownloadUpdateAsync();
+        await _updatingService.InstallDownloadedVersionAsync();
+    }
+
     /// <summary>
     /// Этот метод вызывается при активации страницы.
     /// </summary>

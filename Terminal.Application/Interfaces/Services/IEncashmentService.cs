@@ -8,6 +8,5 @@ public interface IEncashmentService
     /// <summary>
     /// Выполнить инкассацию.
     /// </summary>
-    /// <returns></returns>
     public Task EncashmentAsync();
 }

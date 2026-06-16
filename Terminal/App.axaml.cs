@@ -144,6 +144,10 @@ public partial class App : Avalonia.Application
                     scripts.Add(usersTableFillingScript);
             }
 
+            // var encashmentTestData = await ReadSqlScriptFromResourceAsync("EncashTestData.sql");
+            // if (encashmentTestData != null)
+            //     scripts.Add(encashmentTestData);
+
             var sqlExecutor = Services!.GetRequiredService<ISqlExecutor>();
             var rowsAffected = 0;
             

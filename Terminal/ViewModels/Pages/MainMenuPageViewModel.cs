@@ -113,6 +113,67 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
     
     /// <summary>
+    /// Создать кнопки главного меню.
+    /// </summary>
+    private void AddItemsIntoMenu()
+    {
+        MenuItems.AddRange([
+            new MainMenuItemModel
+            {
+                Title = "Заправка", 
+                Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на карту"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на счёт"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инфо по карте"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Закрыть смену",
+                Command = new AsyncRelayCommand(ShiftClose)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инкассация",
+                Command = new AsyncRelayCommand(EncashmentAsync)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Смена цены",
+                Command = new RelayCommand(OpenResourcePage)
+            },
+            new MainMenuItemModel
+            {
+              Title  = "Печать чека",
+              Command = new RelayCommand(delegate { Navigation!.NavigateTo<PrintingReceiptPageViewModel>(); })
+            },
+            new MainMenuItemModel
+            {
+                Title = "Пром. отчёт",
+                Command = new AsyncRelayCommand(PrintInterimReport)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Настройки", 
+                Command = new RelayCommand(delegate { Navigation!.NavigateTo<AdminLoginPageViewModel>(); })
+            },
+            new MainMenuItemModel
+            {
+                Title = "Копировать БД", 
+                Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
+            }
+        ]);
+    }
+    
+    /// <summary>
     /// Этот метод вызывается при активации страницы.
     /// </summary>
     public override void OnActivated(INavigationService navigationService)
@@ -154,21 +215,24 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         
                     if (closingShift != null)
                         await _shiftService.CloseShiftAsync(closingShift);
-        
-                    Navigation.NavigateTo<OpenShiftPageViewModel>();
+
+                    if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
+                        await EncashmentAsync();
+                    
+                    Navigation!.NavigateTo<OpenShiftPageViewModel>();
                 }
                 catch (Exception e)
                 {
                     _logger.LogInformation(e.Message);
-                    Navigation.NavigateTo<OpenShiftPageViewModel>();
+                    Navigation!.NavigateTo<OpenShiftPageViewModel>();
                 }
             },
             () =>
             {
-                Navigation.NavigateTo<MainMenuPageViewModel>();
+                Navigation!.NavigateTo<MainMenuPageViewModel>();
             });
         
-        Navigation.NavigateToInstancePage(confirmPage);
+        Navigation!.NavigateToInstancePage(confirmPage);
     }
     
     /// <summary>
@@ -177,45 +241,52 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <param name="arg">Токен отмены.</param>
     private async Task PrintInterimReport(CancellationToken arg)
     {
-        var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
-
-        if (openShift == null)
+        try
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
-            return;
+            var openShift = await _shiftService.GetOpenedShiftOrDefaultAsync();
+
+            if (openShift == null)
+            {
+                await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
+                return;
+            }
+        
+            var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
+        
+            var divideByIssuers = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportDivide;
+            var paymentTypes = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportPaymentTypes!
+                .Split(',')
+                .Select(x => Convert.ToInt32(x));
+
+            var sales = await GetReportAsync(
+                paymentTypes: paymentTypes,
+                issuerList: [Convert.ToInt32(issuerNumber)], 
+                shiftKey: openShift.ShiftKey ?? 0,
+                elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber), 
+                devideOrg: false, 
+                cancellationToken: arg);
+
+            var receiptNumber = await GetNumberLastReceipt(arg);
+        
+            var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+            var operatorName = _authService.CurrentUser?.Name;
+
+            var reportData = new ShiftReportDataDto
+            {
+                ReceiptNumber = receiptNumber,
+                IssuerNumber = issuerNumber,
+                TerminalNumber = terminalNumber,
+                Shift = openShift,
+                SalesList = sales,
+                OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
+            };
+
+            await _receiptPrintService.PrintShiftReportAsync(reportData);
         }
-        
-        var issuerNumber = await _parameterService.GetValueAsync(AppParameter.IssuerId);
-        
-        var divideByIssuers = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportDivide;
-        var paymentTypes = _configurationService.SettingsFromPosOffice.MainSettings.Print.ReportPaymentTypes!
-            .Split(',')
-            .Select(x => Convert.ToInt32(x));
-
-        var sales = await GetReportAsync(
-            paymentTypes: paymentTypes,
-            issuerList: [Convert.ToInt32(issuerNumber)], 
-            shiftKey: openShift.ShiftKey ?? 0,
-            elseIssuer: divideByIssuers ? -1 : Convert.ToInt32(issuerNumber), 
-            devideOrg: false, 
-            cancellationToken: arg);
-
-        var receiptNumber = await GetNumberLastReceipt(arg);
-        
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var operatorName = _authService.CurrentUser?.Name;
-
-        var reportData = new ShiftReportDataDto
+        catch (Exception e)
         {
-            ReceiptNumber = receiptNumber,
-            IssuerNumber = issuerNumber,
-            TerminalNumber = terminalNumber,
-            Shift = openShift,
-            SalesList = sales,
-            OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
-        };
-
-        await _receiptPrintService.PrintShiftReportAsync(reportData);
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+        }
     }
 
     /// <summary>
@@ -254,94 +325,29 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         };
 
         var authPage = _authPageFactory.Create(authParams);
-        Navigation.NavigateToInstancePage(authPage);
-    }
-    
-    /// <summary>
-    /// Создать кнопки главного меню.
-    /// </summary>
-    private void AddItemsIntoMenu()
-    {
-        MenuItems.AddRange([
-            new MainMenuItemModel
-            {
-                Title = "Заправка", 
-                Command = new RelayCommand(delegate
-                {
-                    Navigation.NavigateTo<SaleProcessPageViewModel>();
-                })
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на карту"
-            },
-            new MainMenuItemModel
-            {
-                Title = "TMS",
-                Command = new AsyncRelayCommand(AuthInTmsAsync)
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на счёт"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Инфо по карте"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Закрыть смену",
-                Command = new AsyncRelayCommand(ShiftClose)
-            },
-            new MainMenuItemModel
-            {
-                Title = "Инкассация",
-                Command = new AsyncRelayCommand(EncashmentAsync)
-            },
-            new MainMenuItemModel
-            {
-                Title = "Смена цены",
-                Command = new RelayCommand(OpenResourcePage)
-            },
-            new MainMenuItemModel
-            {
-              Title  = "Печать чека",
-              Command = new RelayCommand(delegate
-              {
-                  Navigation.NavigateTo<PrintingReceiptPageViewModel>();
-              })
-            },
-            new MainMenuItemModel
-            {
-                Title = "Пром. отчёт",
-                Command = new AsyncRelayCommand(PrintInterimReport)
-            },
-            new MainMenuItemModel
-            {
-                Title = "Настройки",
-                Command = new RelayCommand(delegate
-                {
-                    Navigation.NavigateTo<AdminLoginPageViewModel>();
-                })
-            },
-            new MainMenuItemModel
-            {
-                Title = "Копировать БД", 
-                Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
-            }
-        ]);
+        Navigation!.NavigateToInstancePage(authPage);
     }
 
     /// <summary>
     /// Запустить инкассацию.
     /// </summary>
-    private async Task EncashmentAsync()
+    private async Task EncashmentAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var stopwatch = Stopwatch.StartNew();
             
+            await AuthenticationTmsClientAsync();
+            
             await _configurationService.UpdateSettingsFromPosOffice();
+
+            stopwatch.Stop();
+            
+            if (_configurationService.SettingsFromPosOffice.MainSettings.Incass.Auto)
+                await PrintInterimReport(cancellationToken);
+            
+            stopwatch.Start();
+                    
             await _encashmentService.EncashmentAsync();
             
             stopwatch.Stop();
@@ -353,12 +359,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
         }
     }
-
+    
     /// <summary>
     /// Аутентификация клиента в TMS.
     /// </summary>
-    private async Task AuthInTmsAsync()
+    private async Task AuthenticationTmsClientAsync()
     {
+        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
+            return;
+        
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         var plainText = terminalNumber + " " + Guid.NewGuid();
         
@@ -368,15 +377,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
 
         await _tmsClient.AuthenticationAsync(workload);
-
-        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
-        {
-            await _messageBoxService.ShowMessageBoxAsync("Успех", "Авторизация в TMS удачна");
-        }
-        else
-        {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Авторизация в TMS не удачна");
-        }
     }
 
     /// <summary>

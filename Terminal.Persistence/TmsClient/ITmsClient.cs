@@ -23,9 +23,9 @@ public interface ITmsClient
     /// <summary>
     /// Получить конфигурацию.
     /// </summary>
-    /// <param name="requestDto">Запрос на обновление терминала.</param>
+    /// <param name="settingType">Тип обновляемой настройки.</param>
     /// <returns>Base64 строка с данными.</returns>
-    public Task<TerminalUpdateResponseDto?> GetConfigurationAsync(TerminalUpdateRequestDto requestDto);
+    public Task<TerminalUpdateResponseDto?> GetConfigurationAsync(SettingsType settingType);
 
     /// <summary>
     /// Отправить подтверждение обновлений.
@@ -36,9 +36,8 @@ public interface ITmsClient
     /// <summary>
     /// Получить предыдущие результаты инкассаций. 
     /// </summary>
-    /// <param name="terminalId">Номер терминала.</param>
     /// <returns>Массив байт архива.</returns>
-    public Task<byte[]> GetResultsEncashmentCollectionAsync(string terminalId);
+    public Task<byte[]> GetResultsEncashmentCollectionAsync();
 
     /// <summary>
     /// Отправить пакет сжатой информации из БД на TMS.

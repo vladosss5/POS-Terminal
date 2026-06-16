@@ -16,6 +16,7 @@ public class IncassSettings
     /// <summary>
     /// Ожидание инкассации.
     /// </summary>
+    /// <remarks>Устарел.</remarks>
     [XmlElement("wait")]
     public int Wait { get; set; }
     
@@ -34,6 +35,7 @@ public class IncassSettings
     /// <summary>
     /// Расписание инкассации.
     /// </summary>
+    /// <remarks>Устарел.</remarks>
     [XmlElement("timetable")]
     public string? Timetable { get; set; }
 }

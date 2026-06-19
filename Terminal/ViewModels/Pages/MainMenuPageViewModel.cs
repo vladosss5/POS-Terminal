@@ -189,21 +189,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task UpdateApplicationAsync()
     {
-        var newVersionExists = await _updatingService.CheckNewVersionAsync();
-        if (!newVersionExists)
-        {
-            await _messageBoxService.ShowMessageBoxAsync("Инфо", "Обновлений не найдено", ButtonEnum.Ok, Icon.Info);
-            return;
-        }
-        
-        var confirmUpdate = await _messageBoxService.ShowMessageBoxAsync(
-            "Подтверждение", "Установить новую версию", 
-            ButtonEnum.YesNo, Icon.Success);
-
-        if (confirmUpdate == ButtonResult.No)
-            return;
-        
-        await _updatingService.DownloadUpdateAsync();
+        // await _updatingService.DownloadUpdateAsync();
         await _updatingService.InstallDownloadedVersionAsync();
     }
 

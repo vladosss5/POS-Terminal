@@ -6,12 +6,6 @@
 public interface IUpdatingService
 {
     /// <summary>
-    /// Проверить новые версии программы.
-    /// </summary>
-    /// <returns></returns>
-    public Task<bool> CheckNewVersionAsync();
-
-    /// <summary>
     /// Скачать обновление.
     /// </summary>
     /// <returns></returns>

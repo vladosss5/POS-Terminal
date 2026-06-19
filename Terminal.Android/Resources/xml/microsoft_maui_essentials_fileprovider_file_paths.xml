@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <files-path name="internal" path="." />
+    <external-path name="external_download" path="Download"/>
+    <external-path name="external_download2" path="Downloads"/>
     <cache-path name="cache" path="." />
-    <external-path name="external_downloads" path="Download" />
+    <files-path name="files" path="." />
     <external-files-path name="external_files" path="." />
 </paths>

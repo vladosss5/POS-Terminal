@@ -1,7 +1,9 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
+using Android.Net;
 using Android.OS;
+using Android.Provider;
 using AndroidX.Core.Content;
 using Terminal.Application.Interfaces.Services;
 
@@ -20,15 +22,36 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <inheritdoc/>
     public async Task InstallDownloadedVersionAsync()
     {
+        if (!_context.PackageManager!.CanRequestPackageInstalls())
+            OpenInstallUnknownAppsSettings();
+            
         var downloadsPath = Environment.GetExternalStoragePublicDirectory(Environment.DirectoryDownloads)!.AbsolutePath;
-        var apkFileName = "terminal_update.apk";
-        var apkFilePath = Path.Combine(downloadsPath, apkFileName);
+        var apkFilePath = Path.Combine(downloadsPath, "terminal_update.apk");
         var apkFile = new Java.IO.File(apkFilePath);
         var apkUri = FileProvider.GetUriForFile(_context, $"{_context.PackageName}.fileprovider", apkFile);
         
         var intent = new Intent(Intent.ActionInstallPackage);
-        intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
-        intent.SetFlags(ActivityFlags.NewTask | ActivityFlags.GrantReadUriPermission);
+        intent.SetData(apkUri);
+        intent.SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
         _context.StartActivity(intent);
+    }
+    
+    private void OpenInstallUnknownAppsSettings()
+    {
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O) 
+        {
+            var intent = new Intent(Settings.ActionManageUnknownAppSources);
+            intent.SetData(Uri.Parse("package:" + _context.PackageName));
+            intent.SetFlags(ActivityFlags.NewTask);
+
+            try
+            {
+                _context.StartActivity(intent);
+            }
+            catch (ActivityNotFoundException)
+            {
+                _context.StartActivity(new Intent(Settings.ActionSettings));
+            }
+        }
     }
 }

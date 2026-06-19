@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
+using Android.OS;
 using AndroidX.Core.Content;
 using Terminal.Application.Interfaces.Services;
-using Environment = Android.OS.Environment;
 
 namespace Terminal.Android.Services;
 

@@ -171,4 +171,11 @@ public class TmsClient : ITmsClient
     {
         await _httpClient.GetAsync("/encashment/start");
     }
+
+    /// <inheritdoc/>
+    public async Task<Stream> DownloadUpdatingFileAsync(string terminalNumber)
+    {
+        var response = await _httpClient.GetAsync($"terminal-updating/download_apk/{terminalNumber}");
+        return await response.Content.ReadAsStreamAsync();
+    }
 }

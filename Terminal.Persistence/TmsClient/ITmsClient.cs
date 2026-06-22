@@ -53,4 +53,11 @@ public interface ITmsClient
     /// Запустить на сервере процесс инкассации данных из переданных файлов.
     /// </summary>
     public Task StartEncashmentOnTmsAsync();
+
+    /// <summary>
+    /// Скачать обновление с TMS. 
+    /// </summary>
+    /// <param name="terminalNumber">Номер терминала</param>
+    /// <returns>Файл в виде потока.</returns>
+    Task<Stream> DownloadUpdatingFileAsync(string terminalNumber);
 }

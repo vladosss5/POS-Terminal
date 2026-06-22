@@ -5,8 +5,8 @@
         <SupportedOSPlatformVersion>31</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <ApplicationId>com.SNC.Terminal</ApplicationId>
-        <ApplicationVersion>1</ApplicationVersion>
-        <ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
+        <ApplicationVersion>2</ApplicationVersion>
+        <ApplicationDisplayVersion>0.2</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
         <PublishTrimmed>false</PublishTrimmed>

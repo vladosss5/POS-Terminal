@@ -58,5 +58,5 @@ public interface ITmsClient
     /// Скачать обновление с TMS. 
     /// </summary>
     /// <returns>Файл в виде потока.</returns>
-    Task<Stream> DownloadUpdatingFileAsync();
+    Task<(Stream, string)> DownloadUpdatingFileAsync();
 }

@@ -189,7 +189,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task UpdateApplicationAsync()
     {
-        // await _updatingService.DownloadUpdateAsync();
+        await AuthenticationTmsClientAsync();
         await _updatingService.InstallDownloadedVersionAsync();
     }
 

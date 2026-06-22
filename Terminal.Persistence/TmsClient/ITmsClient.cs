@@ -57,7 +57,6 @@ public interface ITmsClient
     /// <summary>
     /// Скачать обновление с TMS. 
     /// </summary>
-    /// <param name="terminalNumber">Номер терминала</param>
     /// <returns>Файл в виде потока.</returns>
-    Task<Stream> DownloadUpdatingFileAsync(string terminalNumber);
+    Task<Stream> DownloadUpdatingFileAsync();
 }

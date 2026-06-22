@@ -53,9 +53,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <returns>Путь к скачанному файлу.</returns>
     private async Task<string> DownloadUpdatingFileAsync()
     {
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        
-        await using var stream = await _tmsClient.DownloadUpdatingFileAsync(terminalNumber);
+        await using var stream = await _tmsClient.DownloadUpdatingFileAsync();
         
         var downloadsPath = _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
                             _context.FilesDir?.AbsolutePath;

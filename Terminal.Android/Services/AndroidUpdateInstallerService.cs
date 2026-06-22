@@ -6,7 +6,6 @@ using Android.OS;
 using Android.Provider;
 using AndroidX.Core.Content;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Enums;
 using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Android.Services;
@@ -16,9 +15,6 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
 {
     /// <inheritdoc cref="Context" />
     private readonly Context _context;
-    
-    /// <inheritdoc cref="IParameterService" />
-    private readonly IParameterService _parameterService;
 
     /// <inheritdoc cref="ITmsClient" />
     private readonly ITmsClient _tmsClient;
@@ -27,12 +23,10 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// Конструктор.
     /// </summary>
     public AndroidUpdateInstallerService(
-        Context context, 
-        IParameterService parameterService, 
+        Context context,
         ITmsClient tmsClient)
     {
         _context = context;
-        _parameterService = parameterService;
         _tmsClient = tmsClient;
     }
 
@@ -44,6 +38,9 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
 
         var filePath = await DownloadUpdatingFileAsync();
 
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
         InstallApkAsync(filePath);
     }
 
@@ -54,6 +51,8 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     private async Task<string> DownloadUpdatingFileAsync()
     {
         await using var stream = await _tmsClient.DownloadUpdatingFileAsync();
+
+        if (stream.Length == 0) return string.Empty;
         
         var downloadsPath = _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
                             _context.FilesDir?.AbsolutePath;

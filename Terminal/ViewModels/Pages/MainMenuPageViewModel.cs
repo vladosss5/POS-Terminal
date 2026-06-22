@@ -63,8 +63,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IEncashmentService" />
     private readonly IEncashmentService _encashmentService;
 
-    /// <inheritdoc cref="IUpdatingService" />
-    private readonly IUpdatingService _updatingService;
+    /// <inheritdoc cref="IUpdateInstallerService" />
+    private readonly IUpdateInstallerService _installerService;
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -95,8 +95,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IParameterService parameterService,
         ICryptographyService cryptographyService, 
         ITmsClient tmsClient, 
-        IEncashmentService encashmentService, 
-        IUpdatingService updatingService) 
+        IEncashmentService encashmentService,
+        IUpdateInstallerService installerService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -112,7 +112,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _cryptographyService = cryptographyService;
         _tmsClient = tmsClient;
         _encashmentService = encashmentService;
-        _updatingService = updatingService;
+        _installerService = installerService;
         Title = "Главная";
 
         AddItemsIntoMenu();
@@ -189,8 +189,16 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task UpdateApplicationAsync()
     {
-        await AuthenticationTmsClientAsync();
-        await _updatingService.InstallDownloadedVersionAsync();
+        try
+        {
+            await AuthenticationTmsClientAsync();
+            await _installerService.InstallUpdatePackageAsync();
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка", $"{e.Message} \n{e.InnerException}", ButtonEnum.Ok, Icon.Error);
+        }
     }
 
     /// <summary>

@@ -6,7 +6,7 @@
 public interface IUpdateInstallerService
 {
     /// <summary>
-    /// Установить скачанную версию.
+    /// Скачать и установить новую версию.
     /// </summary>
-    public Task InstallDownloadedVersionAsync();
+    public Task InstallUpdatePackageAsync();
 }

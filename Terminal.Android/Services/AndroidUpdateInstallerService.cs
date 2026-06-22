@@ -37,7 +37,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     }
 
     /// <inheritdoc/>
-    public async Task InstallDownloadedVersionAsync()
+    public async Task InstallUpdatePackageAsync()
     {
         if (!_context.PackageManager!.CanRequestPackageInstalls())
             OpenInstallUnknownAppsSettings();

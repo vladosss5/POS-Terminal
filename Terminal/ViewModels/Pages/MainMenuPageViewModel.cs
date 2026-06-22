@@ -117,6 +117,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _installerService = installerService;
         Title = "Главная";
 
+        _ = DownloadUpdatingPatchAsync();
+        
         AddItemsIntoMenu();
     }
     
@@ -187,15 +189,23 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
 
     /// <summary>
+    /// Автоматическая загрузка обновлений с сервера.
+    /// </summary>
+    private async Task DownloadUpdatingPatchAsync()
+    {
+        await AuthenticationTmsClientAsync();
+        await _installerService.DownloadUpdatingFileAsync();
+    }
+
+    /// <summary>
     /// Обновить приложение.
     /// </summary>
     private async Task UpdateApplicationAsync()
     {
         try
         {
-            await AuthenticationTmsClientAsync();
-            var downloadedFilePath = await _installerService.DownloadUpdatingFileAsync();
-            await _installerService.InstallPackageAsync(downloadedFilePath);
+            await DownloadUpdatingPatchAsync();
+            await _installerService.InstallPackageAsync();
         }
         catch (NotFoundException e)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Models;
 using Terminal.Persistence.MainDB;
 using Terminal.Dtos;
@@ -192,7 +194,23 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         try
         {
             await AuthenticationTmsClientAsync();
-            await _installerService.InstallUpdatePackageAsync();
+            var downloadedFilePath = await _installerService.DownloadUpdatingFileAsync();
+            await _installerService.InstallPackageAsync(downloadedFilePath);
+        }
+        catch (NotFoundException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Инфо", e.Message, ButtonEnum.Ok, Icon.Info);
+        }
+        catch (InvalidFileException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка", e.Message, ButtonEnum.Ok, Icon.Error);
+        }
+        catch (HttpRequestException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка сервера", e.Message, ButtonEnum.Ok, Icon.Error);
         }
         catch (Exception e)
         {

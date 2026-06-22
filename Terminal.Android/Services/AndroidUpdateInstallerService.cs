@@ -1,12 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
-using Android.Net;
 using Android.OS;
 using Android.Provider;
 using AndroidX.Core.Content;
+using Terminal.Application.Implementations.Helpers;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Exceptions;
 using Terminal.Persistence.TmsClient;
+using Environment = Android.OS.Environment;
+using Uri = Android.Net.Uri;
 
 namespace Terminal.Android.Services;
 
@@ -30,29 +34,47 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
         _tmsClient = tmsClient;
     }
 
+    /// <param name="packagePath"></param>
     /// <inheritdoc/>
-    public async Task InstallUpdatePackageAsync()
+    public Task InstallPackageAsync(string packagePath)
     {
-        if (!_context.PackageManager!.CanRequestPackageInstalls())
-            OpenInstallUnknownAppsSettings();
+        try
+        {
+            if (!_context.PackageManager!.CanRequestPackageInstalls())
+                OpenInstallUnknownAppsSettings();
+        
+            if (string.IsNullOrEmpty(packagePath)) return Task.CompletedTask;
+        
+            if (!File.Exists(packagePath)) throw new FileNotFoundException($"APK файл не найден: {packagePath}");
+        
+            var apkFile = new Java.IO.File(packagePath);
+        
+            var apkUri = FileProvider.GetUriForFile(
+                _context, 
+                $"{_context.PackageName}.fileprovider", 
+                apkFile);
 
-        var filePath = await DownloadUpdatingFileAsync();
-
-        if (string.IsNullOrEmpty(filePath))
-            return;
-
-        InstallApkAsync(filePath);
+            var intent = new Intent(Intent.ActionInstallPackage);
+            intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
+        
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+                intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
+        
+            _context.StartActivity(intent);
+            
+            return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException(exception);
+        }
     }
 
-    /// <summary>
-    /// Загрузить обновление из TMS.
-    /// </summary>
-    /// <returns>Путь к скачанному файлу.</returns>
-    private async Task<string> DownloadUpdatingFileAsync()
+    /// <inheritdoc/>
+    public async Task<string> DownloadUpdatingFileAsync()
     {
-        await using var stream = await _tmsClient.DownloadUpdatingFileAsync();
-
-        if (stream.Length == 0) return string.Empty;
+        var (stream, fileHash) = await _tmsClient.DownloadUpdatingFileAsync();
         
         var downloadsPath = _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
                             _context.FilesDir?.AbsolutePath;
@@ -64,35 +86,13 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
         
         await using var fileStream = new FileStream(apkFilePath, FileMode.Create, FileAccess.Write);
         await stream.CopyToAsync(fileStream);
+
+        var downloadingFileHash = await HashHelper.CumputeMd5HashAsync(apkFilePath);
+        if (fileHash != downloadingFileHash)
+            throw new InvalidFileException("Не удалось скачать файл");
         
         return apkFilePath;
     }
-
-    /// <summary>
-    /// Устанавливает APK файл.
-    /// </summary>
-    private void InstallApkAsync(string apkFilePath)
-    {
-        if (!File.Exists(apkFilePath))
-            throw new FileNotFoundException($"APK файл не найден: {apkFilePath}");
-
-        var apkFile = new Java.IO.File(apkFilePath);
-            
-        var apkUri = FileProvider.GetUriForFile(
-            _context, 
-            $"{_context.PackageName}.fileprovider", 
-            apkFile);
-
-        var intent = new Intent(Intent.ActionInstallPackage);
-        intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
-        intent.SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
-            
-            
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-            intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
-        
-        _context.StartActivity(intent);
-    } 
     
     /// <summary>
     /// Открыть страницу настроек с разрешением на установку из неизвестных источников.

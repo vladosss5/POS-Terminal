@@ -5,6 +5,7 @@ using Android.Content;
 using Android.OS;
 using Android.Provider;
 using AndroidX.Core.Content;
+using Microsoft.Extensions.Logging;
 using Terminal.Application.Implementations.Helpers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Exceptions;
@@ -24,37 +25,59 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     private readonly ITmsClient _tmsClient;
 
     /// <summary>
+    /// Логгер.
+    /// </summary>
+    private readonly ILogger<AndroidUpdateInstallerService> _logger;
+
+    /// <summary>
+    /// Каталог с загруженными пакетами обновлений.
+    /// </summary>
+    private readonly string _pathToDownloadedPackages;
+
+    /// <summary>
+    /// Название пакета обновления.
+    /// </summary>
+    private const string FileName = "terminal_update.apk";
+
+    /// <summary>
     /// Конструктор.
     /// </summary>
     public AndroidUpdateInstallerService(
         Context context,
-        ITmsClient tmsClient)
+        ITmsClient tmsClient, 
+        ILogger<AndroidUpdateInstallerService> logger)
     {
         _context = context;
         _tmsClient = tmsClient;
+        _logger = logger;
+
+        _pathToDownloadedPackages = 
+            _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
+            _context.FilesDir?.AbsolutePath!;
     }
 
-    /// <param name="packagePath"></param>
     /// <inheritdoc/>
-    public Task InstallPackageAsync(string packagePath)
+    public Task InstallPackageAsync()
     {
         try
         {
+            var packagePath = Path.Combine(_pathToDownloadedPackages, FileName);
+            
+            _logger.LogInformation($"Начата установка пакета {packagePath}");
+            
+            if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
+            {
+                _logger.LogInformation($"Не найден файл: {packagePath}");
+                return Task.CompletedTask;
+            }
+
             if (!_context.PackageManager!.CanRequestPackageInstalls())
                 OpenInstallUnknownAppsSettings();
         
-            if (string.IsNullOrEmpty(packagePath)) return Task.CompletedTask;
-        
-            if (!File.Exists(packagePath)) throw new FileNotFoundException($"APK файл не найден: {packagePath}");
-        
             var apkFile = new Java.IO.File(packagePath);
-        
-            var apkUri = FileProvider.GetUriForFile(
-                _context, 
-                $"{_context.PackageName}.fileprovider", 
-                apkFile);
-
+            var apkUri = FileProvider.GetUriForFile(_context, $"{_context.PackageName}.fileprovider", apkFile);
             var intent = new Intent(Intent.ActionInstallPackage);
+            
             intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
         
@@ -62,6 +85,9 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
                 intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
         
             _context.StartActivity(intent);
+            
+            File.Delete(packagePath);
+            _logger.LogInformation($"Файл удалён: {packagePath}");
             
             return Task.CompletedTask;
         }
@@ -72,14 +98,12 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     }
 
     /// <inheritdoc/>
-    public async Task<string> DownloadUpdatingFileAsync()
+    public async Task DownloadUpdatingFileAsync()
     {
+        _logger.LogInformation($"Начато скачивание пакета обновлений.");
         var (stream, fileHash) = await _tmsClient.DownloadUpdatingFileAsync();
         
-        var downloadsPath = _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
-                            _context.FilesDir?.AbsolutePath;
-        
-        var apkFilePath = Path.Combine(downloadsPath!, "terminal_update.apk");
+        var apkFilePath = Path.Combine(_pathToDownloadedPackages!, FileName);
         
         if (File.Exists(apkFilePath))
             File.Delete(apkFilePath);
@@ -89,9 +113,12 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
 
         var downloadingFileHash = await HashHelper.CumputeMd5HashAsync(apkFilePath);
         if (fileHash != downloadingFileHash)
+        {
+            _logger.LogError($"Хеши файлов не совпали.");
             throw new InvalidFileException("Не удалось скачать файл");
+        }
         
-        return apkFilePath;
+        _logger.LogError($"Скачивание завершено");
     }
     
     /// <summary>

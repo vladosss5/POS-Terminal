@@ -6,14 +6,13 @@ namespace Terminal.Desktop.Services;
 /// <inheritdoc/>
 public class DesktopUpdateInstallerService : IUpdateInstallerService
 {
-    public async Task<string> DownloadUpdatingFileAsync()
+    public async Task DownloadUpdatingFileAsync()
     {
         throw new System.NotImplementedException();
     }
 
-    /// <param name="packagePath"></param>
     /// <inheritdoc/>
-    public async Task InstallPackageAsync(string packagePath)
+    public async Task InstallPackageAsync()
     {
         throw new System.NotImplementedException();
     }

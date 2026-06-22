@@ -180,7 +180,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         IShiftService shiftService, 
         ICardReaderService cardReaderService, 
         IConfigurationService configurationService, 
-        IMessageBoxService messageBoxService) 
+        IMessageBoxService messageBoxService, 
+        IUpdateInstallerService installerService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
@@ -192,6 +193,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
+        _ = installerService.InstallPackageAsync();
         _ = InitializeData();
     }
     

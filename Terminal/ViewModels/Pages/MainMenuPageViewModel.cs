@@ -193,8 +193,15 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task DownloadUpdatingPatchAsync()
     {
-        await AuthenticationTmsClientAsync();
-        await _installerService.DownloadUpdatingFileAsync();
+        try
+        {
+            await AuthenticationTmsClientAsync();
+            await _installerService.DownloadUpdatingFileAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Ошибка скачивания обновления: {e.Message}. {e.InnerException}");
+        }
     }
 
     /// <summary>

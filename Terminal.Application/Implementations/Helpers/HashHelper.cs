@@ -1,6 +1,4 @@
-﻿
-
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace Terminal.Application.Implementations.Helpers;
 
@@ -13,7 +11,7 @@ public static class HashHelper
     /// Вычислить MD5 хеш из файла.
     /// </summary>
     /// <param name="filePath">Глобальный путь к файлу.</param>
-    /// <returns>Хеш-строка</returns>
+    /// <returns>Хеш-строка.</returns>
     public static async Task<string> CumputeMd5HashAsync(string filePath)
     {
         await using var stream = File.OpenRead(filePath);

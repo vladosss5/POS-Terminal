@@ -183,9 +183,7 @@ public class TmsClient : ITmsClient
         
         string? fileHash = null;
         if (response.Headers.TryGetValues("X-File-Hash", out var hashValues))
-        {
             fileHash = hashValues.FirstOrDefault();
-        }
         
         return (await response.Content.ReadAsStreamAsync(), fileHash!);
     }

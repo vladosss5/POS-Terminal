@@ -76,10 +76,10 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
         
             var apkFile = new Java.IO.File(packagePath);
             var apkUri = FileProvider.GetUriForFile(_context, $"{_context.PackageName}.fileprovider", apkFile);
-            var intent = new Intent(Intent.ActionInstallPackage);
             
-            intent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
+            var intent = new Intent(Intent.ActionInstallPackage)
+                .SetDataAndType(apkUri, "application/vnd.android.package-archive")
+                .SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
         
             if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
                 intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
@@ -103,7 +103,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
         _logger.LogInformation($"Начато скачивание пакета обновлений.");
         var (stream, fileHash) = await _tmsClient.DownloadUpdatingFileAsync();
         
-        var apkFilePath = Path.Combine(_pathToDownloadedPackages!, FileName);
+        var apkFilePath = Path.Combine(_pathToDownloadedPackages, FileName);
         
         if (File.Exists(apkFilePath))
             File.Delete(apkFilePath);
@@ -126,12 +126,11 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// </summary>
     private void OpenInstallUnknownAppsSettings()
     {
-        if (Build.VERSION.SdkInt < BuildVersionCodes.O) 
-            return;
+        if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
         
-        var intent = new Intent(Settings.ActionManageUnknownAppSources);
-        intent.SetData(Uri.Parse("package:" + _context.PackageName));
-        intent.SetFlags(ActivityFlags.NewTask);
+        var intent = new Intent(Settings.ActionManageUnknownAppSources)
+            .SetData(Uri.Parse("package:" + _context.PackageName))
+            .SetFlags(ActivityFlags.NewTask);
 
         try
         {

@@ -55,7 +55,7 @@ public interface ITmsClient
     public Task StartEncashmentOnTmsAsync();
 
     /// <summary>
-    /// Скачать обновление с TMS. 
+    /// Скачать пакет обновлений с TMS. 
     /// </summary>
     /// <returns>Файл в виде потока.</returns>
     Task<(Stream, string)> DownloadUpdatingFileAsync();

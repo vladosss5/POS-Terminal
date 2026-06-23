@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Terminal.Application.Interfaces.Services;
 
 namespace Terminal.Desktop.Services;
@@ -6,14 +7,15 @@ namespace Terminal.Desktop.Services;
 /// <inheritdoc/>
 public class DesktopUpdateInstallerService : IUpdateInstallerService
 {
+    /// <inheritdoc/>
     public async Task DownloadUpdatingFileAsync()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException("Обновления настольной версии не реализованы.");
     }
 
     /// <inheritdoc/>
     public async Task InstallPackageAsync()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException("Обновления настольной версии не реализованы.");
     }
 }

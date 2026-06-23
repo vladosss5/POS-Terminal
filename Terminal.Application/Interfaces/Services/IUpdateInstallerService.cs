@@ -8,11 +8,10 @@ public interface IUpdateInstallerService
     /// <summary>
     /// Загрузить файл обновления из TMS.
     /// </summary>
-    /// <returns>Глобальный путь к сохранённому файлу.</returns>
     public Task DownloadUpdatingFileAsync();
 
     /// <summary>
-    /// Скачать и установить новую версию.
+    /// Установить скачанный пакет обновлений.
     /// </summary>
     public Task InstallPackageAsync();
 }

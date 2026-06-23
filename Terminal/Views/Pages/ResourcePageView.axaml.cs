@@ -21,7 +21,7 @@ public partial class ResourcePageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as ResourcePageViewModel)!.ClearPassword();
+                (DataContext as ResourcePageViewModel)?.ClearPassword();
                 break;
         }
     }
@@ -33,6 +33,6 @@ public partial class ResourcePageView : UserControl
     /// <param name="e"></param>
     public void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as ResourcePageViewModel)!.RemoveLastChar();
+        (DataContext as ResourcePageViewModel)?.RemoveLastChar();
     }
 }

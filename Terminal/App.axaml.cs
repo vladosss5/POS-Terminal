@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -11,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Enums;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
@@ -44,7 +42,7 @@ public partial class App : Avalonia.Application
     }
 
     /// <summary>
-    /// Инициализация процессов после инита фреймфорка.
+    /// Инициализация процессов после инита фреймворка.
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
@@ -62,39 +60,24 @@ public partial class App : Avalonia.Application
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp)
+        switch (ApplicationLifetime)
         {
-            DisableAvaloniaDataAnnotationValidation();
+            case IClassicDesktopStyleApplicationLifetime desktopApp:
+                desktopApp.MainWindow = new MainWindow { DataContext = mainViewModel };
+                break;
             
-            desktopApp.MainWindow = new MainWindow
-            {
-                DataContext = mainViewModel
-            };
+            case IActivityApplicationLifetime activityLifetime:
+                activityLifetime.MainViewFactory = () => new MainView { DataContext = mainViewModel };
+                break;
+            
+            case ISingleViewApplicationLifetime singleViewPlatform:
+                singleViewPlatform.MainView = new MainView { DataContext = mainViewModel };
+                break;
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = mainViewModel
-            };
-        }
+        
 
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    /// <summary>
-    /// Метод отключения повторных проверок от Avalonia и CommunityToolkit.
-    /// </summary>
-    private void DisableAvaloniaDataAnnotationValidation()
-    {
-        var dataValidationPluginsToRemove =
-            BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-        foreach (var plugin in dataValidationPluginsToRemove)
-        {
-            BindingPlugins.DataValidators.Remove(plugin);
-        }
     }
     
     /// <summary>

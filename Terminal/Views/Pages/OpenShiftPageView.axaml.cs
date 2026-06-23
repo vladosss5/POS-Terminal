@@ -1,7 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
@@ -23,7 +21,7 @@ public partial class OpenShiftPageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as OpenShiftPageViewModel)!.ClearPassword();
+                (DataContext as OpenShiftPageViewModel)?.ClearPassword();
                 break;
         }
     }
@@ -35,6 +33,6 @@ public partial class OpenShiftPageView : UserControl
     /// <param name="e"></param>
     public void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as OpenShiftPageViewModel)!.RemoveLastChar();
+        (DataContext as OpenShiftPageViewModel)?.RemoveLastChar();
     }
 }

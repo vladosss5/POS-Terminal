@@ -24,7 +24,7 @@ public partial class MainView : UserControl
         if (insetsManager == null) 
             return;
             
-        insetsManager.DisplayEdgeToEdge = true;
+        insetsManager.DisplayEdgeToEdgePreference = true;
         insetsManager.IsSystemBarVisible = false;
     }
 }

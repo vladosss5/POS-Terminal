@@ -79,8 +79,8 @@
                         Classes="number-button"
                         Tapped="OnButtonTapped"
                         Holding="OnButtonHolding"
-                        Gestures.IsHoldWithMouseEnabled="True"
-                        Gestures.IsHoldingEnabled="True">
+                        InputElement.IsHoldWithMouseEnabled="True"
+                        InputElement.IsHoldingEnabled="True">
                     <Image Source="../../Assets/Icons/backspace.png"/>
                 </Button>
 

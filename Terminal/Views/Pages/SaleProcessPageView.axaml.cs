@@ -1,7 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Terminal.Core.DbEntities;
-using Terminal.Core.Enums;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
@@ -29,7 +27,7 @@ public partial class SaleProcessPageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as SaleProcessPageViewModel)!.AmountPreviewSetZero();
+                (DataContext as SaleProcessPageViewModel)?.AmountPreviewSetZero();
                 break;
         }
     }
@@ -41,6 +39,6 @@ public partial class SaleProcessPageView : UserControl
     /// <param name="e"></param>
     private void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as SaleProcessPageViewModel)!.DeleteLastCharFromPreview();
+        (DataContext as SaleProcessPageViewModel)?.DeleteLastCharFromPreview();
     }
 }

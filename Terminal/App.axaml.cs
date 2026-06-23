@@ -42,7 +42,7 @@ public partial class App : Avalonia.Application
     }
 
     /// <summary>
-    /// Инициализация процессов после инита фреймфорка.
+    /// Инициализация процессов после инита фреймворка.
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
@@ -60,20 +60,21 @@ public partial class App : Avalonia.Application
 
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp)
+        switch (ApplicationLifetime)
         {
-            desktopApp.MainWindow = new MainWindow
-            {
-                DataContext = mainViewModel
-            };
+            case IClassicDesktopStyleApplicationLifetime desktopApp:
+                desktopApp.MainWindow = new MainWindow { DataContext = mainViewModel };
+                break;
+            
+            case IActivityApplicationLifetime activityLifetime:
+                activityLifetime.MainViewFactory = () => new MainView { DataContext = mainViewModel };
+                break;
+            
+            case ISingleViewApplicationLifetime singleViewPlatform:
+                singleViewPlatform.MainView = new MainView { DataContext = mainViewModel };
+                break;
         }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = mainViewModel
-            };
-        }
+        
 
 
         base.OnFrameworkInitializationCompleted();

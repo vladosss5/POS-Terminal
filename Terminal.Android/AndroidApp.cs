@@ -35,11 +35,4 @@ public class AndroidApp : AvaloniaAndroidApplication<App>
 
         base.OnCreate();
     }
-    
-    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-    {
-        return base
-            .CustomizeAppBuilder(builder)
-            .WithInterFont();
-    }
 }

@@ -11,7 +11,7 @@ using Terminal.Extensions;
 namespace Terminal.Android;
 
 [Activity(
-    Label = "Terminal.Android",
+    Label = "SncTerminal",
     Theme = "@style/Theme.AppCompat.DayNight.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,

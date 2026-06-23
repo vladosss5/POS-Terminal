@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Models;
 using Terminal.Core.TmsDtos.TerminalUpdate;
 
@@ -170,5 +171,20 @@ public class TmsClient : ITmsClient
     public async Task StartEncashmentOnTmsAsync()
     {
         await _httpClient.GetAsync("/encashment/start");
+    }
+
+    /// <inheritdoc/>
+    public async Task<(Stream, string)> DownloadUpdatingFileAsync()
+    {
+        var response = await _httpClient.GetAsync($"terminal-updating/download_apk");
+
+        if (!response.IsSuccessStatusCode)
+            throw new NotFoundException("Обновлений не найдено");
+        
+        string? fileHash = null;
+        if (response.Headers.TryGetValues("X-File-Hash", out var hashValues))
+            fileHash = hashValues.FirstOrDefault();
+        
+        return (await response.Content.ReadAsStreamAsync(), fileHash!);
     }
 }

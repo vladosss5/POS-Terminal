@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,9 +12,11 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Models;
 using Terminal.Persistence.MainDB;
 using Terminal.Dtos;
@@ -61,6 +64,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="IEncashmentService" />
     private readonly IEncashmentService _encashmentService;
+
+    /// <inheritdoc cref="IUpdateInstallerService" />
+    private readonly IUpdateInstallerService _installerService;
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -91,7 +97,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IParameterService parameterService,
         ICryptographyService cryptographyService, 
         ITmsClient tmsClient, 
-        IEncashmentService encashmentService) 
+        IEncashmentService encashmentService,
+        IUpdateInstallerService installerService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -107,8 +114,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _cryptographyService = cryptographyService;
         _tmsClient = tmsClient;
         _encashmentService = encashmentService;
+        _installerService = installerService;
         Title = "Главная";
 
+        _ = DownloadUpdatingPatchAsync();
+        
         AddItemsIntoMenu();
     }
     
@@ -122,18 +132,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             {
                 Title = "Заправка", 
                 Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на карту"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Возврат на счёт"
-            },
-            new MainMenuItemModel
-            {
-                Title = "Инфо по карте"
             },
             new MainMenuItemModel
             {
@@ -167,12 +165,77 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
+                Title = "Проверить обновления", 
+                Command = new AsyncRelayCommand(UpdateApplicationAsync)
+            },
+            new MainMenuItemModel
+            {
                 Title = "Копировать БД", 
                 Command = new AsyncRelayCommand(CopyDataBaseDirectoryToDownloads)
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на карту"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Возврат на счёт"
+            },
+            new MainMenuItemModel
+            {
+                Title = "Инфо по карте"
             }
         ]);
     }
-    
+
+    /// <summary>
+    /// Автоматическая загрузка обновлений с сервера.
+    /// </summary>
+    private async Task DownloadUpdatingPatchAsync()
+    {
+        try
+        {
+            await AuthenticationTmsClientAsync();
+            await _installerService.DownloadUpdatingFileAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Ошибка скачивания обновления: {e.Message}. {e.InnerException}");
+        }
+    }
+
+    /// <summary>
+    /// Обновить приложение.
+    /// </summary>
+    private async Task UpdateApplicationAsync()
+    {
+        try
+        {
+            await DownloadUpdatingPatchAsync();
+            await _installerService.InstallPackageAsync();
+        }
+        catch (NotFoundException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Инфо", e.Message, ButtonEnum.Ok, Icon.Info);
+        }
+        catch (InvalidFileException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка", e.Message, ButtonEnum.Ok, Icon.Error);
+        }
+        catch (HttpRequestException e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка сервера", e.Message, ButtonEnum.Ok, Icon.Error);
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService
+                .ShowMessageBoxAsync("Ошибка", $"{e.Message} \n{e.InnerException}", ButtonEnum.Ok, Icon.Error);
+        }
+    }
+
     /// <summary>
     /// Этот метод вызывается при активации страницы.
     /// </summary>

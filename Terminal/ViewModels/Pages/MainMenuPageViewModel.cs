@@ -196,7 +196,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         try
         {
             await AuthenticationTmsClientAsync();
-            await _installerService.DownloadUpdatingFileAsync();
+            var existUpdate = await _installerService.CheckForUpdates();
+            
+            if (existUpdate)
+                await _installerService.DownloadUpdatingFileAsync();
         }
         catch (Exception e)
         {

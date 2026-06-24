@@ -98,6 +98,21 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     }
 
     /// <inheritdoc/>
+    public async Task<bool> CheckForUpdates()
+    {
+        var currentVersion = _context.PackageManager!.GetPackageInfo(_context.PackageName!, 0)!.VersionName;
+        var newVersion = await _tmsClient.GetNumberNewVersion();
+        
+        if (newVersion == null || string.IsNullOrEmpty(newVersion) || 
+            currentVersion == null || string.IsNullOrEmpty(currentVersion)) 
+            return false;
+
+        var newBiggerThenCurrent = VersionHelper.RightIsBiggerThanLeft(currentVersion, newVersion);
+        
+        return newBiggerThenCurrent;
+    }
+
+    /// <inheritdoc/>
     public async Task DownloadUpdatingFileAsync()
     {
         _logger.LogInformation($"Начато скачивание пакета обновлений.");

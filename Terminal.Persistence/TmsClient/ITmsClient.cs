@@ -59,4 +59,10 @@ public interface ITmsClient
     /// </summary>
     /// <returns>Файл в виде потока.</returns>
     Task<(Stream, string)> DownloadUpdatingFileAsync();
+
+    /// <summary>
+    /// Получить номер версии пакета обновлений из TMS.
+    /// </summary>
+    /// <returns>Номер версии или пустая срока, если обновления нет.</returns>
+    Task<string?> GetNumberNewVersion();
 }

@@ -187,4 +187,13 @@ public class TmsClient : ITmsClient
         
         return (await response.Content.ReadAsStreamAsync(), fileHash!);
     }
+
+    /// <inheritdoc/>
+    public async Task<string?> GetNumberNewVersion()
+    {
+        var response = await _httpClient.GetAsync($"terminal-updating/new-version");
+        var newVersionInfo = await response.Content.ReadAsStringAsync();
+
+        return newVersionInfo;
+    }
 }

@@ -7,6 +7,11 @@ namespace Terminal.Desktop.Services;
 /// <inheritdoc/>
 public class DesktopUpdateInstallerService : IUpdateInstallerService
 {
+    public async Task<bool> CheckForUpdates()
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
     public async Task DownloadUpdatingFileAsync()
     {

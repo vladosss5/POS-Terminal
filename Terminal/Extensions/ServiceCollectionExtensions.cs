@@ -74,6 +74,9 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
         collection.AddTransient<IEncashmentService, EncashmentService>();
+        
+        // Фоновые сервисы
+        collection.AddHostedService<UpdateBackgroundService>();
     }
 
     /// <summary>

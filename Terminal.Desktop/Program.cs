@@ -2,6 +2,7 @@
 using Avalonia;
 using HotAvalonia;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Terminal.Desktop.Extensions;
 using Terminal.Extensions;
 
@@ -15,15 +16,21 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        var services = new ServiceCollection();
-        
-        services.AddLogger();
-        services.AddCommonServices();
-        services.AddDesktopServices();
-        services.AddDataContext();
-        services.AddTmsClient();
-        
-        App.Services = services.BuildServiceProvider();
+        var host = Host.CreateDefaultBuilder(args)
+            .ConfigureServices((context, services) =>
+            {
+                services.AddLogger();
+                services.AddCommonServices();
+                services.AddDesktopServices();
+                services.AddDataContext();
+                services.AddTmsClient();
+            })
+            .Build();
+    
+        _ = host.RunAsync();
+    
+        App.Services = host.Services;
+    
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Implementations.Background;
 using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Implementations.Mappers;

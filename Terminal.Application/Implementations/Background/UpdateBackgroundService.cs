@@ -2,13 +2,24 @@
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 
-namespace Terminal.Application.Implementations.Services;
+namespace Terminal.Application.Implementations.Background;
 
+/// <summary>
+/// Фоновый сервис проверки обновлений.
+/// </summary>
 public class UpdateBackgroundService : BackgroundService
 {
+    /// <summary>
+    /// Логгер.
+    /// </summary>
     private readonly ILogger<UpdateBackgroundService> _logger;
+
+    /// <inheritdoc cref="IUpdateInstallerService" />
     private readonly IUpdateInstallerService _updateInstallerService;
 
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public UpdateBackgroundService(
         ILogger<UpdateBackgroundService> logger, 
         IUpdateInstallerService updateInstallerService)
@@ -17,6 +28,10 @@ public class UpdateBackgroundService : BackgroundService
         _updateInstallerService = updateInstallerService;
     }
 
+    /// <summary>
+    /// Основной метод запуска действий.
+    /// </summary>
+    /// <param name="stoppingToken">Токен завершения.</param>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Update check service started");
@@ -31,6 +46,10 @@ public class UpdateBackgroundService : BackgroundService
         }
     }
     
+    /// <summary>
+    /// Проверить наличие и загрузить обновление из TMS.
+    /// </summary>
+    /// <param name="token">Токен отмены.</param>
     private async Task CheckAndDownloadUpdateAsync(CancellationToken token)
     {
         try

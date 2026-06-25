@@ -1,20 +1,19 @@
-﻿using System.Runtime.Versioning;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Browser;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Terminal;
 using Terminal.Extensions;
 
-internal sealed partial class Program
+namespace Terminal.Browser;
+
+internal static partial class Program
 {
     private static IHost? _host;
     
     public static async Task Main(string[] args)
     {
         _host = Host.CreateDefaultBuilder(args)
-            .ConfigureServices((context, services) =>
+            .ConfigureServices((_, services) =>
             {
                 services.AddLogger();
                 services.AddCommonServices();
@@ -32,6 +31,6 @@ internal sealed partial class Program
             .StartBrowserAppAsync("out");
     }
 
-    public static AppBuilder BuildAvaloniaApp()
+    private static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>();
 }

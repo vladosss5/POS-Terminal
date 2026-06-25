@@ -1,9 +1,7 @@
 ﻿using System;
 using Android.App;
 using Android.Runtime;
-using Avalonia;
 using Avalonia.Android;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Maui.Devices;
 using Terminal.Android.Extensions;
@@ -23,7 +21,7 @@ public class AndroidApp : AvaloniaAndroidApplication<App>
     public override void OnCreate()
     {
         _host = Host.CreateDefaultBuilder()
-            .ConfigureServices((context, services) =>
+            .ConfigureServices((_, services) =>
             {
                 services.AddLogger();
                 services.AddCommonServices();

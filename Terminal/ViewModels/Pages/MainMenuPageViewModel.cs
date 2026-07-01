@@ -13,6 +13,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia.Enums;
+using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
@@ -30,7 +31,7 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Логика работы страницы главного меню.
 /// </summary>
-public partial class MainMenuPageViewModel : PageViewModelBase
+public partial class MainMenuPageViewModel : PageViewModelBase, IMessageObserver
 {
     ///<inheritdoc cref="ILogger"/>
     private readonly ILogger<MainMenuPageViewModel> _logger;
@@ -73,7 +74,18 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+
+    private readonly IMassageService _massageService;
     
+    
+    public string? Message
+    {
+        get;
+        set
+        {
+            SetProperty(ref field, value);
+        }
+    }
     
     /// <summary>
     /// Коллекция пунктов главного меню.
@@ -98,7 +110,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         ICryptographyService cryptographyService, 
         ITmsClient tmsClient, 
         IEncashmentService encashmentService,
-        IUpdateInstallerService installerService) 
+        IUpdateInstallerService installerService,
+        IMassageService messageService, IMassageService massageService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -115,7 +128,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _tmsClient = tmsClient;
         _encashmentService = encashmentService;
         _installerService = installerService;
+        _massageService = massageService;
         Title = "Главная";
+        
+        messageService.Attach(this);
 
         _ = DownloadUpdatingPatchAsync();
         
@@ -175,7 +191,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Возврат на карту"
+                Title = "Возврат на карту",
+                Command = new RelayCommand(delegate{_massageService.ShowMessage("[eq ujdyj");})
             },
             new MainMenuItemModel
             {
@@ -495,5 +512,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             .ToListAsync(cancellationToken: cancellationToken);
 
         return result;
+    }
+
+    public void UpdateMessage(IMassageService messageService)
+    {
+        Message = (messageService as MassageService)?.Message;
     }
 }

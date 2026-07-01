@@ -9,7 +9,11 @@
     
     <Grid RowDefinitions="Auto, *">
         <!-- Заголовок -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}" Classes="page-title"/>
+        
+        <Grid Grid.Row="0" ColumnDefinitions="*, *">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Title}" Classes="page-title"/>
+            <TextBlock Grid.Column="1" Text="{Binding Message}"/>
+        </Grid>
         
         <!-- Тело страницы -->
         <ScrollViewer Grid.Row="1">

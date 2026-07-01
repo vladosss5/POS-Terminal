@@ -63,6 +63,6 @@ public interface ITmsClient
     /// <summary>
     /// Получить номер версии пакета обновлений из TMS.
     /// </summary>
-    /// <returns>Номер версии или пустая срока, если обновления нет.</returns>
+    /// <returns>Номер версии или пустая строка, если обновления нет.</returns>
     Task<string?> GetNumberNewVersion();
 }

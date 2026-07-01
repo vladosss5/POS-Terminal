@@ -36,21 +36,18 @@ public class UpdateBackgroundService : BackgroundService
     {
         _logger.LogInformation("Update check service started");
         
-        await CheckAndDownloadUpdateAsync(stoppingToken);
-
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
-
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        do
         {
-            await CheckAndDownloadUpdateAsync(stoppingToken);
+            await CheckAndDownloadUpdateAsync();
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
-    
+
     /// <summary>
     /// Проверить наличие и загрузить обновление из TMS.
     /// </summary>
-    /// <param name="token">Токен отмены.</param>
-    private async Task CheckAndDownloadUpdateAsync(CancellationToken token)
+    private async Task CheckAndDownloadUpdateAsync()
     {
         try
         {
@@ -61,6 +58,10 @@ public class UpdateBackgroundService : BackgroundService
                 _logger.LogInformation("New version found. Downloading...");
                 await _updateInstallerService.DownloadUpdatingFileAsync();
                 _logger.LogInformation("Update downloaded successfully");
+            }
+            else
+            {
+                _logger.LogInformation("New version not found.");
             }
         }
         catch (Exception ex)

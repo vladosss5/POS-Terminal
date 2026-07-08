@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AvaloniaEdit.Utils;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Models;
@@ -47,7 +46,14 @@ public partial class MainViewModel : ViewModelBase, IStatusObserver
     /// <inheritdoc/>
     public void UpdateStatuses(List<Status> statusList)
     {
-        StatusList.Clear();
-        StatusList.AddRange(statusList);
+        foreach (var newStatus in statusList)
+        {
+            var existingStatus = StatusList.FirstOrDefault(x => x.Type == newStatus.Type);
+        
+            if (existingStatus != null)
+                StatusList.Remove(existingStatus);
+            
+            StatusList.Add(newStatus);
+        }
     }
 }

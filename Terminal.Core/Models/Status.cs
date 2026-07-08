@@ -1,5 +1,4 @@
-﻿using Avalonia.Media.Imaging;
-using Terminal.Core.Enums;
+﻿using Terminal.Core.Enums;
 
 namespace Terminal.Core.Models;
 
@@ -16,5 +15,5 @@ public class Status
     /// <summary>
     /// Иконка для отображения.
     /// </summary>
-    public Bitmap? Icon { get; set; }
+    public string? IconName { get; set; }
 }

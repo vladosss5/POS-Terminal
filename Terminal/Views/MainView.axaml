@@ -3,9 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Terminal.ViewModels"
+             xmlns:converters="clr-namespace:Terminal.Converters"
              mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.MainView"
              x:DataType="vm:MainViewModel">
+    
+    <UserControl.Resources>
+        <converters:PathToImageConverter x:Key="PathToImageConverter"/>
+    </UserControl.Resources>
     
     <Grid RowDefinitions="Auto, *">
         <Border Grid.Row="0" Height="25" Background="WhiteSmoke">
@@ -21,7 +26,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Image Source="{Binding Icon}" 
+                            <Image Source="{Binding IconName, Converter={StaticResource PathToImageConverter}}" 
                                    Width="16" 
                                    Height="16"
                                    Margin="0,0,6,0"

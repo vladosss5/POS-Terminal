@@ -8,5 +8,10 @@ public enum StatusType
     /// <summary>
     /// Подключение к TMS.
     /// </summary>
-    ConnectionTms
+    ConnectionTms,
+    
+    /// <summary>
+    /// Пакет обновлений.
+    /// </summary>
+    UpdatePatch
 }

@@ -8,9 +8,30 @@
              x:DataType="vm:MainViewModel">
     
     <Grid RowDefinitions="Auto, *">
-        <Border Grid.Row="0" Height="25" Background="WhiteSmoke" IsVisible="{Binding ShowTopPanel}">
-            <!-- Тут добавить инфо об устройстве (время, заряд) -->
+        <Border Grid.Row="0" Height="25" Background="WhiteSmoke">
+            <Grid Margin="8,0" ColumnDefinitions="*">
+                <!-- Иконки статусов -->
+                <ItemsControl Grid.Column="0"
+                              ItemsSource="{Binding StatusList}"
+                              Margin="0,2,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Icon}" 
+                                   Width="16" 
+                                   Height="16"
+                                   Margin="0,0,6,0"
+                                   ToolTip.Tip="{Binding Type}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
         </Border>
+        
         <TransitioningContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
     </Grid>
 </UserControl>

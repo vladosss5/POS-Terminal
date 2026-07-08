@@ -20,6 +20,9 @@ public class StatusNotifierService : IStatusNotifierService
     public void Attach(IStatusObserver observer)
     {
         _observers.Add(observer);
+
+        if (StatusList.Count > 0)
+            Notify();
     }
 
     /// <inheritdoc/>
@@ -38,14 +41,17 @@ public class StatusNotifierService : IStatusNotifierService
     }
 
     /// <inheritdoc/>
-    public void AddStatus(Status status)
+    public void AddOrChangeStatus(Status status)
     {
-        var statusExists = StatusList.Any(x => x.Type == status.Type);
+        var existingStatus = StatusList.FirstOrDefault(x => x.Type == status.Type);
 
-        if (statusExists)
+        if (existingStatus == null)
+        {
+            StatusList.Add(status);
             return;
-        
-        StatusList.Add(status);
+        }
+
+        existingStatus.IconName = status.IconName;
     }
 
     /// <inheritdoc/>
@@ -67,6 +73,6 @@ public class StatusNotifierService : IStatusNotifierService
         if (changingStatus == null)
             return;
         
-        changingStatus.Icon = status.Icon;
+        changingStatus.IconName = status.IconName;
     }
 }

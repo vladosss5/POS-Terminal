@@ -28,7 +28,7 @@ public interface IStatusNotifierService
     /// Добавить статус в коллекцию.
     /// </summary>
     /// <param name="status">Статус.</param>
-    public void AddStatus(Status status);
+    public void AddOrChangeStatus(Status status);
     
     /// <summary>
     /// Удалить статус из коллекции.

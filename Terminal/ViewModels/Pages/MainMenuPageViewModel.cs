@@ -74,7 +74,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
     
-    
     /// <summary>
     /// Коллекция пунктов главного меню.
     /// </summary>

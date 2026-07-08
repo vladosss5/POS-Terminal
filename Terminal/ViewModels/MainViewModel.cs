@@ -1,5 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using AvaloniaEdit.Utils;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Models;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;
@@ -7,34 +12,42 @@ namespace Terminal.ViewModels;
 /// <summary>
 /// Логика работы главного окна.
 /// </summary>
-public partial class MainViewModel : ViewModelBase
+public partial class MainViewModel : ViewModelBase, IStatusObserver
 {
+    /// <inheritdoc cref="INavigationService" />
     private readonly INavigationService _navigationService;
-    
+
     /// <summary>
-    /// Отображаемая страница на еткущий момент.
+    /// Отображаемая страница на текущий момент.
     /// </summary>
     [ObservableProperty] private PageViewModelBase _currentPage;
     
-    public bool ShowTopPanel { get; set; }
+    /// <summary>
+    /// Список отображаемых статусов.
+    /// </summary>
+    public ObservableCollection<Status> StatusList { get; set; } = [];
+    
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     public MainViewModel(
-        INavigationService navigationService, 
-        IDeviceInfoService deviceInfoService)
+        INavigationService navigationService,
+        IStatusNotifierService statusNotifierService)
     {
         _navigationService = navigationService;
+
+        statusNotifierService.Attach(this);
         
-        _currentPage = _navigationService.CurrentPage;
+        CurrentPage = _navigationService.CurrentPage;
         
         _navigationService.PageChanged += (s, page) => CurrentPage = page;
+    }
 
-        var deviceManufacturer = deviceInfoService.DeviceInformation.Manufacturer;
-        var deviceModel = deviceInfoService.DeviceInformation.Model;
-
-        if (deviceManufacturer == "alps" && deviceModel == "S200")
-            ShowTopPanel = true;
+    /// <inheritdoc/>
+    public void UpdateStatuses(List<Status> statusList)
+    {
+        StatusList.Clear();
+        StatusList.AddRange(statusList);
     }
 }

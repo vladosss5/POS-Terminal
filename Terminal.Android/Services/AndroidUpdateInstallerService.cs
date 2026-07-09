@@ -132,6 +132,8 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
             _logger.LogError($"Хеши файлов не совпали.");
             throw new InvalidFileException("Не удалось скачать файл");
         }
+
+        await _tmsClient.ConfirmReceiptUpdatingFileAsync();
         
         _logger.LogError($"Скачивание завершено");
     }

@@ -58,11 +58,16 @@ public interface ITmsClient
     /// Скачать пакет обновлений с TMS. 
     /// </summary>
     /// <returns>Файл в виде потока.</returns>
-    Task<(Stream, string)> DownloadUpdatingFileAsync();
+    public Task<(Stream, string)> DownloadUpdatingFileAsync();
+
+    /// <summary>
+    /// Отправить подтверждение окончания скачивания пакета обновлений с TMS.
+    /// </summary>
+    public Task ConfirmReceiptUpdatingFileAsync();
 
     /// <summary>
     /// Получить номер версии пакета обновлений из TMS.
     /// </summary>
     /// <returns>Номер версии или пустая строка, если обновления нет.</returns>
-    Task<string?> GetNumberNewVersion();
+    public Task<string?> GetNumberNewVersion();
 }

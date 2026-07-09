@@ -189,6 +189,15 @@ public class TmsClient : ITmsClient
     }
 
     /// <inheritdoc/>
+    public async Task ConfirmReceiptUpdatingFileAsync()
+    {
+        var response = await _httpClient.GetAsync($"terminal-updating/confirm-receipt-apk");
+        
+        if (!response.IsSuccessStatusCode)
+            throw new NotFoundException("Ошибка сервера.");
+    }
+
+    /// <inheritdoc/>
     public async Task<string?> GetNumberNewVersion()
     {
         var response = await _httpClient.GetAsync($"terminal-updating/new-version");

@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.Text;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
+using Terminal.Persistence.TmsClient;
 
 namespace Terminal.Application.Implementations.Background;
 
@@ -21,6 +23,18 @@ public class UpdateBackgroundService : BackgroundService
 
     /// <inheritdoc cref="IStatusNotifierService" />
     private readonly IStatusNotifierService _statusNotifierService;
+    
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
+    
+    ///<inheritdoc cref="IConfigurationService"/>
+    private readonly IConfigurationService _configurationService;
+    
+    /// <inheritdoc cref="ICryptographyService" />
+    private readonly ICryptographyService _cryptographyService;
+    
+    /// <inheritdoc cref="ITmsClient" />
+    private readonly ITmsClient _tmsClient;
 
     /// <summary>
     /// Название файла-иконки загрузки.
@@ -43,11 +57,19 @@ public class UpdateBackgroundService : BackgroundService
     public UpdateBackgroundService(
         ILogger<UpdateBackgroundService> logger, 
         IUpdateInstallerService updateInstallerService, 
-        IStatusNotifierService statusNotifierService)
+        IStatusNotifierService statusNotifierService, 
+        ITmsClient tmsClient, 
+        IParameterService parameterService, 
+        IConfigurationService configurationService, 
+        ICryptographyService cryptographyService)
     {
         _logger = logger;
         _updateInstallerService = updateInstallerService;
         _statusNotifierService = statusNotifierService;
+        _tmsClient = tmsClient;
+        _parameterService = parameterService;
+        _configurationService = configurationService;
+        _cryptographyService = cryptographyService;
     }
 
     /// <summary>
@@ -61,6 +83,7 @@ public class UpdateBackgroundService : BackgroundService
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
         do
         {
+            await AuthenticationTmsClientAsync();
             await CheckAndDownloadUpdateAsync();
         }
         while (await timer.WaitForNextTickAsync(stoppingToken));
@@ -118,5 +141,24 @@ public class UpdateBackgroundService : BackgroundService
 
         _statusNotifierService.AddOrChangeStatus(status);
         _statusNotifierService.Notify();
+    }
+    
+    /// <summary>
+    /// Аутентификация клиента в TMS.
+    /// </summary>
+    private async Task AuthenticationTmsClientAsync()
+    {
+        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
+            return;
+        
+        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+        var plainText = terminalNumber + " " + Guid.NewGuid();
+        
+        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
+        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
+        
+        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
+
+        await _tmsClient.AuthenticationAsync(workload);
     }
 }

@@ -8,6 +8,7 @@ using Terminal.Application.Implementations.Builders;
 using Terminal.Application.Implementations.DbEntitiesServices;
 using Terminal.Application.Implementations.Mappers;
 using Terminal.Application.Implementations.Services;
+using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
@@ -78,7 +79,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IStatusNotifierService, StatusNotifierService>();
         
         // Фоновые сервисы
-        collection.AddHostedService<UpdateBackgroundService>();
+        collection.AddSingleton<IUpgradeBackgroundService, UpgradeBackgroundService>();
     }
 
     /// <summary>
@@ -92,7 +93,13 @@ public static class ServiceCollectionExtensions
             var loggerService = sp.GetRequiredService<ILogger<TmsClient>>();
         
             var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
+            if (string.IsNullOrEmpty(ipTms))
+                ipTms = "127.0.0.1";
+            
             var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
+            if (string.IsNullOrEmpty(portTms))
+                portTms = "5297";
+            
             var addressBase = $"http://{ipTms}:{portTms}/";
         
             return new TmsClient(addressBase, loggerService);

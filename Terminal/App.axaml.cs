@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
@@ -74,10 +75,23 @@ public partial class App : Avalonia.Application
                 singleViewPlatform.MainView = new MainView { DataContext = mainViewModel };
                 break;
         }
+
+        await StartUpgradeAsync();
         
-
-
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Запустить фоновый процесс обновления приложения.
+    /// </summary>
+    private static async Task StartUpgradeAsync()
+    {
+        var updateService = Services!.GetRequiredService<IUpgradeBackgroundService>();
+
+        await Task.Run(async () =>
+        {
+            await updateService.StartAutoUpgradeAsync();
+        });
     }
     
     /// <summary>

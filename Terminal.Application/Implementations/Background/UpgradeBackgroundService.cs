@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Models;
@@ -11,12 +11,12 @@ namespace Terminal.Application.Implementations.Background;
 /// <summary>
 /// Фоновый сервис проверки обновлений.
 /// </summary>
-public class UpdateBackgroundService : BackgroundService
+public class UpgradeBackgroundService : IUpgradeBackgroundService
 {
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<UpdateBackgroundService> _logger;
+    private readonly ILogger<UpgradeBackgroundService> _logger;
 
     /// <inheritdoc cref="IUpdateInstallerService" />
     private readonly IUpdateInstallerService _updateInstallerService;
@@ -54,8 +54,8 @@ public class UpdateBackgroundService : BackgroundService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public UpdateBackgroundService(
-        ILogger<UpdateBackgroundService> logger, 
+    public UpgradeBackgroundService(
+        ILogger<UpgradeBackgroundService> logger, 
         IUpdateInstallerService updateInstallerService, 
         IStatusNotifierService statusNotifierService, 
         ITmsClient tmsClient, 
@@ -75,18 +75,24 @@ public class UpdateBackgroundService : BackgroundService
     /// <summary>
     /// Основной метод запуска действий.
     /// </summary>
-    /// <param name="stoppingToken">Токен завершения.</param>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task StartAutoUpgradeAsync()
     {
         _logger.LogInformation("Update check service started");
         
-        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
-        do
+        try
         {
-            await AuthenticationTmsClientAsync();
-            await CheckAndDownloadUpdateAsync();
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+            do
+            {
+                await AuthenticationTmsClientAsync();
+                await CheckAndDownloadUpdateAsync();
+            }
+            while (await timer.WaitForNextTickAsync());
         }
-        while (await timer.WaitForNextTickAsync(stoppingToken));
+        catch (Exception e)
+        {
+            _logger.LogInformation(e.Message, e.InnerException);
+        }
     }
 
     /// <summary>
@@ -152,6 +158,10 @@ public class UpdateBackgroundService : BackgroundService
             return;
         
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
+
+        if (string.IsNullOrEmpty(terminalNumber))
+            return;
+        
         var plainText = terminalNumber + " " + Guid.NewGuid();
         
         var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;

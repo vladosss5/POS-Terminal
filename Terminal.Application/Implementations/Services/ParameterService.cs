@@ -31,15 +31,13 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc/>
-    public async Task<string> GetValueAsync(AppParameter parameterName)
+    public async Task<string?> GetValueAsync(AppParameter parameterName)
     {
         await using var db = await _dbContextFactory.CreateDbContextAsync();
 
         var parameter = await db.Params.FirstOrDefaultAsync(x => x.Name == parameterName.ToString());
        
-        return parameter == null 
-            ? throw new Exception("Параметр не найден") 
-            : parameter.Value;
+        return parameter?.Value;
     }
 
     /// <inheritdoc/>

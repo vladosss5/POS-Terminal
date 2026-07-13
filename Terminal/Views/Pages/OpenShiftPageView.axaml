@@ -49,7 +49,7 @@
                     
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).SelectUser}"
+                            <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).SelectUserCommand}"
                                 CommandParameter="{Binding}" 
                                 HorizontalAlignment="Stretch" 
                                 CornerRadius="20"
@@ -101,7 +101,7 @@
                         
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).AddCharInPassword}"
+                                    <Button Command="{Binding #ThisUserControl.((pages:OpenShiftPageViewModel)DataContext).AddCharInPasswordCommand}"
                                             CommandParameter="{Binding}"
                                             Classes="number-button">
                                         <TextBlock Text="{Binding}" Classes="text-button"/>

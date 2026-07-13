@@ -46,7 +46,7 @@ public class SaleProcessPageTests : IntegrationTestsBase
             .ReturnsAsync(new PrintResult { Success = true, Status = PrinterStatus.Ready });
         
         // Act
-        _saleProcessPageViewModel!.SetFuelType(resource!);
+        _saleProcessPageViewModel!.SetFuelTypeCommand.Execute(resource!);
 
         _saleProcessPageViewModel.IsAmountMoney = false;
         foreach (var item in charsAmount)
@@ -54,7 +54,7 @@ public class SaleProcessPageTests : IntegrationTestsBase
         
         _saleProcessPageViewModel.SetAmount();
         
-        await _saleProcessPageViewModel!.SetPaymentType("Наличные");
+        await _saleProcessPageViewModel!.SetPaymentTypeCommand.ExecuteAsync("Наличные");
         
         // Assert
         var creationSelling = await db.Sales.OrderByDescending(x => x.TransactionShopKey).FirstAsync();

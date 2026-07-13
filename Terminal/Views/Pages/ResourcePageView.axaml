@@ -36,7 +36,7 @@
                 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button Command="{Binding Path=#UserControl.((pages:ResourcePageViewModel)DataContext).SelectResource}"
+                        <Button Command="{Binding Path=#UserControl.((pages:ResourcePageViewModel)DataContext).SelectResourceCommand}"
                                 CommandParameter="{Binding}"
                                 Classes="selector-button"
                                 HorizontalContentAlignment="Stretch"
@@ -116,7 +116,7 @@
             
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Command="{Binding #UserControl.((pages:ResourcePageViewModel)DataContext).AddCharInPassword}"
+                            <Button Command="{Binding #UserControl.((pages:ResourcePageViewModel)DataContext).AddCharInPasswordCommand}"
                                     CommandParameter="{Binding}"
                                     Classes="number-button">
                                     <TextBlock Text="{Binding}" Classes="text-button"/>

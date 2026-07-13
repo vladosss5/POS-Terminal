@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -16,7 +17,7 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Страница изменения цены ресурсов.
 /// </summary>
-public class ResourcePageViewModel : PageViewModelBase
+public partial class ResourcePageViewModel : PageViewModelBase
 {
     /// Фабрика создающая <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -115,6 +116,7 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Выбрать ресурс для редактирования.
     /// </summary>
     /// <param name="resource">Редактируемый ресурс.</param>
+    [RelayCommand]
     public void SelectResource(ResourceCode resource)
     {
         SelectedResourceCode = resource;
@@ -184,7 +186,8 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="symbols">Символ.</param>
-    public void AddCharInPassword(string symbols)
+    [RelayCommand]
+    private void AddCharInPassword(string symbols)
     {
         if (PricePreview == null)
             return;

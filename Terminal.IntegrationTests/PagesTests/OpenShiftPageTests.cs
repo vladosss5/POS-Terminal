@@ -55,10 +55,10 @@ public class OpenShiftPageTests : IntegrationTestsBase
             .ToList();
 
         // Act
-        _openShiftPageViewModel!.SelectUser(_existingOperator);
+        _openShiftPageViewModel!.SelectUserCommand.Execute(_existingOperator);
         
         foreach (var button in passwordButtons)
-            _openShiftPageViewModel.AddCharInPassword(button);
+            _openShiftPageViewModel.AddCharInPasswordCommand.Execute(button);
 
         await _openShiftPageViewModel.AuthenticationWithPasswordAsync();
         
@@ -78,10 +78,10 @@ public class OpenShiftPageTests : IntegrationTestsBase
         var passwordButtons = new[] { "1" };
 
         // Act
-        _openShiftPageViewModel!.SelectUser(_existingOperator);
+        _openShiftPageViewModel!.SelectUserCommand.Execute(_existingOperator);
         
         foreach (var button in passwordButtons)
-            _openShiftPageViewModel.AddCharInPassword(button);
+            _openShiftPageViewModel.AddCharInPasswordCommand.Execute(button);
 
         await _openShiftPageViewModel.AuthenticationWithPasswordAsync();
         
@@ -110,7 +110,7 @@ public class OpenShiftPageTests : IntegrationTestsBase
             });
 
         // Act
-        _openShiftPageViewModel!.SelectUser(_existingOperator);
+        _openShiftPageViewModel!.SelectUserCommand.Execute(_existingOperator);
 
         // Assert
         NavigationMock!.Verify(x => x.NavigateTo<MainMenuPageViewModel>(), Times.Never);

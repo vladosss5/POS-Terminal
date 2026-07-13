@@ -127,7 +127,7 @@ public class SaleProcessPageViewModelTests
         var invalidPaymentTypeKey = "Несуществующий тип";
 
         // Act
-        await _viewModel.SetPaymentType(invalidPaymentTypeKey);
+        await _viewModel.SetPaymentTypeCommand.ExecuteAsync(invalidPaymentTypeKey);
 
         // Assert
         _builderMock.Verify(x => x.SetPaymentTypes(It.IsAny<BasePaymentType>(), It.IsAny<DerivedPaymentType>()), 
@@ -146,7 +146,7 @@ public class SaleProcessPageViewModelTests
         };
 
         // Act
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
 
         // Assert
         Assert.Multiple(() =>
@@ -161,7 +161,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         _viewModel.AmountMoneyPreview = "1000";
         _viewModel.IsAmountMoney = true;
 
@@ -293,7 +293,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         _viewModel.AmountMoneyPreview = "100";
         _viewModel.IsAmountMoney = true;
 
@@ -379,7 +379,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         
         // Act
         _viewModel.AmountMoneyPreview = "100";

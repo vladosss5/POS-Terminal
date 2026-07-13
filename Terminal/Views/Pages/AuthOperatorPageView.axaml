@@ -60,7 +60,7 @@
             
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Command="{Binding #UserControl.((pages:AuthOperatorPageViewModel)DataContext).AddCharInPassword}"
+                            <Button Command="{Binding #UserControl.((pages:AuthOperatorPageViewModel)DataContext).AddCharInPasswordCommand}"
                                     CommandParameter="{Binding}"
                                     Classes="number-button">
                                     <TextBlock Text="{Binding}" Classes="text-button"/>

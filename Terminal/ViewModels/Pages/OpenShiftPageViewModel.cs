@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.DbEntitiesServices;
@@ -201,7 +202,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Выбрать учётную запись для входа.
     /// </summary>
     /// <param name="user">Учётная запись оператора.</param>
-    public void SelectUser(User user)
+    [RelayCommand]
+    private void SelectUser(User user)
     {
         _selectedUser = user;
         Steps[0].CompleteStepCommand.ExecuteAsync(null);
@@ -228,7 +230,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="element">Символ.</param>
-    public void AddCharInPassword(string element)
+    [RelayCommand]
+    private void AddCharInPassword(string element)
     {
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();

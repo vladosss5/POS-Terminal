@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
@@ -213,7 +214,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Указать тип оплаты.
     /// </summary>
     /// <param name="typeKey">Тип оплаты.</param>
-    public async Task SetPaymentType(string typeKey)
+    [RelayCommand]
+    private async Task SetPaymentType(string typeKey)
     {
         if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
             return;
@@ -242,7 +244,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Указать тип топлива (товара).
     /// </summary>
     /// <param name="resource">Топливо.</param>
-    public void SetFuelType(ResourceCode resource)
+    [RelayCommand]
+    private void SetFuelType(ResourceCode resource)
     {
         _builder.SetResourceCode(resource);
 
@@ -292,6 +295,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Добавить символы в предпросмотр кол-ва.
     /// </summary>
     /// <param name="symbols">Символ.</param>
+    [RelayCommand]
     public void AddCharInAmountPreview(string symbols)
     {
         foreach (var symbol in symbols)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maui.Devices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Interfaces;
 using DevicePlatform = Terminal.Core.Enums.DevicePlatform;
 
 namespace Terminal.Android.Services;

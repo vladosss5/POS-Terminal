@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Implementations.Helpers;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Application.Helpers;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Entities.Models.Settings;
+using Terminal.Core.Entities.Models.SettingsFromPosOffice;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
-using Terminal.Core.Models.Settings;
-using Terminal.Core.Models.SettingsFromPosOffice;
-using Terminal.Persistence.TmsClient;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Services;
 

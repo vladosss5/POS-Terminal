@@ -3,22 +3,24 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Implementations.Builders;
-using Terminal.Application.Implementations.DbEntitiesServices;
-using Terminal.Application.Implementations.Mappers;
-using Terminal.Application.Implementations.Services;
+using Terminal.Application.Builders;
 using Terminal.Application.Interfaces.Builders;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Application.Mappers;
+using Terminal.Application.Services;
 using Terminal.Converters;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
+using Terminal.Persistence.Repositories;
 using Terminal.Persistence.TmsClient;
 using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
+using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -66,7 +68,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
-        collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        collection.AddScoped<ISqlExecutor, SqlExecutorMainDb>();
         collection.AddTransient<ICardReaderService, CommonCardReaderService>();
         collection.AddSingleton<ICryptographyService, CryptographyService>();
         collection.AddSingleton<IAuthService, AuthService>();
@@ -74,6 +76,13 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
         collection.AddTransient<IEncashmentService, EncashmentService>();
+
+        collection.AddTransient<IGenericRepository, GenericRepository>();
+        collection.AddTransient<IParamRepository, ParamRepository>();
+        collection.AddTransient<ISellingRepository, SellingRepository>();
+        collection.AddTransient<ISettingRepository, SettingRepository>();
+        collection.AddTransient<IShiftRepository, ShiftRepository>();
+        collection.AddTransient<IUserRepository, UserRepository>();
     }
 
     /// <summary>

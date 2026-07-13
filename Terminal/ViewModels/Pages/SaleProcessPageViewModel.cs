@@ -13,8 +13,9 @@ using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Items;
 

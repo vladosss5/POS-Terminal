@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;

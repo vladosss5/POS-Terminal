@@ -13,15 +13,15 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia.Enums;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Exceptions;
-using Terminal.Core.Models;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Terminal.Dtos;
-using Terminal.Persistence.TmsClient;
 using Terminal.Services.AuthPageFactory;
+using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
 

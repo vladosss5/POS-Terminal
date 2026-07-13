@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
-             xmlns:models="clr-namespace:Terminal.Core.Models;assembly=Terminal.Core"
              xmlns:converters="clr-namespace:Terminal.Converters"
              mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.Pages.AdminLoginPageView"

@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.IntegrationTests.PagesTests;

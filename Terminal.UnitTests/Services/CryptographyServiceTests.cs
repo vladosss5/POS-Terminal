@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Terminal.Application.Implementations.Services;
+using Terminal.Application.Services;
 
 namespace Terminal.UnitTests.Services;
 

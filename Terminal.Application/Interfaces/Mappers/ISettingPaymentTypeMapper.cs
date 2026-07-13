@@ -1,5 +1,5 @@
-﻿using Terminal.Core.Models;
-using Terminal.Core.Models.Settings;
+﻿using Terminal.Core.Entities.Models;
+using Terminal.Core.Entities.Models.Settings;
 
 namespace Terminal.Application.Interfaces.Mappers;
 

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Terminal.Application.Implementations.Services;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Application.Services;
+using Terminal.Core.Interfaces;
 using Terminal.Desktop.Services;
 
 namespace Terminal.Desktop.Extensions;

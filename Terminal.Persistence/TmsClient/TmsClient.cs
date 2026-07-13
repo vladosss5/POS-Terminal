@@ -4,10 +4,11 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Entities.TmsDtos.TerminalUpdate;
 using Terminal.Core.Enums;
 using Terminal.Core.Exceptions;
-using Terminal.Core.Models;
-using Terminal.Core.TmsDtos.TerminalUpdate;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Persistence.TmsClient;
 

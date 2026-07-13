@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;

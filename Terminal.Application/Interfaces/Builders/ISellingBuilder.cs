@@ -1,4 +1,4 @@
-﻿using Terminal.Core.DbEntities.MainDb;
+﻿using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
 
 namespace Terminal.Application.Interfaces.Builders;

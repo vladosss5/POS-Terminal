@@ -3,11 +3,11 @@ using System.Text;
 using Microsoft.Testing.Platform.Services;
 using Moq;
 using NUnit.Framework;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Interfaces;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.IntegrationTests.PagesTests;

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Desktop.Services;
 

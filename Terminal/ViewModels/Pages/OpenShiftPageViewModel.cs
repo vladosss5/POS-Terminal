@@ -8,12 +8,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
+using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;

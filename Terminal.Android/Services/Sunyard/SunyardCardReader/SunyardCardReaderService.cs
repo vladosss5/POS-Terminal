@@ -5,9 +5,9 @@ using Android.Content;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Rfreader;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Interfaces;
 using OperationCanceledException = System.OperationCanceledException;
 
 namespace Terminal.Android.Services.Sunyard.SunyardCardReader;

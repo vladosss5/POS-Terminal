@@ -2,18 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Terminal.Application.Implementations.Builders;
-using Terminal.Application.Implementations.DbEntitiesServices;
-using Terminal.Application.Implementations.Mappers;
-using Terminal.Application.Implementations.Services;
+using Terminal.Application.Builders;
 using Terminal.Application.Interfaces.Builders;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Application.Mappers;
+using Terminal.Application.Services;
 using Terminal.Converters;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
 using Terminal.Services;
+using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -70,7 +70,7 @@ public static class TestServiceProvider
         collection.AddSingleton(receiptPrintMock);
         
         collection.AddScoped<IFileReader, FileReader>();
-        collection.AddScoped<ISqlExecutor, SqlExecutor>();
+        collection.AddScoped<ISqlExecutor, SqlExecutorMainDb>();
         collection.AddScoped<ICryptographyService, CryptographyService>();
         collection.AddScoped<IAuthService, AuthService>();
         collection.AddTransient<IShiftService, ShiftService>();

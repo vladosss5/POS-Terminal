@@ -13,8 +13,10 @@ using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
 using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Items;
 
@@ -25,9 +27,6 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public partial class SaleProcessPageViewModel : PageViewModelBase
 {
-    /// Фабрика создающая <inheritdoc cref="DataContext"/>
-    private readonly IDbContextFactory<DataContext> _dbFactory;
-
     /// <inheritdoc cref="IReceiptPrintService"/>
     private readonly IReceiptPrintService _receiptPrintService;
     
@@ -51,6 +50,12 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
+
+    /// <inheritdoc cref="ISellingRepository" />
+    private readonly ISellingRepository _sellingRepository;
+
+    /// <inheritdoc cref="IResourceCodeRepository" />
+    private readonly IResourceCodeRepository _resourceCodeRepository;
 
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
@@ -177,19 +182,19 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public SaleProcessPageViewModel(
-        ISellingBuilder builder, 
-        IDbContextFactory<DataContext> dbFactory, 
+        ISellingBuilder builder,
         ILogger<SaleProcessPageViewModel> logger, 
         IReceiptPrintService receiptPrintService, 
         ISalesReceiptMappingService receiptMappingService, 
         ICardReaderService cardReaderService, 
         IConfigurationService configurationService, 
         ISettingPaymentTypeMapper settingPaymentTypeMapper, 
-        IAuthService authService) 
+        IAuthService authService, 
+        ISellingRepository sellingRepository, 
+        IResourceCodeRepository resourceCodeRepository) 
         : base(logger)
     {
         _builder = builder;
-        _dbFactory = dbFactory;
         _logger = logger;
         _receiptPrintService = receiptPrintService;
         _receiptMappingService = receiptMappingService;
@@ -197,6 +202,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _settingPaymentTypeMapper = settingPaymentTypeMapper;
         _authService = authService;
+        _sellingRepository = sellingRepository;
+        _resourceCodeRepository = resourceCodeRepository;
 
         InitializeSteps();
         InitializePaymentTypes();
@@ -395,14 +402,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     private async Task LoadDataAsync()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        
-        var products = await db.ResourceCodes
-            .Where(x => x.IsShow == 1)
-            .OrderBy(p => p.ResourceName)
-            .AsNoTracking()
-            .ToArrayAsync();
-
+        var products = await _resourceCodeRepository.GetShowedResourceCodesAsync();
         Resources = new ObservableCollection<ResourceCode>(products);
     }
 
@@ -467,8 +467,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync();
-            
             await _builder.SetCheckNumber();
             await _builder.SetShiftNumber();
             await _builder.SetTerminalNumber();
@@ -479,8 +477,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             
             var selling = _builder.Build();
             
-            await db.AddAsync(selling);
-            await db.SaveChangesAsync();
+            await _sellingRepository.AddAsync(selling);
 
             await PrintReceiptAsync(selling);
             

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Terminal.Core.DbEntities;
-using Terminal.Core.DbEntities.MainDb;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 
 namespace Terminal.Persistence.MainDB;
 

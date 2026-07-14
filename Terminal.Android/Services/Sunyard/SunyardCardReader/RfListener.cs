@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Com.Sunyard.Api.Rfreader;
 using Microsoft.Extensions.Logging;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.Models;
 
 namespace Terminal.Android.Services.Sunyard.SunyardCardReader;
 

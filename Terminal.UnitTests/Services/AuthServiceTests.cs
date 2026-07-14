@@ -2,9 +2,10 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using NUnit.Framework;
-using Terminal.Application.Implementations.Services;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Application.Services;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 
 namespace Terminal.UnitTests.Services;
@@ -34,7 +35,7 @@ public class AuthServiceTests
         dbFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_dbContext);
             
-        _authService = new AuthService(_hashServiceMock.Object, dbFactoryMock.Object);
+        // _authService = new AuthService(_hashServiceMock.Object, dbFactoryMock.Object);
     }
 
     [TearDown]

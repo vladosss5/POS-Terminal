@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities;
-using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Interfaces;
 using Terminal.Services;
 
 namespace Terminal.Desktop.Services;

@@ -4,6 +4,7 @@ using Android.Content;
 using Android.Provider;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Environment = Android.OS.Environment;
 

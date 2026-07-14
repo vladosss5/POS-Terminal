@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Terminal.Core.DbEntities.ParamDb;
+using Terminal.Core.Entities.DbEntities.ParamDb;
 
 namespace Terminal.Persistence.ParamDB;
 

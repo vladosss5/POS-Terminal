@@ -3,7 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
+using Terminal.Services.MessageBoxService;
 
 namespace Terminal.ViewModels.Pages;
 

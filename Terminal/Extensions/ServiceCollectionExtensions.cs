@@ -76,6 +76,8 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IAuthPageFactory, AuthPageFactory>();
         collection.AddSingleton<IParameterService, ParameterService>();
         collection.AddTransient<IEncashmentService, EncashmentService>();
+        collection.AddTransient<ITmsService, TmsService>();
+        collection.AddSingleton<IConfigurationUpdatingService, ConfigurationUpdatingService>();
 
         collection.AddTransient<IGenericRepository, GenericRepository>();
         collection.AddTransient<IParamRepository, ParamRepository>();

@@ -7,10 +7,8 @@ using Android.Provider;
 using AndroidX.Core.Content;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Helpers;
-using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
-using Terminal.Persistence.TmsClient;
 using Environment = Android.OS.Environment;
 using Uri = Android.Net.Uri;
 
@@ -22,8 +20,8 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <inheritdoc cref="Context" />
     private readonly Context _context;
 
-    /// <inheritdoc cref="ITmsClient" />
-    private readonly ITmsClient _tmsClient;
+    /// <inheritdoc cref="ITmsService" />
+    private readonly ITmsService _tmsService;
 
     /// <summary>
     /// Логгер.
@@ -44,13 +42,13 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// Конструктор.
     /// </summary>
     public AndroidUpdateInstallerService(
-        Context context,
-        ITmsClient tmsClient, 
-        ILogger<AndroidUpdateInstallerService> logger)
+        Context context, 
+        ILogger<AndroidUpdateInstallerService> logger, 
+        ITmsService tmsService)
     {
         _context = context;
-        _tmsClient = tmsClient;
         _logger = logger;
+        _tmsService = tmsService;
 
         _pathToDownloadedPackages = 
             _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
@@ -102,7 +100,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     public async Task DownloadUpdatingFileAsync()
     {
         _logger.LogInformation($"Начато скачивание пакета обновлений.");
-        var (stream, fileHash) = await _tmsClient.DownloadUpdatingFileAsync();
+        var (stream, fileHash) = await _tmsService.DownloadUpdatingFileAsync();
         
         var apkFilePath = Path.Combine(_pathToDownloadedPackages, FileName);
         

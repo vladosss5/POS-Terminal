@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
@@ -56,17 +55,13 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
     
-    /// <inheritdoc cref="ICryptographyService" />
-    private readonly ICryptographyService _cryptographyService;
-    
-    /// <inheritdoc cref="ITmsClient" />
-    private readonly ITmsClient _tmsClient;
-    
     /// <inheritdoc cref="IEncashmentService" />
     private readonly IEncashmentService _encashmentService;
 
     /// <inheritdoc cref="IUpdateInstallerService" />
     private readonly IUpdateInstallerService _installerService;
+
+    private readonly IConfigurationUpdatingService _configurationUpdatingService;
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -94,11 +89,10 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IDbContextFactory<DataContext> dbFactory,
         IConfigurationService configurationService, 
         IAuthPageFactory authPageFactory, 
-        IParameterService parameterService,
-        ICryptographyService cryptographyService, 
-        ITmsClient tmsClient, 
+        IParameterService parameterService, 
         IEncashmentService encashmentService,
-        IUpdateInstallerService installerService) 
+        IUpdateInstallerService installerService, 
+        IConfigurationUpdatingService configurationUpdatingService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -111,10 +105,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _configurationService = configurationService;
         _authPageFactory = authPageFactory;
         _parameterService = parameterService;
-        _cryptographyService = cryptographyService;
-        _tmsClient = tmsClient;
         _encashmentService = encashmentService;
         _installerService = installerService;
+        _configurationUpdatingService = configurationUpdatingService;
         Title = "Главная";
 
         _ = DownloadUpdatingPatchAsync();
@@ -195,7 +188,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     {
         try
         {
-            await AuthenticationTmsClientAsync();
             await _installerService.DownloadUpdatingFileAsync();
         }
         catch (Exception e)
@@ -400,9 +392,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         {
             var stopwatch = Stopwatch.StartNew();
             
-            await AuthenticationTmsClientAsync();
-            
-            await _configurationService.UpdateSettingsFromPosOffice();
+            await _configurationUpdatingService.UpdateSettingsFromPosTms();
 
             stopwatch.Stop();
             
@@ -421,25 +411,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         {
             await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
         }
-    }
-    
-    /// <summary>
-    /// Аутентификация клиента в TMS.
-    /// </summary>
-    private async Task AuthenticationTmsClientAsync()
-    {
-        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
-            return;
-        
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-        var plainText = terminalNumber + " " + Guid.NewGuid();
-        
-        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
-        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
-        
-        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
-
-        await _tmsClient.AuthenticationAsync(workload);
     }
 
     /// <summary>

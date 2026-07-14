@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Helpers;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Entities.Models.Settings;
 using Terminal.Core.Entities.Models.SettingsFromPosOffice;
-using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 
-namespace Terminal.Services;
+namespace Terminal.Application.Services;
 
 /// <summary>
 /// Реализация сервиса для работы с конфигурацией приложения.
@@ -23,9 +16,6 @@ public class ConfigurationService : IConfigurationService
 {
     /// <inheritdoc cref="ILogger" />
     private readonly ILogger<ConfigurationService> _logger;
-
-    /// <inheritdoc cref="ITmsClient" />
-    private readonly ITmsClient _tmsClient;
 
     /// <summary>
     /// Настройки сериализации.
@@ -114,12 +104,9 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService(
-        ILogger<ConfigurationService> logger, 
-        ITmsClient tmsClient)
+    public ConfigurationService(ILogger<ConfigurationService> logger)
     {
         _logger = logger;
-        _tmsClient = tmsClient;
 
         var baseDirectory = OperatingSystem.IsAndroid() 
             ? Environment.GetFolderPath(Environment.SpecialFolder.Personal) 
@@ -163,28 +150,6 @@ public class ConfigurationService : IConfigurationService
                 SaveSettingsToFile();
             }
         }
-    }
-
-    /// <inheritdoc/>
-    public async Task UpdateSettingsFromPosOffice()
-    {
-        var response = await _tmsClient.GetConfigurationAsync(SettingsType.Config);
-        if (response == null) 
-            return;
-        
-        var decodedString = Base64Helper.DecodeFromBase64(response.Value);
-        if (string.IsNullOrEmpty(decodedString)) 
-            return;
-        
-        var configString = decodedString
-            .Replace(">False<", ">false<")
-            .Replace(">True<", ">true<");
-        
-        var serializer = new XmlSerializer(typeof(SettingsFromPosOffice));
-        using var reader = new StringReader(configString);
-        _settingsFromPosOffice = (SettingsFromPosOffice)(serializer.Deserialize(reader) ?? new SettingsFromPosOffice());
-
-        await _tmsClient.SendConfirmationUpdatingAsync([response.PosSettingsKey]);
     }
 
     /// <inheritdoc/>

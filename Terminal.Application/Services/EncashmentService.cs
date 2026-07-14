@@ -21,8 +21,8 @@ public class EncashmentService : IEncashmentService
     /// <inheritdoc cref="IGenericRepository" />
     private readonly IGenericRepository _genericRepository;
     
-    /// <inheritdoc cref="ICryptographyService" />
-    private readonly ITmsClient _tmsClient;
+    /// <inheritdoc cref="ITmsService" />
+    private readonly ITmsService _tmsService;
     
     /// <summary>
     /// Кол-во инкассируемых записей в отправляемом пакете.
@@ -72,11 +72,11 @@ public class EncashmentService : IEncashmentService
     public EncashmentService(
         IConfigurationService configurationService,
         ILogger<EncashmentService> logger, 
-        ITmsClient tmsClient, 
+        ITmsService tmsService, 
         IGenericRepository genericRepository)
     {
         _logger = logger;
-        _tmsClient = tmsClient;
+        _tmsService = tmsService;
         _genericRepository = genericRepository;
 
         _tablesToSend = configurationService.GetTablesToSend();
@@ -170,7 +170,7 @@ public class EncashmentService : IEncashmentService
             }
         }
 
-        await _tmsClient.StartEncashmentOnTmsAsync();
+        await _tmsService.StartEncashmentOnTmsAsync();
         
         _logger.LogInformation($"Encashment end in {DateTime.Now:HH:mm:ss.ffffff}");
     }
@@ -180,7 +180,7 @@ public class EncashmentService : IEncashmentService
     /// </summary>
     private async Task ProcessingResultLastEncashmentAsync()
     {
-        var archiveBytes = await _tmsClient.GetResultsEncashmentCollectionAsync();
+        var archiveBytes = await _tmsService.GetResultsEncashmentCollectionAsync();
 
         if (archiveBytes.Length == 0) return;
         
@@ -244,7 +244,7 @@ public class EncashmentService : IEncashmentService
             var compressedData = await File.ReadAllBytesAsync(compressedFilePath);
             var fileName = Path.GetFileName(compressedFilePath);
 
-            await _tmsClient.SendEncashmentTablesAsync(compressedData, tableToSendDto, fileName, encashmentRows.Count);
+            await _tmsService.SendEncashmentTablesAsync(compressedData, tableToSendDto, fileName, encashmentRows.Count);
 
             File.Delete(compressedFilePath);
 

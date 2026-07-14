@@ -1,6 +1,4 @@
-﻿using Terminal.Core.Entities.Models;
-using Terminal.Core.Entities.TmsDtos.TerminalUpdate;
-using Terminal.Core.Enums;
+﻿using Terminal.Core.Enums;
 
 namespace Terminal.Core.Interfaces;
 
@@ -15,48 +13,37 @@ public interface ITmsClient
     public TmsConnectionStatus ConnectionStatus { get; }
 
     /// <summary>
+    /// Сменить базовый адрес.
+    /// </summary>
+    /// <param name="address"></param>
+    public void ChangeBaseAddress(string address);
+    
+    /// <summary>
     /// Аутентификация клиента в TMS.
     /// </summary>
     /// <param name="authData">Данные аутентификации.</param>
     public Task AuthenticationAsync(string authData);
 
     /// <summary>
-    /// Получить конфигурацию.
+    /// Отправить Get запрос на TMS.
     /// </summary>
-    /// <param name="settingType">Тип обновляемой настройки.</param>
-    /// <returns>Base64 строка с данными.</returns>
-    public Task<TerminalUpdateResponseDto?> GetConfigurationAsync(SettingsType settingType);
+    /// <param name="path">Относительный путь до конечной точки.</param>
+    /// <returns>Http ответ.</returns>
+    public Task<HttpResponseMessage> GetAsync(string path);
 
     /// <summary>
-    /// Отправить подтверждение обновлений.
+    /// Отправить Post запрос на TMS.
     /// </summary>
-    /// <param name="updatedSettingIds">Идентификаторы обновлённых настроек.</param>
-    public Task SendConfirmationUpdatingAsync(int[] updatedSettingIds);
+    /// <param name="path">Относительный путь до конечной точки.</param>
+    /// <param name="content">Строковый контент.</param>
+    /// <returns>Http ответ.</returns>
+    public Task<HttpResponseMessage> PostAsync(string path, StringContent content);
 
     /// <summary>
-    /// Получить предыдущие результаты инкассаций. 
+    /// Отправить Post запрос на TMS.
     /// </summary>
-    /// <returns>Массив байт архива.</returns>
-    public Task<byte[]> GetResultsEncashmentCollectionAsync();
-
-    /// <summary>
-    /// Отправить пакет сжатой информации из БД на TMS.
-    /// </summary>
-    /// <param name="data">Массив байт сжатого файла.</param>
-    /// <param name="table">Таблица данные которой принадлежат.</param>
-    /// <param name="fileName">Название файла.</param>
-    /// <param name="recordCount">Кол-во пакетов.</param>
-    /// <returns>Успешность передачи.</returns>
-    public Task<bool> SendEncashmentTablesAsync(byte[] data, TableToSendDto table, string fileName, int recordCount);
-
-    /// <summary>
-    /// Запустить на сервере процесс инкассации данных из переданных файлов.
-    /// </summary>
-    public Task StartEncashmentOnTmsAsync();
-
-    /// <summary>
-    /// Скачать пакет обновлений с TMS. 
-    /// </summary>
-    /// <returns>Файл в виде потока.</returns>
-    Task<(Stream, string)> DownloadUpdatingFileAsync();
+    /// <param name="path">Относительный путь до конечной точки.</param>
+    /// <param name="content">Составной контент.</param>
+    /// <returns>Http ответ.</returns>
+    public Task<HttpResponseMessage> PostAsync(string path, MultipartFormDataContent content);
 }

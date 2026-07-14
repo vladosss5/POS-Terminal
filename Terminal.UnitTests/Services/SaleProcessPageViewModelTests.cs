@@ -11,6 +11,7 @@ using Terminal.Core.Entities.Models;
 using Terminal.Core.Entities.Models.Settings;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
 using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Pages;
 
@@ -28,6 +29,8 @@ public class SaleProcessPageViewModelTests
     private Mock<IConfigurationService> _configurationServiceMock;
     private Mock<ISettingPaymentTypeMapper> _settingPaymentTypeMapperMock;
     private Mock<IAuthService> _authServiceMock;
+    private Mock<ISellingRepository> _sellingRepositoryMock;
+    private Mock<IResourceCodeRepository> _resourceCodeRepositoryMock;
     private Mock<DataContext> _dbContextMock;
     private SettingsModel _currentSettings;
     private SaleProcessPageViewModel _viewModel;
@@ -45,6 +48,8 @@ public class SaleProcessPageViewModelTests
         _settingPaymentTypeMapperMock = new Mock<ISettingPaymentTypeMapper>();
         _authServiceMock = new Mock<IAuthService>();
         _dbContextMock = new Mock<DataContext>();
+        _sellingRepositoryMock = new Mock<ISellingRepository>();
+        _resourceCodeRepositoryMock = new Mock<IResourceCodeRepository>();
 
         _currentSettings = new SettingsModel
         {
@@ -104,14 +109,15 @@ public class SaleProcessPageViewModelTests
 
         _viewModel = new SaleProcessPageViewModel(
             _builderMock.Object,
-            _dbFactoryMock.Object,
             _loggerMock.Object,
             _receiptPrintServiceMock.Object,
             _receiptMappingServiceMock.Object,
             _cardReaderServiceMock.Object,
             _configurationServiceMock.Object,
             _settingPaymentTypeMapperMock.Object,
-            _authServiceMock.Object);
+            _authServiceMock.Object,
+            _sellingRepositoryMock.Object,
+            _resourceCodeRepositoryMock.Object);
     }
 
 

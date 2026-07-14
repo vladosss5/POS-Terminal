@@ -85,6 +85,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ISettingRepository, SettingRepository>();
         collection.AddTransient<IShiftRepository, ShiftRepository>();
         collection.AddTransient<IUserRepository, UserRepository>();
+        collection.AddTransient<IResourceCodeRepository, ResourceCodeRepository>();
     }
 
     /// <summary>

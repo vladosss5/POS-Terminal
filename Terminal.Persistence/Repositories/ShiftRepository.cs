@@ -9,8 +9,12 @@ namespace Terminal.Persistence.Repositories;
 /// <inheritdoc/>
 public class ShiftRepository : IShiftRepository
 {
+    /// <inheritdoc cref="DataContext" />
     private readonly DataContext _context;
     
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public ShiftRepository(IDbContextFactory<DataContext> mainDbFactory)
     {
         _context = mainDbFactory.CreateDbContext();

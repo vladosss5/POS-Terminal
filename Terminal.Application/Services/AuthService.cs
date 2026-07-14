@@ -11,8 +11,12 @@ public class AuthService : IAuthService
     /// <inheritdoc cref="ICryptographyService"/>
     private readonly ICryptographyService _cryptographyService;
 
+    /// <inheritdoc cref="IUserRepository"/>
     private readonly IUserRepository _userRepository;
     
+    /// <summary>
+    /// Текущий авторизованный пользователь.
+    /// </summary>
     public User? CurrentUser { get; private set; }
     
     /// <summary>

@@ -12,7 +12,7 @@ public class ShiftStateDto
     /// </summary>
     public int ShiftKey { get; set; }
     
-    /// <summary>
+    /// <summary>я
     /// Запись об открытие смены (должна быть всегда).
     /// </summary>
     public Shift OpenRecord { get; set; } = null!;

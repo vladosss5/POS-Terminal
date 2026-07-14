@@ -18,7 +18,6 @@ public interface IShiftRepository
     /// Обновить запись о смене.
     /// </summary>
     /// <param name="shift">Смена.</param>
-    /// <returns></returns>
     public Task UpdateAsync(Shift shift);
     
     /// <summary>

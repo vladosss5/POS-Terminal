@@ -3,10 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using Terminal.Application.Implementations.Builders;
-using Terminal.Application.Interfaces.DbEntitiesServices;
+using Terminal.Application.Builders;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Persistence.MainDB;
 
@@ -29,11 +28,11 @@ public class SellingBuilderTests
         _dbFactoryMock = new Mock<IDbContextFactory<DataContext>>();
         _paramDbFactoryMock = new Mock<IParameterService>();
         
-        _builder = new SellingBuilder(
-            _mockLogger.Object,
-            _shiftServiceMock.Object,
-            _dbFactoryMock.Object,
-            _paramDbFactoryMock.Object);
+        // _builder = new SellingBuilder(
+        //     _mockLogger.Object,
+        //     _shiftServiceMock.Object,
+        //     _dbFactoryMock.Object,
+        //     _paramDbFactoryMock.Object);
     }
 
     [Test]

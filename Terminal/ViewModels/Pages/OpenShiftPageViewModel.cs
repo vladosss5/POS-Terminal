@@ -5,14 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.DbEntitiesServices;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
+using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -201,7 +203,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Выбрать учётную запись для входа.
     /// </summary>
     /// <param name="user">Учётная запись оператора.</param>
-    public void SelectUser(User user)
+    [RelayCommand]
+    private void SelectUser(User user)
     {
         _selectedUser = user;
         Steps[0].CompleteStepCommand.ExecuteAsync(null);
@@ -228,7 +231,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="element">Символ.</param>
-    public void AddCharInPassword(string element)
+    [RelayCommand]
+    private void AddCharInPassword(string element)
     {
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();

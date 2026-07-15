@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Terminal.Core.DbEntities.EventDb;
+using Terminal.Core.Entities.DbEntities.EventDb;
 
 namespace Terminal.Persistence.EventDB;
 

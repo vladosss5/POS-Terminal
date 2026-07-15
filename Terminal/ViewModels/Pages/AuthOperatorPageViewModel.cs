@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 using Terminal.Dtos;
 using Terminal.Services.NavigationService;
 
@@ -11,7 +13,7 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Логика страницы аутентификации оператора.
 /// </summary>
-public class AuthOperatorPageViewModel : PageViewModelBase
+public partial class AuthOperatorPageViewModel : PageViewModelBase
 {
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
@@ -110,7 +112,8 @@ public class AuthOperatorPageViewModel : PageViewModelBase
     /// Добавить символы к паролю.
     /// </summary>
     /// <param name="element">Символы.</param>
-    public void AddCharInPassword(string element)
+    [RelayCommand]
+    private void AddCharInPassword(string element)
     {
         if (!_inactivityCts!.IsCancellationRequested)
             ResetInactivityTimer();

@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using Terminal.Application.Implementations.Services;
-using Terminal.Core.DbEntities;
+using Terminal.Application.Services;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.Views.DialogWindows;
 
 namespace Terminal.Services;

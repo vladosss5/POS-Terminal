@@ -6,10 +6,12 @@ using NUnit.Framework.Legacy;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Entities.Models.Settings;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
-using Terminal.Core.Models.Settings;
+using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
 using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Pages;
 
@@ -27,6 +29,8 @@ public class SaleProcessPageViewModelTests
     private Mock<IConfigurationService> _configurationServiceMock;
     private Mock<ISettingPaymentTypeMapper> _settingPaymentTypeMapperMock;
     private Mock<IAuthService> _authServiceMock;
+    private Mock<ISellingRepository> _sellingRepositoryMock;
+    private Mock<IResourceCodeRepository> _resourceCodeRepositoryMock;
     private Mock<DataContext> _dbContextMock;
     private SettingsModel _currentSettings;
     private SaleProcessPageViewModel _viewModel;
@@ -44,6 +48,8 @@ public class SaleProcessPageViewModelTests
         _settingPaymentTypeMapperMock = new Mock<ISettingPaymentTypeMapper>();
         _authServiceMock = new Mock<IAuthService>();
         _dbContextMock = new Mock<DataContext>();
+        _sellingRepositoryMock = new Mock<ISellingRepository>();
+        _resourceCodeRepositoryMock = new Mock<IResourceCodeRepository>();
 
         _currentSettings = new SettingsModel
         {
@@ -103,14 +109,15 @@ public class SaleProcessPageViewModelTests
 
         _viewModel = new SaleProcessPageViewModel(
             _builderMock.Object,
-            _dbFactoryMock.Object,
             _loggerMock.Object,
             _receiptPrintServiceMock.Object,
             _receiptMappingServiceMock.Object,
             _cardReaderServiceMock.Object,
             _configurationServiceMock.Object,
             _settingPaymentTypeMapperMock.Object,
-            _authServiceMock.Object);
+            _authServiceMock.Object,
+            _sellingRepositoryMock.Object,
+            _resourceCodeRepositoryMock.Object);
     }
 
 
@@ -127,7 +134,7 @@ public class SaleProcessPageViewModelTests
         var invalidPaymentTypeKey = "Несуществующий тип";
 
         // Act
-        await _viewModel.SetPaymentType(invalidPaymentTypeKey);
+        await _viewModel.SetPaymentTypeCommand.ExecuteAsync(invalidPaymentTypeKey);
 
         // Assert
         _builderMock.Verify(x => x.SetPaymentTypes(It.IsAny<BasePaymentType>(), It.IsAny<DerivedPaymentType>()), 
@@ -146,7 +153,7 @@ public class SaleProcessPageViewModelTests
         };
 
         // Act
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
 
         // Assert
         Assert.Multiple(() =>
@@ -161,7 +168,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         _viewModel.AmountMoneyPreview = "1000";
         _viewModel.IsAmountMoney = true;
 
@@ -293,7 +300,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         _viewModel.AmountMoneyPreview = "100";
         _viewModel.IsAmountMoney = true;
 
@@ -379,7 +386,7 @@ public class SaleProcessPageViewModelTests
     {
         // Arrange
         var resource = new ResourceCode { ResourcePrice = 50.00m };
-        _viewModel.SetFuelType(resource);
+        _viewModel.SetFuelTypeCommand.Execute(resource);
         
         // Act
         _viewModel.AmountMoneyPreview = "100";

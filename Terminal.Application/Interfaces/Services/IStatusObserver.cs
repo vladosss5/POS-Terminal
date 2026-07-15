@@ -1,4 +1,4 @@
-﻿using Terminal.Core.Models;
+﻿using Terminal.Core.Entities.Models;
 
 namespace Terminal.Application.Interfaces.Services;
 

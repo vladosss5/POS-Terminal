@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Com.Sunyard.Api.Printer;
 using Microsoft.Extensions.Logging;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 

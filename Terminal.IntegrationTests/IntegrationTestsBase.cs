@@ -2,11 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Terminal.Application.Implementations.DbEntitiesServices;
-using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.ParamDb;
+using Terminal.Application.Services;
+using Terminal.Core.Entities.DbEntities.ParamDb;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
+using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.IntegrationTests;

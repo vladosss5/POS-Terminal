@@ -60,7 +60,7 @@
                     
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Command="{Binding #UserControl.((pages:PrintingReceiptPageViewModel)DataContext).PrintReceipt}"
+                                <Button Command="{Binding #UserControl.((pages:PrintingReceiptPageViewModel)DataContext).PrintReceiptCommand}"
                                         CommandParameter="{Binding}" 
                                         HorizontalAlignment="Stretch" 
                                         CornerRadius="20"

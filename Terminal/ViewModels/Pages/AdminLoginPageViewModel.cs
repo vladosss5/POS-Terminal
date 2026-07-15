@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
+using Terminal.Services.MessageBoxService;
 
 namespace Terminal.ViewModels.Pages;
 
 /// <summary>
 /// Логика авторизации в качестве админа.
 /// </summary>
-public class AdminLoginPageViewModel : PageViewModelBase
+public partial class AdminLoginPageViewModel : PageViewModelBase
 {
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
@@ -100,7 +102,8 @@ public class AdminLoginPageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="element">Символ.</param>
-    public void AddCharInPassword(string element)
+    [RelayCommand]
+    private void AddCharInPassword(string element)
     {
         if (!_inactivityCts!.IsCancellationRequested)
             ResetInactivityTimer();

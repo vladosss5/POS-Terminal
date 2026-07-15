@@ -3,24 +3,22 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
-using Microsoft.EntityFrameworkCore;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
-using Terminal.Persistence.MainDB;
+using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
 
 namespace Terminal.ViewModels.Pages;
 
 /// <summary>
 /// Страница изменения цены ресурсов.
 /// </summary>
-public class ResourcePageViewModel : PageViewModelBase
+public partial class ResourcePageViewModel : PageViewModelBase
 {
-    /// Фабрика создающая <inheritdoc cref="DataContext"/>
-    private readonly IDbContextFactory<DataContext> _dbFactory;
-    
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
 
@@ -29,6 +27,9 @@ public class ResourcePageViewModel : PageViewModelBase
     
     ///<inheritdoc cref="IAuthService"/>
     private readonly IAuthService _authService;
+
+    ///<inheritdoc cref="IResourceCodeRepository"/>
+    private readonly IResourceCodeRepository _resourceCodeRepository;
 
     private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
 
@@ -96,17 +97,17 @@ public class ResourcePageViewModel : PageViewModelBase
     /// </summary>
     public ResourcePageViewModel(
         ILogger<PageViewModelBase> logger, 
-        IDbContextFactory<DataContext> dbFactory, 
         IReceiptPrintService receiptPrintService, 
         IAuthService authService, 
-        IParameterService parameterService) 
+        IParameterService parameterService, 
+        IResourceCodeRepository resourceCodeRepository) 
         : base(logger)
     {
         Title = DefaultTitle;
-        _dbFactory = dbFactory;
         _receiptPrintService = receiptPrintService;
         _authService = authService;
         _parameterService = parameterService;
+        _resourceCodeRepository = resourceCodeRepository;
 
         _ = LoadData();
     }
@@ -115,6 +116,7 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Выбрать ресурс для редактирования.
     /// </summary>
     /// <param name="resource">Редактируемый ресурс.</param>
+    [RelayCommand]
     public void SelectResource(ResourceCode resource)
     {
         SelectedResourceCode = resource;
@@ -147,10 +149,8 @@ public class ResourcePageViewModel : PageViewModelBase
         if (SelectedResourceCode == null)
             return;
 
-        await using var db = await _dbFactory.CreateDbContextAsync();
-
-        var resourceCode =
-            await db.ResourceCodes.FirstOrDefaultAsync(x => x.ResourceKey == SelectedResourceCode!.ResourceKey);
+        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey!.Value);
+        
         if (resourceCode == null)
             return;
 
@@ -164,8 +164,7 @@ public class ResourcePageViewModel : PageViewModelBase
 
         resourceCode.ResourcePrice = newPrice;
 
-        db.Update(resourceCode);
-        await db.SaveChangesAsync();
+        await _resourceCodeRepository.UpdateResourceCodeAsync(resourceCode);
 
         var index = Resources.IndexOf(SelectedResourceCode);
 
@@ -184,7 +183,8 @@ public class ResourcePageViewModel : PageViewModelBase
     /// Добавить символ к паролю.
     /// </summary>
     /// <param name="symbols">Символ.</param>
-    public void AddCharInPassword(string symbols)
+    [RelayCommand]
+    private void AddCharInPassword(string symbols)
     {
         if (PricePreview == null)
             return;
@@ -241,10 +241,7 @@ public class ResourcePageViewModel : PageViewModelBase
     /// </summary>
     private async Task LoadData()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-
-        var resources = await db.ResourceCodes.ToListAsync();
-        
+        var resources = await _resourceCodeRepository.GetResourceCodeCollectionAsync();
         Resources.AddRange(resources);
     }
     

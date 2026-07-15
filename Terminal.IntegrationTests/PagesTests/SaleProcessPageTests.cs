@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Models;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.IntegrationTests.PagesTests;
@@ -46,7 +46,7 @@ public class SaleProcessPageTests : IntegrationTestsBase
             .ReturnsAsync(new PrintResult { Success = true, Status = PrinterStatus.Ready });
         
         // Act
-        _saleProcessPageViewModel!.SetFuelType(resource!);
+        _saleProcessPageViewModel!.SetFuelTypeCommand.Execute(resource!);
 
         _saleProcessPageViewModel.IsAmountMoney = false;
         foreach (var item in charsAmount)
@@ -54,7 +54,7 @@ public class SaleProcessPageTests : IntegrationTestsBase
         
         _saleProcessPageViewModel.SetAmount();
         
-        await _saleProcessPageViewModel!.SetPaymentType("Наличные");
+        await _saleProcessPageViewModel!.SetPaymentTypeCommand.ExecuteAsync("Наличные");
         
         // Assert
         var creationSelling = await db.Sales.OrderByDescending(x => x.TransactionShopKey).FirstAsync();

@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Mappers;
-using Terminal.Application.Interfaces.Services;
-using Terminal.Core.DbEntities.MainDb;
+using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Items;
 
@@ -101,7 +102,8 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// Распечатать выбранный чек.
     /// </summary>
     /// <param name="receiptDto">Чек.</param>
-    public async Task PrintReceipt(ReceiptForListingDto receiptDto)
+    [RelayCommand]
+    private async Task PrintReceipt(ReceiptForListingDto receiptDto)
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
         

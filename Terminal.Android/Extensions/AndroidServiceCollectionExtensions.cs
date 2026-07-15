@@ -3,6 +3,7 @@ using Terminal.Android.Services;
 using Terminal.Android.Services.Sunyard.SunyardCardReader;
 using Terminal.Android.Services.Sunyard.SunyardPrinter;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Android.Extensions;
 

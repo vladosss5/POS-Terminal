@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.Models;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;

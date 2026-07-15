@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Models;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Interfaces;
 using Terminal.Services;
 
 namespace Terminal.Android.Services;

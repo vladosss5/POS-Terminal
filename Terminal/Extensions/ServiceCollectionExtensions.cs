@@ -19,6 +19,7 @@ using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
 using Terminal.Persistence.Repositories;
 using Terminal.Persistence.TmsClient;
+using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;

@@ -446,17 +446,24 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Пометить шаг выполненным.
     /// </summary>
-    private async Task OnStepCompleted()
+    private async void OnStepCompleted()
     {
-        if (CurrentStepIndex < Steps.Count - 1)
+        try
         {
-            CurrentStepIndex++;
-            NameCurrentPage = Steps[CurrentStepIndex].StepName;
-            Steps[CurrentStepIndex].IsActive = true;
+            if (CurrentStepIndex < Steps.Count - 1)
+            {
+                CurrentStepIndex++;
+                NameCurrentPage = Steps[CurrentStepIndex].StepName;
+                Steps[CurrentStepIndex].IsActive = true;
+            }
+            else
+            {
+                await CompleteRefuelingProcess();
+            }
         }
-        else
+        catch (Exception e)
         {
-            await CompleteRefuelingProcess();
+            _logger.LogError(e.Message, e.InnerException);
         }
     }
     

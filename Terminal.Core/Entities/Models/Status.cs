@@ -10,7 +10,7 @@ public class Status
     /// <summary>
     /// Тип статуса.
     /// </summary>
-    public StatusType? Type { get; set; }
+    public StatusType Type { get; set; }
     
     /// <summary>
     /// Иконка для отображения.

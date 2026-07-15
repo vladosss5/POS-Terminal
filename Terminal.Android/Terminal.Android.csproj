@@ -6,10 +6,11 @@
         <Nullable>enable</Nullable>
         <ApplicationId>com.SNC.Terminal</ApplicationId>
         <ApplicationVersion>1001</ApplicationVersion>
-        <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-        <PublishTrimmed>false</PublishTrimmed>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>
         <RunAOTCompilation>false</RunAOTCompilation>
         <OptimizationPreference>Size</OptimizationPreference>
         <RuntimeIdentifier>android-arm64</RuntimeIdentifier>

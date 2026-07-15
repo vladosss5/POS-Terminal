@@ -1,4 +1,5 @@
 ﻿using Terminal.Core.Entities.Models;
+using Terminal.Core.Enums;
 
 namespace Terminal.Application.Interfaces.Services;
 
@@ -35,6 +36,12 @@ public interface IStatusNotifierService
     /// </summary>
     /// <param name="status">Статус.</param>
     public void RemoveStatus(Status status);
+
+    /// <summary>
+    /// Удалить статус с указанным типом.
+    /// </summary>
+    /// <param name="type">Тип статуса.</param>
+    public void RemoveStatusByType(StatusType type);
     
     /// <summary>
     /// Сменить статус.

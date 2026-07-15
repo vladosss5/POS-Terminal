@@ -18,5 +18,10 @@ public enum DownloadStatus
     /// <summary>
     /// Отменено.
     /// </summary>
-    Completed
+    Completed,
+    
+    /// <summary>
+    /// Обновления отсутствуют.
+    /// </summary>
+    NotFound
 }

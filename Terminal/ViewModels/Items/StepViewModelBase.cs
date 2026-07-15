@@ -13,32 +13,34 @@ public partial class StepViewModelBase : ViewModelBase
     /// <summary>
     /// Отметить шаг выполненным.
     /// </summary>
-    private readonly Func<Task> _onStepCompleted;
+    private readonly Action _onStepCompleted;
 
     /// <summary>
     /// Наименование шага.
     /// </summary>
-    [ObservableProperty] private string _stepName;
-    
+    [ObservableProperty]
+    public partial string StepName { get; set; }
+
     /// <summary>
     /// Шаг выполнен?
     /// </summary>
-    [ObservableProperty] private bool _isCompleted;
-    
+    [ObservableProperty]
+    public partial bool IsCompleted { get; set; }
+
     /// <summary>
     /// Шаг активен?
     /// </summary>
-    [ObservableProperty] private bool _isActive;
+    [ObservableProperty]
+    public partial bool IsActive { get; set; }
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     /// <param name="stepName">Наименование шага.</param>
     /// <param name="onStepCompleted">Метод помечания шага выполненным.</param>
-    public StepViewModelBase(string stepName, 
-        Func<Task> onStepCompleted)
+    public StepViewModelBase(string stepName, Action onStepCompleted)
     {
-        _stepName = stepName;
+        StepName = stepName;
         _onStepCompleted = onStepCompleted;
     }
     
@@ -46,7 +48,7 @@ public partial class StepViewModelBase : ViewModelBase
     /// Базовый метод отом что метод выполнился.
     /// </summary>
     [RelayCommand]
-    private async Task CompleteStep()
+    private void CompleteStep()
     {
         if (!IsActive) return;
         

@@ -110,8 +110,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _installerService = installerService;
         _configurationUpdatingService = configurationUpdatingService;
         Title = "Главная";
-
-        _ = DownloadUpdatingPatchAsync();
         
         AddItemsIntoMenu();
     }

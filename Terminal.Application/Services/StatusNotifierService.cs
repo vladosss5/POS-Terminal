@@ -1,5 +1,6 @@
 ﻿using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
+using Terminal.Core.Enums;
 
 namespace Terminal.Application.Services;
 
@@ -57,7 +58,13 @@ public class StatusNotifierService : IStatusNotifierService
     /// <inheritdoc/>
     public void RemoveStatus(Status status)
     {
-        var existingStatus = StatusList.FirstOrDefault(x => x.Type == status.Type);
+        StatusList.Remove(status);
+    }
+
+    /// <inheritdoc/>
+    public void RemoveStatusByType(StatusType type)
+    {
+        var existingStatus = StatusList.FirstOrDefault(x => x.Type == type);
 
         if (existingStatus == null)
             return;

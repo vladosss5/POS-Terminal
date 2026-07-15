@@ -4,6 +4,7 @@ using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 
 namespace Terminal.Application.Services;
@@ -52,6 +53,11 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     private const string CompletedIconName = "done.png";
 
     /// <summary>
+    /// Идёт ли загрузка в текущий момент?
+    /// </summary>
+    private bool _downloadIsInProgress;
+
+    /// <summary>
     /// Конструктор.
     /// </summary>
     public UpgradeBackgroundService(
@@ -87,7 +93,7 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
                 await AuthenticationTmsClientAsync();
                 await CheckAndDownloadUpdateAsync();
             }
-            while (await timer.WaitForNextTickAsync());
+            while (await timer.WaitForNextTickAsync() && _downloadIsInProgress);
         }
         catch (Exception e)
         {
@@ -104,48 +110,59 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
         {
             _logger.LogInformation("Checking for updates...");
 
-            if (await _updateInstallerService.CheckForUpdates())
-            {
-                _logger.LogInformation("New version found. Downloading...");
-                UpdateDownloadingStatus(DownloadStatus.InProcess);
-                
-                await _updateInstallerService.DownloadUpdatingFileAsync();
-                
-                _logger.LogInformation("Update downloaded successfully");
-                UpdateDownloadingStatus(DownloadStatus.Completed);
-            }
-            else
-            {
-                _logger.LogInformation("New version not found.");
-            }
+            if (!await _updateInstallerService.CheckForUpdates())
+                throw new Exception("Обновлений не найдено");
+
+            _logger.LogInformation("New version found. Downloading...");
+            UpdateDownloadingStatus(DownloadStatus.InProcess);
+            _downloadIsInProgress = true;
+
+            await _updateInstallerService.DownloadUpdatingFileAsync();
+
+            _logger.LogInformation("Update downloaded successfully");
+            UpdateDownloadingStatus(DownloadStatus.Completed);
+        }
+        catch (NotFoundException)
+        {
+            _logger.LogInformation("New version not found.");
+            UpdateDownloadingStatus(DownloadStatus.NotFound);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking for updates");
             UpdateDownloadingStatus(DownloadStatus.Aborted);
         }
+        finally
+        {
+            _downloadIsInProgress = false;
+        }
     }
 
     /// <summary>
-    /// Обновить статцс скачивания обновлений.
+    /// Обновить статус скачивания обновлений.
     /// </summary>
     /// <param name="downloadingStatus">Статус скачивания.</param>
     private void UpdateDownloadingStatus(DownloadStatus downloadingStatus)
     {
-        var status = new Status
+        var status = new Status { Type = StatusType.UpdatePatch };
+        
+        if (downloadingStatus == DownloadStatus.NotFound)
         {
-            Type = StatusType.UpdatePatch
-        };
-
-        status.IconName = downloadingStatus switch
+            _statusNotifierService.RemoveStatusByType(status.Type);
+        }
+        else
         {
-            DownloadStatus.InProcess => DownloadIconName,
-            DownloadStatus.Aborted => AbortedIconName,
-            DownloadStatus.Completed => CompletedIconName,
-            _ => status.IconName
-        };
+            status.IconName = downloadingStatus switch
+            {
+                DownloadStatus.InProcess => DownloadIconName,
+                DownloadStatus.Aborted => AbortedIconName,
+                DownloadStatus.Completed => CompletedIconName,
+                _ => status.IconName
+            };
 
-        _statusNotifierService.AddOrChangeStatus(status);
+            _statusNotifierService.AddOrChangeStatus(status);    
+        }
+        
         _statusNotifierService.Notify();
     }
     

@@ -122,11 +122,6 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
             _logger.LogInformation("Update downloaded successfully");
             UpdateDownloadingStatus(DownloadStatus.Completed);
         }
-        catch (NotFoundException)
-        {
-            _logger.LogInformation("New version not found.");
-            UpdateDownloadingStatus(DownloadStatus.NotFound);
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking for updates");
@@ -135,6 +130,12 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
         finally
         {
             _downloadIsInProgress = false;
+
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(10000);
+                UpdateDownloadingStatus(DownloadStatus.NotFound);
+            });
         }
     }
 

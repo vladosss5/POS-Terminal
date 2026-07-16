@@ -5,6 +5,8 @@ using Android.OS;
 using AndroidX.Core.Content;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Helpers;
+using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 
@@ -24,6 +26,8 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <inheritdoc cref="Context" />
     private readonly Context _context;
 
+    private readonly IParameterService _parameterService;
+
     /// <summary>
     /// Каталог с загруженными пакетами обновлений.
     /// </summary>
@@ -40,18 +44,19 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     public AndroidUpdateInstallerService(
         Context context, 
         ILogger<AndroidUpdateInstallerService> logger, 
-        ITmsService tmsService)
+        ITmsService tmsService, IParameterService parameterService)
     {
         _context = context;
         _logger = logger;
         _tmsService = tmsService;
-        
+        _parameterService = parameterService;
+
         var folderPath = _context.FilesDir?.AbsolutePath!;
         _pathToLastUpdatingPatch = Path.Combine(folderPath, FileName);
     }
 
     /// <inheritdoc/>
-    public void InstallUpdatingPatch()
+    public async Task InstallUpdatingPatchAsync()
     {
         _logger.LogInformation($"Начата установка пакета {_pathToLastUpdatingPatch}");
         
@@ -72,6 +77,9 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
             intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
     
         _context.StartActivity(intent);
+        
+        var fileHash = await HashHelper.CumputeMd5HashAsync(_pathToLastUpdatingPatch);
+        await _parameterService.SetValueAsync(AppParameter.HashLastInstalledPatch, fileHash);
     }
 
     /// <inheritdoc/>
@@ -93,16 +101,25 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     public async Task DownloadUpdatingFileAsync()
     {
         _logger.LogInformation($"Начато скачивание пакета обновлений.");
+
+        var downloadingFileHash = "";
         
         if (File.Exists(_pathToLastUpdatingPatch))
+        {
+            downloadingFileHash = await HashHelper.CumputeMd5HashAsync(_pathToLastUpdatingPatch);
+            var hashLastInstalledPatch = await _parameterService.GetValueAsync(AppParameter.HashLastInstalledPatch);
+
+            if (downloadingFileHash != hashLastInstalledPatch)
+                return;
+            
             File.Delete(_pathToLastUpdatingPatch);
+        }
         
         var (stream, fileHash) = await _tmsService.DownloadUpdatingFileAsync();
         
         await using var fileStream = new FileStream(_pathToLastUpdatingPatch, FileMode.Create, FileAccess.Write);
         await stream.CopyToAsync(fileStream);
-
-        var downloadingFileHash = await HashHelper.CumputeMd5HashAsync(_pathToLastUpdatingPatch);
+        
         if (fileHash != downloadingFileHash)
         {
             _logger.LogError($"Хеши файлов не совпали.");

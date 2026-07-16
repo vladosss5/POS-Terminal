@@ -206,7 +206,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         try
         {
             await DownloadUpdatingPatchAsync();
-            _installerService.InstallUpdatingPatch();
+            await _installerService.InstallUpdatingPatchAsync();
         }
         catch (NotFoundException e)
         {

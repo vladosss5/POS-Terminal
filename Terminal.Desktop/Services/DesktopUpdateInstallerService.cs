@@ -19,7 +19,7 @@ public class DesktopUpdateInstallerService : IUpdateInstallerService
     }
 
     /// <inheritdoc/>
-    public void InstallUpdatingPatch()
+    public Task InstallUpdatingPatchAsync()
     {
         throw new NotImplementedException("Обновления настольной версии не реализованы.");
     }

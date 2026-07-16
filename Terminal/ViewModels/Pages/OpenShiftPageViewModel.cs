@@ -195,7 +195,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
-        installerService.InstallUpdatingPatch();
+        _ = installerService.InstallUpdatingPatchAsync();
         _ = InitializeData();
     }
     

@@ -19,5 +19,5 @@ public interface IUpdateInstallerService
     /// <summary>
     /// Установить скачанный пакет обновлений.
     /// </summary>
-    public Task InstallPackageAsync();
+    public void InstallUpdatingPatch();
 }

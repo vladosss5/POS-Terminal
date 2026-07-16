@@ -163,6 +163,8 @@ public class TmsService : ITmsService
     /// <inheritdoc/>
     public async Task ConfirmReceiptUpdatingFileAsync()
     {
+        await CheckAndAuthAsync();
+        
         var response = await _tmsClient.GetAsync($"terminal-updating/confirm-receipt-apk");
         
         if (!response.IsSuccessStatusCode)
@@ -172,6 +174,8 @@ public class TmsService : ITmsService
     /// <inheritdoc/>
     public async Task<string?> GetNumberNewVersion()
     {
+        await CheckAndAuthAsync();
+        
         var response = await _tmsClient.GetAsync($"terminal-updating/new-version");
         var newVersionInfo = await response.Content.ReadAsStringAsync();
 

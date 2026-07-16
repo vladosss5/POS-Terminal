@@ -13,7 +13,7 @@
     </UserControl.Resources>
     
     <Grid RowDefinitions="Auto, *">
-        <Border Grid.Row="0" Height="25" Background="WhiteSmoke">
+        <Border Grid.Row="0" Height="25" Background="WhiteSmoke" Padding="25,0,25,0">
             <Grid Margin="8,0" ColumnDefinitions="*">
                 <!-- Иконки статусов -->
                 <ItemsControl Grid.Column="0"

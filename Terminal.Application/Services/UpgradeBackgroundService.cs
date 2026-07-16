@@ -1,10 +1,8 @@
-﻿using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 
 namespace Terminal.Application.Services;
@@ -24,18 +22,6 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
 
     /// <inheritdoc cref="IStatusNotifierService" />
     private readonly IStatusNotifierService _statusNotifierService;
-    
-    /// <inheritdoc cref="IParameterService" />
-    private readonly IParameterService _parameterService;
-    
-    ///<inheritdoc cref="IConfigurationService"/>
-    private readonly IConfigurationService _configurationService;
-    
-    /// <inheritdoc cref="ICryptographyService" />
-    private readonly ICryptographyService _cryptographyService;
-    
-    /// <inheritdoc cref="ITmsClient" />
-    private readonly ITmsClient _tmsClient;
 
     /// <summary>
     /// Название файла-иконки загрузки.
@@ -63,19 +49,11 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     public UpgradeBackgroundService(
         ILogger<UpgradeBackgroundService> logger, 
         IUpdateInstallerService updateInstallerService, 
-        IStatusNotifierService statusNotifierService, 
-        ITmsClient tmsClient, 
-        IParameterService parameterService, 
-        IConfigurationService configurationService, 
-        ICryptographyService cryptographyService)
+        IStatusNotifierService statusNotifierService)
     {
         _logger = logger;
         _updateInstallerService = updateInstallerService;
         _statusNotifierService = statusNotifierService;
-        _tmsClient = tmsClient;
-        _parameterService = parameterService;
-        _configurationService = configurationService;
-        _cryptographyService = cryptographyService;
     }
 
     /// <summary>
@@ -90,10 +68,9 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
             using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
             do
             {
-                await AuthenticationTmsClientAsync();
                 await CheckAndDownloadUpdateAsync();
             }
-            while (await timer.WaitForNextTickAsync() && _downloadIsInProgress);
+            while (await timer.WaitForNextTickAsync() && !_downloadIsInProgress);
         }
         catch (Exception e)
         {
@@ -127,16 +104,14 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
             _logger.LogError(ex, "Error checking for updates");
             UpdateDownloadingStatus(DownloadStatus.Aborted);
         }
-        finally
-        {
-            _downloadIsInProgress = false;
+            
+        _downloadIsInProgress = false;
 
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(10000);
-                UpdateDownloadingStatus(DownloadStatus.NotFound);
-            });
-        }
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(10000);
+            UpdateDownloadingStatus(DownloadStatus.NotFound);
+        });
     }
 
     /// <summary>
@@ -165,28 +140,5 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
         }
         
         _statusNotifierService.Notify();
-    }
-    
-    /// <summary>
-    /// Аутентификация клиента в TMS.
-    /// </summary>
-    private async Task AuthenticationTmsClientAsync()
-    {
-        if (_tmsClient.ConnectionStatus == TmsConnectionStatus.Authorized)
-            return;
-        
-        var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
-
-        if (string.IsNullOrEmpty(terminalNumber))
-            return;
-        
-        var plainText = terminalNumber + " " + Guid.NewGuid();
-        
-        var password = _configurationService.CurrentSetting.TmsConfiguration!.Key;
-        var salt = _configurationService.CurrentSetting.TmsConfiguration!.Salt;
-        
-        var workload = _cryptographyService.EncryptAes(plainText, password, Encoding.UTF8.GetBytes(salt));
-
-        await _tmsClient.AuthenticationAsync(workload);
     }
 }

@@ -60,6 +60,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IUpdateInstallerService" />
     private readonly IUpdateInstallerService _installerService;
+    
+    /// <inheritdoc cref="IStatusNotifierService" />
+    private readonly IStatusNotifierService _statusNotifierService;
 
     /// <inheritdoc cref="IConfigurationUpdatingService" />
     private readonly IConfigurationUpdatingService _configurationUpdatingService;
@@ -69,6 +72,22 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+    
+    
+    /// <summary>
+    /// Название файла-иконки загрузки.
+    /// </summary>
+    private const string DownloadIconName = "downloading-file.png";
+    
+    /// <summary>
+    /// Название файла-иконки ошибки загрузки.
+    /// </summary>
+    private const string AbortedIconName = "aborted.png";
+    
+    /// <summary>
+    /// Название файла-иконки выполненной загрузки.
+    /// </summary>
+    private const string CompletedIconName = "done.png";
     
     
     /// <summary>
@@ -93,7 +112,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IParameterService parameterService, 
         IEncashmentService encashmentService,
         IUpdateInstallerService installerService, 
-        IConfigurationUpdatingService configurationUpdatingService) 
+        IConfigurationUpdatingService configurationUpdatingService, IStatusNotifierService statusNotifierService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -109,6 +128,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _encashmentService = encashmentService;
         _installerService = installerService;
         _configurationUpdatingService = configurationUpdatingService;
+        _statusNotifierService = statusNotifierService;
         Title = "Главная";
         
         AddItemsIntoMenu();
@@ -181,32 +201,30 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     }
 
     /// <summary>
-    /// Автоматическая загрузка обновлений с сервера.
-    /// </summary>
-    private async Task DownloadUpdatingPatchAsync()
-    {
-        try
-        {
-            var existUpdate = await _installerService.CheckForUpdates();
-            
-            if (existUpdate)
-                await _installerService.DownloadUpdatingFileAsync();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError($"Ошибка скачивания обновления: {e.Message}. {e.InnerException}");
-        }
-    }
-
-    /// <summary>
     /// Обновить приложение.
     /// </summary>
     private async Task UpdateApplicationAsync()
     {
         try
         {
-            await DownloadUpdatingPatchAsync();
-            await _installerService.InstallUpdatingPatchAsync();
+            _logger.LogInformation("Checking for updates...");
+
+            if (!await _installerService.CheckForUpdates())
+                throw new Exception("Обновлений не найдено");
+
+            _logger.LogInformation("New version found. Downloading...");
+            UpdateDownloadingStatus(DownloadStatus.InProcess);
+            
+            await _installerService.DownloadUpdatingFileAsync();
+            
+            _logger.LogInformation("Update downloaded successfully");
+            UpdateDownloadingStatus(DownloadStatus.Completed);
+            
+            var confirmedResult = await _messageBoxService
+                .ShowMessageBoxAsync("Инфо", "Загружено обновление. Хотите установить сейчас?", ButtonEnum.YesNo, Icon.Info);
+            
+            if(confirmedResult == ButtonResult.Yes)
+                await _installerService.InstallUpdatingPatchAsync();
         }
         catch (NotFoundException e)
         {
@@ -228,6 +246,12 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             await _messageBoxService
                 .ShowMessageBoxAsync("Ошибка", $"{e.Message} \n{e.InnerException}", ButtonEnum.Ok, Icon.Error);
         }
+        
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(10000);
+            UpdateDownloadingStatus(DownloadStatus.NotFound);
+        });
     }
 
     /// <summary>
@@ -465,5 +489,33 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             .ToListAsync(cancellationToken: cancellationToken);
 
         return result;
+    }
+    
+    /// <summary>
+    /// Обновить статус скачивания обновлений.
+    /// </summary>
+    /// <param name="downloadingStatus">Статус скачивания.</param>
+    private void UpdateDownloadingStatus(DownloadStatus downloadingStatus)
+    {
+        var status = new Status { Type = StatusType.UpdatePatch };
+        
+        if (downloadingStatus == DownloadStatus.NotFound)
+        {
+            _statusNotifierService.RemoveStatusByType(status.Type);
+        }
+        else
+        {
+            status.IconName = downloadingStatus switch
+            {
+                DownloadStatus.InProcess => DownloadIconName,
+                DownloadStatus.Aborted => AbortedIconName,
+                DownloadStatus.Completed => CompletedIconName,
+                _ => status.IconName
+            };
+
+            _statusNotifierService.AddOrChangeStatus(status);    
+        }
+        
+        _statusNotifierService.Notify();
     }
 }

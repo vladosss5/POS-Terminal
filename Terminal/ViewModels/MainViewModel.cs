@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
@@ -26,6 +26,7 @@ public partial class MainViewModel : ViewModelBase, IStatusObserver
     /// </summary>
     public ObservableCollection<Status> StatusList { get; set; } = [];
     
+    
 
     /// <summary>
     /// Конструктор.
@@ -46,14 +47,8 @@ public partial class MainViewModel : ViewModelBase, IStatusObserver
     /// <inheritdoc/>
     public void UpdateStatuses(List<Status> statusList)
     {
-        foreach (var newStatus in statusList)
-        {
-            var existingStatus = StatusList.FirstOrDefault(x => x.Type == newStatus.Type);
-        
-            if (existingStatus != null)
-                StatusList.Remove(existingStatus);
-            
-            StatusList.Add(newStatus);
-        }
+        StatusList.Clear();
+        Task.Delay(200);
+        statusList.AddRange(statusList);
     }
 }

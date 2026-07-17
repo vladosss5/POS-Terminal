@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Builders;
+using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
@@ -78,7 +79,9 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IEncashmentService, EncashmentService>();
         collection.AddTransient<ITmsService, TmsService>();
         collection.AddSingleton<IConfigurationUpdatingService, ConfigurationUpdatingService>();
-
+        collection.AddSingleton<IStatusNotifierService, StatusNotifierService>();
+        
+        // Репозитории.
         collection.AddTransient<IGenericRepository, GenericRepository>();
         collection.AddTransient<IParamRepository, ParamRepository>();
         collection.AddTransient<ISellingRepository, SellingRepository>();
@@ -86,6 +89,9 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IShiftRepository, ShiftRepository>();
         collection.AddTransient<IUserRepository, UserRepository>();
         collection.AddTransient<IResourceCodeRepository, ResourceCodeRepository>();
+        
+        // Фоновые сервисы
+        collection.AddSingleton<IUpgradeBackgroundService, UpgradeBackgroundService>();
     }
 
     /// <summary>
@@ -99,7 +105,13 @@ public static class ServiceCollectionExtensions
             var loggerService = sp.GetRequiredService<ILogger<TmsClient>>();
         
             var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
+            if (string.IsNullOrEmpty(ipTms))
+                ipTms = "127.0.0.1";
+            
             var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
+            if (string.IsNullOrEmpty(portTms))
+                portTms = "5297";
+            
             var addressBase = $"http://{ipTms}:{portTms}/";
         
             return new TmsClient(addressBase, loggerService);

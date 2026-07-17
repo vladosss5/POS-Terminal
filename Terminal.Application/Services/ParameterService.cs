@@ -27,13 +27,11 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc/>
-    public async Task<string> GetValueAsync(AppParameter parameterName)
+    public async Task<string?> GetValueAsync(AppParameter parameterName)
     {
         var parameter = await _paramRepository.GetByNameAsync(parameterName);
-       
-        return parameter == null 
-            ? throw new Exception("Параметр не найден") 
-            : parameter.Value;
+        
+        return parameter?.Value;
     }
 
     /// <inheritdoc/>

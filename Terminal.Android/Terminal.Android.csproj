@@ -5,11 +5,12 @@
         <SupportedOSPlatformVersion>31</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <ApplicationId>com.SNC.Terminal</ApplicationId>
-        <ApplicationVersion>2</ApplicationVersion>
-        <ApplicationDisplayVersion>0.2</ApplicationDisplayVersion>
+        <ApplicationVersion>1001</ApplicationVersion>
+        <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-        <PublishTrimmed>false</PublishTrimmed>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>
         <RunAOTCompilation>false</RunAOTCompilation>
         <OptimizationPreference>Size</OptimizationPreference>
         <RuntimeIdentifier>android-arm64</RuntimeIdentifier>

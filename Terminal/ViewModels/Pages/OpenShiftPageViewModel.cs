@@ -195,7 +195,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
-        _ = installerService.InstallPackageAsync();
+        _ = installerService.InstallUpdatingPatchAsync();
         _ = InitializeData();
     }
     
@@ -207,7 +207,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     private void SelectUser(User user)
     {
         _selectedUser = user;
-        Steps[0].CompleteStepCommand.ExecuteAsync(null);
+        Steps[0].CompleteStepCommand.Execute(null);
         
         StartParallelInput();
     }
@@ -551,7 +551,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Пометить шаг выполненным.
     /// </summary>
-    private async Task OnStepCompleted()
+    private void OnStepCompleted()
     {
         CurrentStepIndex++;
         Title = Steps[CurrentStepIndex].StepName;

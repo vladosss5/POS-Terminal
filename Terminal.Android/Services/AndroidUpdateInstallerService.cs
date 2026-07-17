@@ -26,6 +26,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <inheritdoc cref="Context" />
     private readonly Context _context;
 
+    /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
 
     /// <summary>

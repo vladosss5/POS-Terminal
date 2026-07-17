@@ -112,7 +112,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IParameterService parameterService, 
         IEncashmentService encashmentService,
         IUpdateInstallerService installerService, 
-        IConfigurationUpdatingService configurationUpdatingService, IStatusNotifierService statusNotifierService) 
+        IConfigurationUpdatingService configurationUpdatingService, 
+        IStatusNotifierService statusNotifierService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;

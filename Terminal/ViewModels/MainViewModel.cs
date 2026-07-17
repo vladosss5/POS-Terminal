@@ -48,7 +48,8 @@ public partial class MainViewModel : ViewModelBase, IStatusObserver
     public void UpdateStatuses(List<Status> statusList)
     {
         StatusList.Clear();
-        Task.Delay(200);
-        statusList.AddRange(statusList);
+        
+        foreach (var status in statusList)
+            StatusList.Add(status);
     }
 }

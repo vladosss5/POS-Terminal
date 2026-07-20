@@ -3,8 +3,6 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Terminal.Application.Builders;
-using Terminal.Application.Interfaces.Builders;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Application.Mappers;
@@ -18,7 +16,6 @@ using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
 using Terminal.Persistence.Repositories;
 using Terminal.Persistence.TmsClient;
-using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
@@ -65,7 +62,6 @@ public static class ServiceCollectionExtensions
         
         // Сервисы логики
         collection.AddTransient<IMessageBoxService, MessageBoxService>();
-        collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutorMainDb>();
@@ -78,6 +74,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<IEncashmentService, EncashmentService>();
         collection.AddTransient<ITmsService, TmsService>();
         collection.AddSingleton<IConfigurationUpdatingService, ConfigurationUpdatingService>();
+        collection.AddTransient<ISalesProcessService, SalesProcessService>();
 
         collection.AddTransient<IGenericRepository, GenericRepository>();
         collection.AddTransient<IParamRepository, ParamRepository>();

@@ -1,0 +1,52 @@
+﻿using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Enums;
+
+namespace Terminal.Application.Interfaces.Services;
+
+public interface ISalesProcessService
+{
+    /// <summary>
+    /// Получить доступные типы оплат.
+    /// </summary>
+    /// <returns>Словарь с типами оплаты и их названиями.</returns>
+    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> GetAvailablePaymentTypes();
+
+    /// <summary>
+    /// Получить доступные для продажи ресурсы.
+    /// </summary>
+    /// <returns>Список ресурсов.</returns>
+    public Task<List<ResourceCode>> GetAvailableResourceCodesAsync();
+
+    /// <summary>
+    /// Добавить ресурс в корзину.
+    /// </summary>
+    /// <param name="resource">Ресурс.</param>
+    public Task AddToCartAsync(ResourceCode resource);
+
+    /// <summary>
+    /// Задать ресурсу в корзине кол-во.
+    /// </summary>
+    /// <param name="resourceCodeId">Id ресурса.</param>
+    /// <param name="amount">Кол-во чего-то.</param>
+    /// <param name="isMoney">Если true, то указывается кол-во денег; если false, то объём ресурса.</param>
+    public Task SetAmount(long resourceCodeId, decimal amount, bool isMoney);
+    
+    /// <summary>
+    /// Удалить ресурс из корзины.
+    /// </summary>
+    /// <param name="resource">Ресурс.</param>
+    public Task RemoveFromCartAsync(ResourceCode resource);
+    
+    /// <summary>
+    /// Задать базовый и дополнительный типы оплаты.
+    /// </summary>
+    /// <param name="baseType">Базовый.</param>
+    /// <param name="derivedType">Дополнительный.</param>
+    public Task SetPaymentTypeAsync(BasePaymentType baseType, DerivedPaymentType derivedType);
+
+    /// <summary>
+    /// Завершить процесс продажи.
+    /// </summary>
+    /// <returns></returns>
+    public Task CompleteProcessAsync();
+}

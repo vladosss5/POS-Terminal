@@ -14,6 +14,12 @@ public interface ISellingRepository
     public Task AddAsync(Selling selling);
 
     /// <summary>
+    /// Добавить коллекцию продаж.
+    /// </summary>
+    /// <param name="sales">Коллекция продаж.</param>
+    public Task AddRangeAsync(IEnumerable<Selling> sales);
+
+    /// <summary>
     /// Обновить продажу.
     /// </summary>
     /// <param name="selling">Продажа.</param>

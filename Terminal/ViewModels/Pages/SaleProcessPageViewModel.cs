@@ -2,22 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
-using Terminal.Application.Interfaces.Builders;
-using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
-using Terminal.Core.IRepositories;
-using Terminal.Persistence.MainDB;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -27,36 +21,16 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public partial class SaleProcessPageViewModel : PageViewModelBase
 {
-    /// <inheritdoc cref="IReceiptPrintService"/>
-    private readonly IReceiptPrintService _receiptPrintService;
-    
-    /// <inheritdoc cref="ISellingBuilder"/>
-    private readonly ISellingBuilder _builder;
-    
     /// <inheritdoc cref="ILogger"/>
     private readonly ILogger<SaleProcessPageViewModel> _logger;
-    
-    /// <inheritdoc cref="ISalesReceiptMappingService" />
-    private readonly ISalesReceiptMappingService _receiptMappingService;
 
     /// <inheritdoc cref="ICardReaderService" />
     private readonly ICardReaderService _cardReaderService;
+    
+    /// <inheritdoc cref="ISalesProcessService" />
+    private readonly ISalesProcessService _salesProcessService;
 
-    /// <inheritdoc cref="IConfigurationService" />
-    private readonly IConfigurationService _configurationService;
-
-    /// <inheritdoc cref="ISettingPaymentTypeMapper" />
-    private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
-
-    /// <inheritdoc cref="IAuthService" />
-    private readonly IAuthService _authService;
-
-    /// <inheritdoc cref="ISellingRepository" />
-    private readonly ISellingRepository _sellingRepository;
-
-    /// <inheritdoc cref="IResourceCodeRepository" />
-    private readonly IResourceCodeRepository _resourceCodeRepository;
-
+    
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
     /// </summary>
@@ -84,56 +58,57 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Индекс текущего шага.
     /// </summary>
-    [ObservableProperty] private int _currentStepIndex;
-    
+    [ObservableProperty] 
+    public partial int CurrentStepIndex { get; set; }
+
     /// <summary>
     /// Процесс начат?
     /// </summary>
-    [ObservableProperty] private bool _isProcessStarted;
-    
+    [ObservableProperty]
+    public partial bool IsProcessStarted { get; set; }
+
     /// <summary>
     /// Выбранный тип топлива (товар).
     /// </summary>
-    [ObservableProperty] private ResourceCode? _selectedFuelType;
+    [ObservableProperty]
+    public partial ResourceCode? SelectedResourceCode { get; set; }
 
     /// <summary>
     /// Кол-во указано в деньгах?
     /// Если нет, то в литрах.
     /// </summary>
-    [ObservableProperty] private bool _isAmountMoney = true;
+    [ObservableProperty]
+    public partial bool IsAmountMoney { get; set; } = true;
 
     /// <summary>
     /// Сообщение-указатель на единицу измерения для пользователя.
     /// </summary>
-    [ObservableProperty] private string _amountWhat;
+    [ObservableProperty]
+    public partial string AmountWhat { get; set; }
 
     /// <summary>
     /// Наименование текущей страницы (шага).
     /// </summary>
-    [ObservableProperty] private string _nameCurrentPage;
+    [ObservableProperty]
+    public partial string NameCurrentPage { get; set; }
 
     /// <summary>
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
-    [ObservableProperty] private ObservableCollection<ResourceCode> _resources;
-    
+    [ObservableProperty]
+    public partial ObservableCollection<ResourceCode> Resources { get; set; }
+
     /// <summary>
     /// Коллекция шагов заправки.
     /// </summary>
-    public ObservableCollection<StepViewModelBase> Steps
-    {
-        get;
-        private set => SetProperty(ref field, value);
-    }
-    
+    [ObservableProperty]
+    public partial ObservableCollection<StepViewModelBase> Steps { get; private set; }
+
     /// <summary>
     /// Типы оплаты.
     /// </summary>
-    public Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary
-    {
-        get;
-        set => SetProperty(ref field, value);
-    }
+    [ObservableProperty]
+    public partial Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; set; }
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -158,7 +133,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
                 return;
             
             if (decimal.TryParse(value, NumberStyles.Any, _culture, out var d))
-                _amountFuel = d / (SelectedFuelType?.ResourcePrice ?? 1m);
+                _amountFuel = d / (SelectedResourceCode?.ResourcePrice ?? 1m);
         }
     }
 
@@ -182,38 +157,20 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public SaleProcessPageViewModel(
-        ISellingBuilder builder,
         ILogger<SaleProcessPageViewModel> logger, 
-        IReceiptPrintService receiptPrintService, 
-        ISalesReceiptMappingService receiptMappingService, 
         ICardReaderService cardReaderService, 
-        IConfigurationService configurationService, 
-        ISettingPaymentTypeMapper settingPaymentTypeMapper, 
-        IAuthService authService, 
-        ISellingRepository sellingRepository, 
-        IResourceCodeRepository resourceCodeRepository) 
+        ISalesProcessService salesProcessService) 
         : base(logger)
     {
-        _builder = builder;
         _logger = logger;
-        _receiptPrintService = receiptPrintService;
-        _receiptMappingService = receiptMappingService;
         _cardReaderService = cardReaderService;
-        _configurationService = configurationService;
-        _settingPaymentTypeMapper = settingPaymentTypeMapper;
-        _authService = authService;
-        _sellingRepository = sellingRepository;
-        _resourceCodeRepository = resourceCodeRepository;
+        _salesProcessService = salesProcessService;
 
         InitializeSteps();
-        InitializePaymentTypes();
         _ = LoadDataAsync();
         
-        IsProcessStarted = true;
-        CurrentStepIndex = 0;
-        Steps![0].IsActive = true;
-        
-        _amountWhat = IsAmountMoney ? _amountMessages[0] : _amountMessages[1];
+        AmountWhat = IsAmountMoney ? _amountMessages[0] : _amountMessages[1];
+        PaymentTypesDictionary = _salesProcessService.GetAvailablePaymentTypes();
     }
 
 
@@ -227,7 +184,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
             return;
 
-        _builder.SetPaymentTypes(value.BaseType, value.DerivedType);
+        await _salesProcessService.SetPaymentTypeAsync(value.BaseType, value.DerivedType);
         
         if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
         {
@@ -252,11 +209,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     /// <param name="resource">Топливо.</param>
     [RelayCommand]
-    private void SetFuelType(ResourceCode resource)
+    private async Task SetFuelType(ResourceCode resource)
     {
-        _builder.SetResourceCode(resource);
+        await _salesProcessService.AddToCartAsync(resource);
 
-        SelectedFuelType = resource;
+        SelectedResourceCode = resource;
         Steps[0].CompleteStepCommand.Execute(null);
     }
     
@@ -265,45 +222,16 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     public void SetAmount()
     {
-        _builder.SetAmount(_amountFuel);
-        
-        var volume = IsAmountMoney ? AmountMoneyPreview : AmountFuelPreview;
-        _builder.SetRequestedVolume(volume, IsAmountMoney);
-        
+        _salesProcessService.SetAmount(SelectedResourceCode!.ResourceKey!.Value, _amountFuel, IsAmountMoney);
         Steps[1].CompleteStepCommand.Execute(null);
     }
     
-    /// <summary>
-    /// Перейти к прошлому шагу.
-    /// </summary>
-    public void StepBack()
-    {
-        if (CurrentStepIndex > 0)
-        {
-            if (CurrentStepIndex == 3)
-                _cardReadCts?.Cancel();
-            
-            Steps[CurrentStepIndex].IsActive = false;
-        
-            CurrentStepIndex--;
-            NameCurrentPage = Steps[CurrentStepIndex].StepName;
-        
-            var prevStep = Steps[CurrentStepIndex];
-            prevStep.IsActive = true;
-            prevStep.IsCompleted = false;
-        }
-        else
-        {
-            Navigation.GoBack();
-        }
-    }
-
     /// <summary>
     /// Добавить символы в предпросмотр кол-ва.
     /// </summary>
     /// <param name="symbols">Символ.</param>
     [RelayCommand]
-    public void AddCharInAmountPreview(string symbols)
+    private void AddCharInAmountPreview(string symbols)
     {
         foreach (var symbol in symbols)
         {
@@ -373,7 +301,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!decimal.TryParse(AmountMoneyPreview, NumberStyles.Any, _culture, out var money))
                 return;
             
-            _amountFuel = money / (SelectedFuelType?.ResourcePrice ?? 1m);
+            _amountFuel = money / (SelectedResourceCode?.ResourcePrice ?? 1m);
             AmountFuelPreview = _amountFuel
                 .ToString($"N3", _culture)
                 .TrimEnd('0')
@@ -387,76 +315,13 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!decimal.TryParse(AmountFuelPreview, NumberStyles.Any, _culture, out var fuel)) 
                 return;
             
-            AmountMoneyPreview = (fuel * (SelectedFuelType?.ResourcePrice ?? 1m))
+            AmountMoneyPreview = (fuel * (SelectedResourceCode?.ResourcePrice ?? 1m))
                 .ToString($"N2", _culture)
                 .TrimEnd('0')
                 .TrimEnd('.');
                 
             IsAmountMoney = true;
             AmountWhat = _amountMessages[0];
-        }
-    }
-
-    /// <summary>
-    /// Подгрузка данных из БД.
-    /// </summary>
-    private async Task LoadDataAsync()
-    {
-        var products = await _resourceCodeRepository.GetShowedResourceCodesAsync();
-        Resources = new ObservableCollection<ResourceCode>(products);
-    }
-
-    /// <summary>
-    /// Инициализировать шаги покупки.
-    /// </summary>
-    private void InitializeSteps()
-    {
-        Steps =
-        [
-            new StepViewModelBase("Тип топлива", OnStepCompleted),
-            new StepViewModelBase("Количество", OnStepCompleted),
-            new StepViewModelBase("Тип оплаты", OnStepCompleted),
-            new StepViewModelBase("Считывание", OnStepCompleted)
-        ];
-
-        NameCurrentPage = Steps[0].StepName;
-    }
-
-    /// <summary>
-    /// Подгрузить методы оплаты из конфигурации.
-    /// </summary>
-    private void InitializePaymentTypes()
-    {
-        var paymentTypes = _configurationService.CurrentSetting.PaymentTypes;
-        
-        if (paymentTypes == null)
-            return;
-        
-        var dtos = paymentTypes
-            .Where(x => x.IsEnabled)
-            .Select(_settingPaymentTypeMapper.SettingPaymentTypeToDto);
-        
-        var newDictionary = dtos.ToDictionary(
-            paymentType => paymentType.DisplayedName, 
-            paymentType => (paymentType.BaseType, paymentType.DerivedType));
-
-        PaymentTypesDictionary = newDictionary;
-    }
-
-    /// <summary>
-    /// Пометить шаг выполненным.
-    /// </summary>
-    private async Task OnStepCompleted()
-    {
-        if (CurrentStepIndex < Steps.Count - 1)
-        {
-            CurrentStepIndex++;
-            NameCurrentPage = Steps[CurrentStepIndex].StepName;
-            Steps[CurrentStepIndex].IsActive = true;
-        }
-        else
-        {
-            await CompleteRefuelingProcess();
         }
     }
     
@@ -467,21 +332,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     {
         try
         {
-            await _builder.SetCheckNumber();
-            await _builder.SetShiftNumber();
-            await _builder.SetTerminalNumber();
-            await _builder.SetIssuerNumber();
-            
-            if (_authService.CurrentUser != null) 
-                _builder.SetPersonKey(_authService.CurrentUser.UserId, _authService.CurrentUser.Name);
-            
-            var selling = _builder.Build();
-            
-            await _sellingRepository.AddAsync(selling);
-
-            await PrintReceiptAsync(selling);
-            
-            Navigation.GoBack();
+            await _salesProcessService.CompleteProcessAsync();
+            Navigation!.GoBack();
         }
         catch (Exception ex)
         {
@@ -518,18 +370,46 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         }
     }
     
-
     /// <summary>
-    /// Печать чека о продаже.
+    /// Перейти к прошлому шагу.
     /// </summary>
-    /// <param name="selling">Продажа.</param>
-    private async Task PrintReceiptAsync(Selling selling)
+    public void StepBack()
     {
-        var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
+        if (CurrentStepIndex > 0)
+        {
+            if (CurrentStepIndex == 3)
+                _cardReadCts?.Cancel();
+            
+            Steps[CurrentStepIndex].IsActive = false;
         
-        var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
+            CurrentStepIndex--;
+            NameCurrentPage = Steps[CurrentStepIndex].StepName;
         
-        _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+            var prevStep = Steps[CurrentStepIndex];
+            prevStep.IsActive = true;
+            prevStep.IsCompleted = false;
+        }
+        else
+        {
+            Navigation!.GoBack();
+        }
+    }
+    
+    /// <summary>
+    /// Пометить шаг выполненным.
+    /// </summary>
+    private async Task OnStepCompleted()
+    {
+        if (CurrentStepIndex < Steps.Count - 1)
+        {
+            CurrentStepIndex++;
+            NameCurrentPage = Steps[CurrentStepIndex].StepName;
+            Steps[CurrentStepIndex].IsActive = true;
+        }
+        else
+        {
+            await CompleteRefuelingProcess();
+        }
     }
 
     /// <summary>
@@ -544,5 +424,33 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         await MessageBoxManager
             .GetMessageBoxStandard(title, text)
             .ShowAsync();
+    }
+    
+    /// <summary>
+    /// Инициализировать шаги покупки.
+    /// </summary>
+    private void InitializeSteps()
+    {
+        Steps =
+        [
+            new StepViewModelBase("Тип топлива", OnStepCompleted),
+            new StepViewModelBase("Количество", OnStepCompleted),
+            new StepViewModelBase("Тип оплаты", OnStepCompleted),
+            new StepViewModelBase("Считывание", OnStepCompleted)
+        ];
+
+        NameCurrentPage = Steps[0].StepName;
+        IsProcessStarted = true;
+        CurrentStepIndex = 0;
+        Steps[0].IsActive = true;
+    }
+
+    /// <summary>
+    /// Подгрузка данных из БД.
+    /// </summary>
+    private async Task LoadDataAsync()
+    {
+        var resources = await _salesProcessService.GetAvailableResourceCodesAsync();
+        Resources = new ObservableCollection<ResourceCode>(resources);
     }
 }

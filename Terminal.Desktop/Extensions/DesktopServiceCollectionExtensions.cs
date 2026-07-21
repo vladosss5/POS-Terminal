@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Application.Services;
 using Terminal.Core.Interfaces;
 using Terminal.Desktop.Services;
@@ -19,5 +20,6 @@ public static class DesktopServiceCollectionExtensions
         collection.AddSingleton<IReceiptPrintService, DesktopPrintService>();
         collection.AddSingleton<IDeviceInfoService, DesktopDeviceInfoService>();
         collection.AddSingleton<IUpdateInstallerService, DesktopUpdateInstallerService>();
+        collection.AddSingleton<IDiscountingLibraryService, DesktopDiscountingLibraryService>();
     }
 }

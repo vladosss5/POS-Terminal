@@ -20,4 +20,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Libs\Discounting.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>

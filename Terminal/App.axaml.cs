@@ -65,6 +65,7 @@ public partial class App : Avalonia.Application
         {
             case IClassicDesktopStyleApplicationLifetime desktopApp:
                 desktopApp.MainWindow = new MainWindow { DataContext = mainViewModel };
+                desktopApp.Exit += OnApplicationExit;
                 break;
             
             case IActivityApplicationLifetime activityLifetime:
@@ -76,9 +77,18 @@ public partial class App : Avalonia.Application
                 break;
         }
         
-
-
         base.OnFrameworkInitializationCompleted();
+    }
+    
+    /// <summary>
+    /// Метод вызывающий метод Dispose в сервисах реализующих IDisposable.
+    /// </summary>
+    private void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        if (Services is IDisposable disposable)
+            disposable.Dispose();
+        
+        Logger!.LogInformation("Services have been disposed");
     }
     
     /// <summary>

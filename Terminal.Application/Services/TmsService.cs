@@ -160,6 +160,28 @@ public class TmsService : ITmsService
         return (await response.Content.ReadAsStreamAsync(), fileHash!);
     }
 
+    /// <inheritdoc/>
+    public async Task ConfirmReceiptUpdatingFileAsync()
+    {
+        await CheckAndAuthAsync();
+        
+        var response = await _tmsClient.GetAsync($"terminal-updating/confirm-receipt-apk");
+        
+        if (!response.IsSuccessStatusCode)
+            throw new NotFoundException("Ошибка сервера.");
+    }
+
+    /// <inheritdoc/>
+    public async Task<string?> GetNumberNewVersion()
+    {
+        await CheckAndAuthAsync();
+        
+        var response = await _tmsClient.GetAsync($"terminal-updating/new-version");
+        var newVersionInfo = await response.Content.ReadAsStringAsync();
+
+        return newVersionInfo;
+    }
+
     /// <summary>
     /// Проверить статус авторизации. Если не авторизован, то авторизоваться.
     /// </summary>

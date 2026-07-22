@@ -324,6 +324,30 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             AmountWhat = _amountMessages[0];
         }
     }
+
+    /// <summary>
+    /// Пометить шаг выполненным.
+    /// </summary>
+    private async void OnStepCompleted()
+    {
+        try
+        {
+            if (CurrentStepIndex < Steps.Count - 1)
+            {
+                CurrentStepIndex++;
+                NameCurrentPage = Steps[CurrentStepIndex].StepName;
+                Steps[CurrentStepIndex].IsActive = true;
+            }
+            else
+            {
+                await CompleteRefuelingProcess();
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+        }
+    }
     
     /// <summary>
     /// Завершить процесс заправки по карте.
@@ -392,23 +416,6 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         else
         {
             Navigation!.GoBack();
-        }
-    }
-    
-    /// <summary>
-    /// Пометить шаг выполненным.
-    /// </summary>
-    private async Task OnStepCompleted()
-    {
-        if (CurrentStepIndex < Steps.Count - 1)
-        {
-            CurrentStepIndex++;
-            NameCurrentPage = Steps[CurrentStepIndex].StepName;
-            Steps[CurrentStepIndex].IsActive = true;
-        }
-        else
-        {
-            await CompleteRefuelingProcess();
         }
     }
 

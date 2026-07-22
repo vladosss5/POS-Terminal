@@ -1,5 +1,9 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
@@ -7,7 +11,7 @@ using Terminal.Core.Entities.Models.Settings;
 using Terminal.Core.Entities.Models.SettingsFromPosOffice;
 using Terminal.Core.Interfaces;
 
-namespace Terminal.Application.Services;
+namespace Terminal.Services;
 
 /// <summary>
 /// Реализация сервиса для работы с конфигурацией приложения.
@@ -247,8 +251,9 @@ public class ConfigurationService : IConfigurationService
                 
                 _isLoaded = true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _logger.LogError(e.Message, e.InnerException);
                 _currentSetting = new SettingsModel();
                 _isLoaded = true;
             }

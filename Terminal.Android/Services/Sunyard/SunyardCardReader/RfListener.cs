@@ -104,8 +104,8 @@ public class RfListener : IOnRfListener.Stub
             if (result == 0 && response.Length >= 4)
             {
                 byte[] uidBytes = new byte[4];
-                Array.Copy(response, 0, uidBytes, 0, 4);
-                return BitConverter.ToString(uidBytes).Replace("-", "");
+                Array.Copy(response, 1, uidBytes, 0, 4);
+                return BitConverter.ToInt32(uidBytes).ToString();
             }
 
             // Для CPU карт через APDU

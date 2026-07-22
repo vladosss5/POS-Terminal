@@ -18,7 +18,7 @@ public interface IParameterService
     /// </summary>
     /// <param name="parameterName">Название.</param>
     /// <returns>Строковое значение.</returns>
-    public Task<string> GetValueAsync(AppParameter parameterName);
+    public Task<string?> GetValueAsync(AppParameter parameterName);
 
     /// <summary>
     /// Установить значение.

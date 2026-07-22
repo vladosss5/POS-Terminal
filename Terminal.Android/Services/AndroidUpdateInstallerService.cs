@@ -1,143 +1,134 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Android.Content;
 using Android.OS;
-using Android.Provider;
 using AndroidX.Core.Content;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Helpers;
+using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Enums;
 using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
-using Environment = Android.OS.Environment;
-using Uri = Android.Net.Uri;
 
 namespace Terminal.Android.Services;
 
 /// <inheritdoc/>
 public class AndroidUpdateInstallerService : IUpdateInstallerService
 {
-    /// <inheritdoc cref="Context" />
-    private readonly Context _context;
-
-    /// <inheritdoc cref="ITmsService" />
-    private readonly ITmsService _tmsService;
-
     /// <summary>
     /// Логгер.
     /// </summary>
     private readonly ILogger<AndroidUpdateInstallerService> _logger;
 
+    /// <inheritdoc cref="ITmsService" />
+    private readonly ITmsService _tmsService;
+    
+    /// <inheritdoc cref="Context" />
+    private readonly Context _context;
+
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IParameterService _parameterService;
+
     /// <summary>
     /// Каталог с загруженными пакетами обновлений.
     /// </summary>
-    private readonly string _pathToDownloadedPackages;
-
+    private readonly string _pathToLastUpdatingPatch;
+    
     /// <summary>
-    /// Название пакета обновления.
+    /// Имя файла обновления.
     /// </summary>
-    private const string FileName = "terminal_update.apk";
-
+    private const string FileName = "terminal-updating.apk";
+    
     /// <summary>
     /// Конструктор.
     /// </summary>
     public AndroidUpdateInstallerService(
         Context context, 
         ILogger<AndroidUpdateInstallerService> logger, 
-        ITmsService tmsService)
+        ITmsService tmsService, IParameterService parameterService)
     {
         _context = context;
         _logger = logger;
         _tmsService = tmsService;
+        _parameterService = parameterService;
 
-        _pathToDownloadedPackages = 
-            _context.GetExternalFilesDir(Environment.DirectoryDownloads)?.AbsolutePath ?? 
-            _context.FilesDir?.AbsolutePath!;
+        var folderPath = _context.FilesDir?.AbsolutePath!;
+        _pathToLastUpdatingPatch = Path.Combine(folderPath, FileName);
     }
 
     /// <inheritdoc/>
-    public Task InstallPackageAsync()
+    public async Task InstallUpdatingPatchAsync()
     {
-        try
+        _logger.LogInformation($"Начата установка пакета {_pathToLastUpdatingPatch}");
+        
+        if (string.IsNullOrEmpty(_pathToLastUpdatingPatch) || !File.Exists(_pathToLastUpdatingPatch))
         {
-            var packagePath = Path.Combine(_pathToDownloadedPackages, FileName);
-            
-            _logger.LogInformation($"Начата установка пакета {packagePath}");
-            
-            if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
-            {
-                _logger.LogInformation($"Не найден файл: {packagePath}");
-                return Task.CompletedTask;
-            }
+            _logger.LogInformation($"Не найден файл: {_pathToLastUpdatingPatch}");
+            return;
+        }
+    
+        var apkFile = new Java.IO.File(_pathToLastUpdatingPatch);
+        var apkUri = FileProvider.GetUriForFile(_context, $"{_context.PackageName}.fileprovider", apkFile);
+        
+        var intent = new Intent(Intent.ActionInstallPackage)
+            .SetDataAndType(apkUri, "application/vnd.android.package-archive")
+            .SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
+    
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
+    
+        _context.StartActivity(intent);
+        
+        var fileHash = await HashHelper.CumputeMd5HashAsync(_pathToLastUpdatingPatch);
+        await _parameterService.SetValueAsync(AppParameter.HashLastInstalledPatch, fileHash);
+    }
 
-            if (!_context.PackageManager!.CanRequestPackageInstalls())
-                OpenInstallUnknownAppsSettings();
+    /// <inheritdoc/>
+    public async Task<bool> CheckForUpdates()
+    {
+        var currentVersion = _context.PackageManager!.GetPackageInfo(_context.PackageName!, 0)!.VersionName;
+        var newVersion = await _tmsService.GetNumberNewVersion();
         
-            var apkFile = new Java.IO.File(packagePath);
-            var apkUri = FileProvider.GetUriForFile(_context, $"{_context.PackageName}.fileprovider", apkFile);
-            
-            var intent = new Intent(Intent.ActionInstallPackage)
-                .SetDataAndType(apkUri, "application/vnd.android.package-archive")
-                .SetFlags(ActivityFlags.GrantReadUriPermission | ActivityFlags.NewTask);
+        if (newVersion == null || string.IsNullOrEmpty(newVersion) || 
+            currentVersion == null || string.IsNullOrEmpty(currentVersion)) 
+            return false;
+
+        var newBiggerThenCurrent = VersionHelper.RightIsBiggerThanLeft(currentVersion, newVersion);
         
-            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-                intent.PutExtra("android.intent.extra.NOT_UNKNOWN_SOURCE", true);
-        
-            _context.StartActivity(intent);
-            
-            File.Delete(packagePath);
-            _logger.LogInformation($"Файл удалён: {packagePath}");
-            
-            return Task.CompletedTask;
-        }
-        catch (Exception exception)
-        {
-            return Task.FromException(exception);
-        }
+        return newBiggerThenCurrent;
     }
 
     /// <inheritdoc/>
     public async Task DownloadUpdatingFileAsync()
     {
         _logger.LogInformation($"Начато скачивание пакета обновлений.");
+
+        var downloadingFileHash = "";
+        
+        if (File.Exists(_pathToLastUpdatingPatch))
+        {
+            downloadingFileHash = await HashHelper.CumputeMd5HashAsync(_pathToLastUpdatingPatch);
+            var hashLastInstalledPatch = await _parameterService.GetValueAsync(AppParameter.HashLastInstalledPatch);
+
+            if (downloadingFileHash != hashLastInstalledPatch)
+                return;
+            
+            File.Delete(_pathToLastUpdatingPatch);
+        }
+        
         var (stream, fileHash) = await _tmsService.DownloadUpdatingFileAsync();
         
-        var apkFilePath = Path.Combine(_pathToDownloadedPackages, FileName);
-        
-        if (File.Exists(apkFilePath))
-            File.Delete(apkFilePath);
-        
-        await using var fileStream = new FileStream(apkFilePath, FileMode.Create, FileAccess.Write);
+        await using var fileStream = new FileStream(_pathToLastUpdatingPatch, FileMode.Create, FileAccess.Write);
         await stream.CopyToAsync(fileStream);
-
-        var downloadingFileHash = await HashHelper.CumputeMd5HashAsync(apkFilePath);
+        
         if (fileHash != downloadingFileHash)
         {
             _logger.LogError($"Хеши файлов не совпали.");
             throw new InvalidFileException("Не удалось скачать файл");
         }
-        
-        _logger.LogError($"Скачивание завершено");
-    }
-    
-    /// <summary>
-    /// Открыть страницу настроек с разрешением на установку из неизвестных источников.
-    /// </summary>
-    private void OpenInstallUnknownAppsSettings()
-    {
-        if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
-        
-        var intent = new Intent(Settings.ActionManageUnknownAppSources)
-            .SetData(Uri.Parse("package:" + _context.PackageName))
-            .SetFlags(ActivityFlags.NewTask);
 
-        try
-        {
-            _context.StartActivity(intent);
-        }
-        catch (ActivityNotFoundException)
-        {
-            _context.StartActivity(new Intent(Settings.ActionSettings));
-        }
+        await _tmsService.ConfirmReceiptUpdatingFileAsync();
+
+        _logger.LogError($"Скачивание завершено");
     }
 }

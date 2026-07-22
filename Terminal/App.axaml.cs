@@ -9,11 +9,15 @@ using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MsBox.Avalonia.Enums;
+using Terminal.Application.Interfaces.Background;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
+using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -76,8 +80,39 @@ public partial class App : Avalonia.Application
                 singleViewPlatform.MainView = new MainView { DataContext = mainViewModel };
                 break;
         }
+
+        await StartUpgradeAsync();
         
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>
+    /// Запустить фоновый процесс обновления приложения.
+    /// </summary>
+    private static async Task StartUpgradeAsync()
+    {
+        try
+        {
+            var messageService = Services!.GetRequiredService<IMessageBoxService>();
+            var updateService = Services!.GetRequiredService<IUpgradeBackgroundService>();
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    await updateService.StartAutoUpgradeAsync();
+                }
+                catch (Exception e)
+                {
+                    Logger!.LogError(e.Message, e.InnerException);
+                    await messageService.ShowMessageBoxAsync("Ошибка", e.Message, ButtonEnum.Ok, Icon.Error);
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Logger!.LogError(e.Message, e.InnerException);
+        }
     }
     
     /// <summary>

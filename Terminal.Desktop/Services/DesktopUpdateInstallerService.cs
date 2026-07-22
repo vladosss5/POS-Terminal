@@ -7,6 +7,11 @@ namespace Terminal.Desktop.Services;
 /// <inheritdoc/>
 public class DesktopUpdateInstallerService : IUpdateInstallerService
 {
+    public async Task<bool> CheckForUpdates()
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
     public async Task DownloadUpdatingFileAsync()
     {
@@ -14,7 +19,7 @@ public class DesktopUpdateInstallerService : IUpdateInstallerService
     }
 
     /// <inheritdoc/>
-    public async Task InstallPackageAsync()
+    public Task InstallUpdatingPatchAsync()
     {
         throw new NotImplementedException("Обновления настольной версии не реализованы.");
     }

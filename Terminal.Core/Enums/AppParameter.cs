@@ -28,5 +28,10 @@ public enum AppParameter
     /// <summary>
     /// Порт TMS.
     /// </summary>
-    TmsPort
+    TmsPort,
+    
+    /// <summary>
+    /// Хеш последнего установленного обновления.
+    /// </summary>
+    HashLastInstalledPatch
 }

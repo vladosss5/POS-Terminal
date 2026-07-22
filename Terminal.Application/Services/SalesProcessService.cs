@@ -49,7 +49,9 @@ public class SalesProcessService : ISalesProcessService
     /// </summary>
     private List<Selling> Cart { get; set; } = [];
 
-    
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
     public SalesProcessService(
         ILogger<SalesProcessService> logger,
         IConfigurationService configurationService, 
@@ -57,7 +59,10 @@ public class SalesProcessService : ISalesProcessService
         ISellingRepository sellingRepository, 
         IResourceCodeRepository resourceCodeRepository, 
         ISalesReceiptMappingService receiptMappingService, 
-        ISettingPaymentTypeMapper settingPaymentTypeMapper, IAuthService authService, ISettingRepository settingRepository, IShiftService shiftService, IParameterService parameterService)
+        ISettingPaymentTypeMapper settingPaymentTypeMapper, 
+        IAuthService authService, 
+        ISettingRepository settingRepository, 
+        IShiftService shiftService, IParameterService parameterService)
     {
         _logger = logger;
         _configurationService = configurationService;
@@ -170,10 +175,13 @@ public class SalesProcessService : ISalesProcessService
             sale.PersonKey = user?.UserId;
             sale.ShiftKey = shift?.ShiftKey;
             sale.TerminalKey = long.Parse(terminalNumber);
+
+            // CalculateDiscounting(sale);
         }
 
         await _sellingRepository.AddRangeAsync(Cart);
     }
+    
 
     /// <summary>
     /// Печать чека о продаже.

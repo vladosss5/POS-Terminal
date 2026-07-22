@@ -22,4 +22,13 @@
       <PackageReference Include="System.IO.Ports" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Xmls\dsc.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Xmls\limit.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

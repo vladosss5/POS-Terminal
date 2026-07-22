@@ -75,6 +75,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ITmsService, TmsService>();
         collection.AddSingleton<IConfigurationUpdatingService, ConfigurationUpdatingService>();
         collection.AddTransient<ISalesProcessService, SalesProcessService>();
+        collection.AddSingleton<IDiscountingMethods, DiscountingMethods>();
 
         collection.AddTransient<IGenericRepository, GenericRepository>();
         collection.AddTransient<IParamRepository, ParamRepository>();

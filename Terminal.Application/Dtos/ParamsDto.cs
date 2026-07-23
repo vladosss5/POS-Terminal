@@ -33,4 +33,7 @@ public class ParamsDto
     
     [XmlElement("CouponData")]
     public int CouponData { get; set; }
+
+    [XmlElement("CurrencyType")] 
+    public string CurrencyType { get; set; } = "";
 }

@@ -2,6 +2,7 @@
 
 namespace Terminal.Application.Dtos;
 
+[XmlRoot("CardInfo")]
 public class CardInfoDto
 {
     [XmlElement("BonusMode")]

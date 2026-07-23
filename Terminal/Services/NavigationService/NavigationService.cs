@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Terminal.ViewModels;
 
 namespace Terminal.Services.NavigationService;
@@ -10,6 +11,11 @@ namespace Terminal.Services.NavigationService;
 /// </summary>
 public class NavigationService : INavigationService
 {
+    /// <summary>
+    /// Сервис логирования.
+    /// </summary>
+    private readonly ILogger<NavigationService> _logger;
+    
     ///<inheritdoc cref="IServiceProvider"/>
     private readonly IServiceProvider _serviceProvider;
     
@@ -48,16 +54,24 @@ public class NavigationService : INavigationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public NavigationService(IServiceProvider serviceProvider)
+    public NavigationService(IServiceProvider serviceProvider, ILogger<NavigationService> logger)
     {
         _serviceProvider = serviceProvider;
+        _logger = logger;
     }
     
     ///<inheritdoc/>
     public void NavigateTo<T>() where T : PageViewModelBase
     {
-        var page = _serviceProvider.GetRequiredService<T>();
-        NavigateToPage(page);
+        try
+        {
+            var page = _serviceProvider.GetRequiredService<T>();
+            NavigateToPage(page);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+        }
     }
 
     ///<inheritdoc/>

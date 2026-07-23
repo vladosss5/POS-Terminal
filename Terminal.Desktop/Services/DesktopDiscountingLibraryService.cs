@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Terminal.Application.Interfaces.Services;
@@ -27,6 +28,13 @@ public class DesktopDiscountingLibraryService : IDiscountingLibraryService
     /// </summary>
     public DesktopDiscountingLibraryService(string initParams = "")
     {
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        var sourceDirectory = Path.Combine(baseDirectory, "Libs", DllName);
+        var targetDirectory = Path.Combine(baseDirectory, DllName);
+
+        if (!File.Exists(targetDirectory))
+            File.Move(sourceDirectory, targetDirectory);
+        
         _initData = calculate_Initialize(initParams);
     }
     
@@ -50,7 +58,7 @@ public class DesktopDiscountingLibraryService : IDiscountingLibraryService
             nOutputXmlBufferSize, 
             ref pnReturnBytes);
         
-        var resultString = Encoding.UTF8.GetString(pOutputXmlBuffer, 0, (int)pnReturnBytes);
+        var resultString = Encoding.GetEncoding("windows-1251").GetString(pOutputXmlBuffer, 0, (int)pnReturnBytes);
 
         return resultString;
     }

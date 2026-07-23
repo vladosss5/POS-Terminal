@@ -1,4 +1,4 @@
-﻿using Terminal.Application.Dtos;
+﻿using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Helpers;
 using Terminal.Application.Interfaces.Services;
 
@@ -22,8 +22,9 @@ public class DiscountingMethods : IDiscountingMethods
     public async Task<CardInfoResponseDto> GetCardInfoAsync(CardInfoRequestDto requestDto)
     {
         var inputXml = XmlHelper.SerializeXml(requestDto);
-        var limitationXml = await File.ReadAllTextAsync("limit.xml");
-        var inputSchema = await File.ReadAllTextAsync("dsc.xml");
+        var limitationXml = await File.ReadAllTextAsync(Path.Combine("Xmls", "limit.xml"));
+        var inputSchema = await File.ReadAllTextAsync(Path.Combine("Xmls", "dsc.xml"));
+        var param = await File.ReadAllTextAsync(Path.Combine("Xmls", "param.xml"));
         var result = new byte[10 * 1024 * 1024];
         uint returnBytes = 0;
         
@@ -31,13 +32,22 @@ public class DiscountingMethods : IDiscountingMethods
             inputXml, 
             limitationXml, 
             inputSchema, 
-            "", 
+            param, 
             result, 
             result.Length, 
             ref returnBytes);
 
-        var resultStr = XmlHelper.DeserializeXml<CardInfoResponseDto>(resultString);
+        var response = new CardInfoResponseDto();
+        
+        try
+        {
+            response = XmlHelper.DeserializeXml<CardInfoResponseDto>(resultString);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
 
-        return resultStr;
+        return response;
     }
 }

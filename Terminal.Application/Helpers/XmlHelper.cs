@@ -13,25 +13,41 @@ public static class XmlHelper
         return (T)serializer.Deserialize(reader)!;
     }
     
-    public static string SerializeXml<T>(T obj, bool indent = true)
+    /// <summary>
+    /// Сериализует объект в XML-строку с указанной кодировкой
+    /// </summary>
+    /// <typeparam name="T">Тип сериализуемого объекта</typeparam>
+    /// <param name="obj">Объект для сериализации</param>
+    /// <param name="indent">Форматировать ли XML с отступами</param>
+    /// <param name="encoding">Кодировка XML-документа. По умолчанию windows-1251</param>
+    /// <returns>XML-строка с корректным объявлением кодировки</returns>
+    public static string SerializeXml<T>(T obj, bool indent = true, Encoding? encoding = null)
     {
-        var serializer = new XmlSerializer(typeof(T));
+        encoding ??= Encoding.GetEncoding("windows-1251");
     
         var settings = new XmlWriterSettings
         {
             Indent = indent,
             OmitXmlDeclaration = false,
-            Encoding = Encoding.UTF8
+            Encoding = encoding,
+            IndentChars = "  ",
+            NewLineChars = Environment.NewLine
         };
-    
-        using var stringWriter = new StringWriter();
-        using var xmlWriter = XmlWriter.Create(stringWriter, settings);
-    
+
+        using var memoryStream = new MemoryStream();
+        using var xmlWriter = XmlWriter.Create(memoryStream, settings);
+
         var ns = new XmlSerializerNamespaces();
         ns.Add("", "");
-    
+
+        var serializer = new XmlSerializer(typeof(T));
         serializer.Serialize(xmlWriter, obj, ns);
-        return stringWriter.ToString();
+
+        xmlWriter.Flush();
+        memoryStream.Position = 0;
+    
+        using var reader = new StreamReader(memoryStream, encoding);
+        return reader.ReadToEnd();
     }
 
     public static T DeserializeXmlFromFile<T>(string filePath)

@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ShiftReportPageViewModel>();
         collection.AddTransient<ResourcePageViewModel>();
         collection.AddTransient<AuthOperatorPageViewModel>();
+        collection.AddTransient<CardInfoPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

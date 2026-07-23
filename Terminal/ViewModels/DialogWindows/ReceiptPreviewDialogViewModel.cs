@@ -11,7 +11,8 @@ public partial class ReceiptPreviewDialogViewModel : ViewModelBase
     /// <summary>
     /// Текст чека.
     /// </summary>
-    [ObservableProperty] private string _receiptText;
+    [ObservableProperty]
+    public partial string ReceiptText { get; set; }
 
     /// <summary>
     /// Конструктор.
@@ -19,6 +20,6 @@ public partial class ReceiptPreviewDialogViewModel : ViewModelBase
     /// <param name="receiptText">Текст чека.</param>
     public ReceiptPreviewDialogViewModel(string receiptText)
     {
-        _receiptText = receiptText;
+        ReceiptText = receiptText;
     }
 }

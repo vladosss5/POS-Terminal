@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using Avalonia;
 using HotAvalonia;
 using Microsoft.Extensions.Hosting;
@@ -13,8 +12,6 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((_, services) =>
             {

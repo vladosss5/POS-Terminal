@@ -12,5 +12,5 @@ public interface IDiscountingMethods
     /// </summary>
     /// <param name="requestDto">Запрос информации.</param>
     /// <returns>Ответ с информацией.</returns>
-    public Task<CardInfoResponseDto> GetCardInfoAsync(CardInfoRequestDto requestDto);
+    public Task<string> GetCardInfoAsync(CardInfoRequestDto requestDto);
 }

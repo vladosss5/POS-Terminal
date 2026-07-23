@@ -68,9 +68,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="IConfigurationUpdatingService" />
     private readonly IConfigurationUpdatingService _configurationUpdatingService;
-
-    /// <inheritdoc cref="IDiscountingMethods" />
-    private readonly IDiscountingMethods _discountingMethods;
     
     /// Фабрика экземпляров: <inheritdoc cref="DataContext"/>
     private readonly IDbContextFactory<DataContext> _dbFactory;
@@ -118,8 +115,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IEncashmentService encashmentService,
         IUpdateInstallerService installerService, 
         IConfigurationUpdatingService configurationUpdatingService, 
-        IStatusNotifierService statusNotifierService, 
-        IDiscountingMethods discountingMethods) 
+        IStatusNotifierService statusNotifierService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
@@ -136,7 +132,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _installerService = installerService;
         _configurationUpdatingService = configurationUpdatingService;
         _statusNotifierService = statusNotifierService;
-        _discountingMethods = discountingMethods;
         Title = "Главная";
         
         AddItemsIntoMenu();
@@ -204,7 +199,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Инфо по карте",
-                Command = new AsyncRelayCommand(GetCardInfo)
+                Command = new RelayCommand(delegate { Navigation!.NavigateTo<CardInfoPageViewModel>(); })
             }
         ]);
     }
@@ -526,54 +521,5 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         }
         
         _statusNotifierService.Notify();
-    }
-
-    private async Task GetCardInfo()
-    {
-        var request = new CardInfoRequestDto()
-        {
-            Request = new RequestDto
-            {
-                Command = DiscounterCommand.GetCardInfo,
-                IssuerId = 1,
-                ShopId = 1
-            },
-            CardInfoList = new CardInfoList
-            {
-                CardInfos = 
-                [
-                    new CardInfoDto
-                    {
-                        ElectronicNumber = 1990637772,
-                        BonusMode = 1,
-                        CardApplicationSchemeType = 8,
-                        IssuerNet = 1,
-                        OrganizationCode = 2600,
-                        PersonCode = 1,
-                        CardType = 2
-                    }
-                ]
-            },
-            Parameters = new ParamsDto
-            {
-                BonusProgram = -1,
-                AdjustAmount = -1,
-                AdjustAmountOnline = -1,
-                UserTimeout = -1,
-                ReadCard = -1,
-                Version = 2,
-                Gift = -1,
-                PrintData = -1,
-                PrintCommentData = -1,
-                CouponData = -1,
-                CurrencyType = "руб."
-            },
-            CartInfo = new CartInfoDto
-            {
-                Flags = "2",
-            }
-        };
-        
-        await _discountingMethods.GetCardInfoAsync(request);
     }
 }

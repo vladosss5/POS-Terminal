@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -51,6 +52,8 @@ public partial class App : Avalonia.Application
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        
         if (Design.IsDesignMode) 
         {
             base.OnFrameworkInitializationCompleted();

@@ -1,0 +1,41 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.CardInfoPageView"
+             x:DataType="pages:CardInfoPageViewModel">
+    
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBack}"
+                    MaxHeight="60" Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <Panel Grid.Row="1">
+            <Grid RowDefinitions="Auto, *" IsVisible="{Binding !ShowCardInfo}">
+                <TextBlock Grid.Row="0" Text="Поднесите карту" 
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    
+                <Image Grid.Row="1" Source="../../Assets/Icons/read-card.png"/>
+            </Grid>
+            
+            <ScrollViewer IsVisible="{Binding ShowCardInfo}">
+                <TextBlock Text="{Binding CardInfoText}" 
+                           HorizontalAlignment="Center"
+                           FontFamily="{StaticResource HaskligMedium}"
+                           FontSize="12"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Panel>
+    </Grid>
+</UserControl>

@@ -25,6 +25,8 @@ public static class AndroidServiceCollectionExtensions
             collection.AddTransient<IReceiptPrintService, AndroidPrintService>();
             collection.AddSingleton<IDeviceInfoService, AndroidDeviceInfoService>();
             collection.AddSingleton<IUpdateInstallerService, AndroidUpdateInstallerService>();
+            collection.AddSingleton<IXmlResourceProvider, AndroidXmlResourceProvider>();
+            collection.AddSingleton<IDiscountingLibraryService, AndroidDiscountingLibraryService>();
         }
 
         /// <summary>

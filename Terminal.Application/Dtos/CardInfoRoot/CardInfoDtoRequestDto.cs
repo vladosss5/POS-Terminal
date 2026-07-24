@@ -3,7 +3,7 @@
 namespace Terminal.Application.Dtos.CardInfoRoot;
 
 [XmlRoot("Root")]
-public class CardInfoRequestDto : CardInfoBase
+public class CardInfoDtoRequestDto : CardInfoDtoBase
 {
     [XmlElement("IN")] 
     public string Input { get; set; } = "";

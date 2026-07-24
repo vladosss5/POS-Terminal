@@ -10,7 +10,7 @@ public interface IDiscountingMethods
     /// <summary>
     /// Получить информацию о карте.
     /// </summary>
-    /// <param name="requestDto">Запрос информации.</param>
+    /// <param name="dtoRequestDto">Запрос информации.</param>
     /// <returns>Ответ с информацией.</returns>
-    public Task<string> GetCardInfoAsync(CardInfoRequestDto requestDto);
+    public Task<CardInfoDtoResponseDto> GetCardInfoAsync(CardInfoDtoRequestDto dtoRequestDto);
 }

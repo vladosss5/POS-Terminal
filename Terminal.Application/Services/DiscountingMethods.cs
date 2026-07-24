@@ -33,11 +33,10 @@ public class DiscountingMethods : IDiscountingMethods
     }
     
     /// <inheritdoc/>
-    public async Task<string> GetCardInfoAsync(CardInfoRequestDto requestDto)
+    public async Task<CardInfoDtoResponseDto> GetCardInfoAsync(CardInfoDtoRequestDto dtoRequestDto)
     {
         try
         {
-            // Параллельная загрузка всех необходимых XML-файлов
             var loadTasks = new[]
             {
                 _xmlResourceProvider.LoadXmlContentAsync("limit.xml"),
@@ -51,14 +50,11 @@ public class DiscountingMethods : IDiscountingMethods
             var inputSchema = xmlContents[1];
             var param = xmlContents[2];
 
-            // Сериализация входных данных
-            var inputXml = XmlHelper.SerializeXml(requestDto);
+            var inputXml = XmlHelper.SerializeXml(dtoRequestDto);
 
-            // Подготовка буфера результата
             var resultBuffer = new byte[MaxResultBufferSize];
             uint returnBytes = 0;
 
-            // Вызов нативной библиотеки
             var resultString = _discountingLibrary.Calculating(
                 inputXml,
                 limitationXml,
@@ -68,14 +64,11 @@ public class DiscountingMethods : IDiscountingMethods
                 resultBuffer.Length,
                 ref returnBytes);
 
-            // Десериализация результата
-            // var response = XmlHelper.DeserializeXml<CardInfoResponseDto>(resultString);
+            var response = XmlHelper.DeserializeXml<CardInfoDtoResponseDto>(resultString);
 
-            _logger.LogDebug(
-                "Успешно получена информация о карте. Размер ответа: {ResponseSize} байт", 
-                returnBytes);
+            _logger.LogDebug("Успешно получена информация о карте. Размер ответа: {ResponseSize} байт", returnBytes);
 
-            return resultString;
+            return response;
         }
         catch (FileNotFoundException ex)
         {

@@ -80,9 +80,9 @@ public partial class CardInfoPageViewModel : PageViewModelBase
         }
     }
 
-    private CardInfoRequestDto GetRequestDto(int cardNumber)
+    private CardInfoDtoRequestDto GetRequestDto(int cardNumber)
     {
-        var request = new CardInfoRequestDto()
+        var request = new CardInfoDtoRequestDto()
         {
             Request = new RequestDto
             {
@@ -122,7 +122,7 @@ public partial class CardInfoPageViewModel : PageViewModelBase
             },
             CartInfo = new CartInfoDto
             {
-                Flags = "2",
+                Flags = 2,
             }
         };
 

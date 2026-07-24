@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
+using Terminal.Application.Dtos;
+using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
@@ -40,7 +43,11 @@ public class SalesProcessService : ISalesProcessService
     
     /// <inheritdoc cref="ISettingPaymentTypeMapper" />
     private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
+    
+    /// <inheritdoc cref="IDiscountingMethods" />
+    private readonly IDiscountingMethods _discountingMethods;
 
+    /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
 
 
@@ -62,7 +69,7 @@ public class SalesProcessService : ISalesProcessService
         ISettingPaymentTypeMapper settingPaymentTypeMapper, 
         IAuthService authService, 
         ISettingRepository settingRepository, 
-        IShiftService shiftService, IParameterService parameterService)
+        IShiftService shiftService, IParameterService parameterService, IDiscountingMethods discountingMethods)
     {
         _logger = logger;
         _configurationService = configurationService;
@@ -75,6 +82,7 @@ public class SalesProcessService : ISalesProcessService
         _settingRepository = settingRepository;
         _shiftService = shiftService;
         _parameterService = parameterService;
+        _discountingMethods = discountingMethods;
     }
 
     /// <inheritdoc/>
@@ -154,7 +162,15 @@ public class SalesProcessService : ISalesProcessService
             sale.DerivedType = derivedType;
         }
     }
-    
+
+    /// <inheritdoc/>
+    public async Task CalculatePriceAsync(CardInfo cardInfo)
+    {
+        var cardInfoRequestDto = GetRequestDto(cardInfo.Uid);
+        var cardInfoResponseDto = await _discountingMethods.GetCardInfoAsync(cardInfoRequestDto);
+        
+    }
+
     /// <inheritdoc/>
     public async Task CompleteProcessAsync()
     {
@@ -194,5 +210,54 @@ public class SalesProcessService : ISalesProcessService
         var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
         
         _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+    }
+
+    private CardInfoDtoRequestDto GetRequestDto(string cardNumber)
+    {
+        var request = new CardInfoDtoRequestDto()
+        {
+            Request = new RequestDto
+            {
+                Command = DiscounterCommand.GetCardInfo,
+                IssuerId = 1,
+                ShopId = 1
+            },
+            CardInfoList = new CardInfoList
+            {
+                CardInfos = 
+                [
+                    new CardInfoDto
+                    {
+                        ElectronicNumber = int.Parse(cardNumber),
+                        BonusMode = 1,
+                        ApplicationSchemeType = CardApplicationSchemeType.Resource,
+                        IssuerNet = 1,
+                        OrganizationCode = 2600,
+                        PersonCode = 1,
+                        CardType = 2
+                    }
+                ]
+            },
+            Parameters = new ParamsDto
+            {
+                BonusProgram = -1,
+                AdjustAmount = -1,
+                AdjustAmountOnline = -1,
+                UserTimeout = -1,
+                ReadCard = -1,
+                Version = 2,
+                Gift = -1,
+                PrintData = -1,
+                PrintCommentData = -1,
+                CouponData = -1,
+                CurrencyType = "руб."
+            },
+            CartInfo = new CartInfoDto
+            {
+                Flags = 2,
+            }
+        };
+
+        return request;
     }
 }

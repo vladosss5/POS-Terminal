@@ -1,4 +1,5 @@
 ﻿using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 
 namespace Terminal.Application.Interfaces.Services;
@@ -43,6 +44,8 @@ public interface ISalesProcessService
     /// <param name="baseType">Базовый.</param>
     /// <param name="derivedType">Дополнительный.</param>
     public Task SetPaymentTypeAsync(BasePaymentType baseType, DerivedPaymentType derivedType);
+
+    public Task CalculatePriceAsync(CardInfo cardInfo);
 
     /// <summary>
     /// Завершить процесс продажи.

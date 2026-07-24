@@ -385,6 +385,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!result.IsSuccess)
                 return;
 
+            await _salesProcessService.CalculatePriceAsync(result.Card!);
+
             Steps[3].CompleteStepCommand.Execute(null);
         }
         catch (Exception e)

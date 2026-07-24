@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -6,6 +7,9 @@ namespace Terminal.Application.Helpers;
 
 public static class XmlHelper
 {
+    private const string Format = "yyyy-MM-dd HH:mm:ss";
+    private const string Empty = "0000-00-00 00:00:00";
+    
     public static T DeserializeXml<T>(string xmlContent)
     {
         var serializer = new XmlSerializer(typeof(T));
@@ -49,6 +53,20 @@ public static class XmlHelper
         using var reader = new StreamReader(memoryStream, encoding);
         return reader.ReadToEnd();
     }
+    
+    /// <summary>
+    /// DateTime -> XML строка
+    /// </summary>
+    public static string DateTimeToXml(DateTime date) =>
+        date <= DateTime.MinValue ? Empty : date.ToString(Format, CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// XML строка -> DateTime
+    /// </summary>
+    public static DateTime DateTimeFromXml(string? value) =>
+        string.IsNullOrEmpty(value) || value == Empty
+            ? DateTime.MinValue
+            : DateTime.ParseExact(value, Format, CultureInfo.InvariantCulture);
 
     public static T DeserializeXmlFromFile<T>(string filePath)
     {

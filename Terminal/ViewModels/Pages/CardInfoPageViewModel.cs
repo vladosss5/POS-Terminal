@@ -48,7 +48,10 @@ public partial class CardInfoPageViewModel : PageViewModelBase
 
         _ = StartCardReaderAsync();
     }
-
+    
+    /// <summary>
+    /// Запустить считыватель карты.
+    /// </summary>
     private async Task StartCardReaderAsync()
     {
         if (_cardReadCts != null)
@@ -95,7 +98,7 @@ public partial class CardInfoPageViewModel : PageViewModelBase
                     {
                         ElectronicNumber = cardNumber,
                         BonusMode = 1,
-                        CardApplicationSchemeType = 8,
+                        ApplicationSchemeType = CardApplicationSchemeType.Max,
                         IssuerNet = 1,
                         OrganizationCode = 2600,
                         PersonCode = 1,

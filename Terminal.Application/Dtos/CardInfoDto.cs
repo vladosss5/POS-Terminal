@@ -1,4 +1,5 @@
 ﻿using System.Xml.Serialization;
+using Terminal.Core.Enums;
 
 namespace Terminal.Application.Dtos;
 
@@ -9,7 +10,7 @@ public class CardInfoDto
     public int BonusMode { get; set; }
     
     [XmlElement("CardApplicationSchemeType")]
-    public int CardApplicationSchemeType { get; set; }
+    public CardApplicationSchemeType ApplicationSchemeType { get; set; }
     
     [XmlElement("IssuerNet")]
     public int IssuerNet { get; set; }

@@ -385,7 +385,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
             if (!result.IsSuccess)
                 return;
 
-            await _salesProcessService.CalculatePriceAsync(result.Card!);
+            await _salesProcessService.CalculateDiscountAsync(result.Card!);
 
             Steps[3].CompleteStepCommand.Execute(null);
         }

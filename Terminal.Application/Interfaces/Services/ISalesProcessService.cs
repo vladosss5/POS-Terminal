@@ -45,7 +45,7 @@ public interface ISalesProcessService
     /// <param name="derivedType">Дополнительный.</param>
     public Task SetPaymentTypeAsync(BasePaymentType baseType, DerivedPaymentType derivedType);
 
-    public Task CalculatePriceAsync(CardInfo cardInfo);
+    public Task CalculateDiscountAsync(CardInfo cardInfo);
 
     /// <summary>
     /// Завершить процесс продажи.

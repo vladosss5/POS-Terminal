@@ -164,7 +164,7 @@ public class SalesProcessService : ISalesProcessService
     }
 
     /// <inheritdoc/>
-    public async Task CalculatePriceAsync(CardInfo cardInfo)
+    public async Task CalculateDiscountAsync(CardInfo cardInfo)
     {
         var cardInfoRequestDto = GetRequestDto(cardInfo.Uid);
         var cardInfoResponseDto = await _discountingMethods.GetCardInfoAsync(cardInfoRequestDto);
@@ -232,9 +232,11 @@ public class SalesProcessService : ISalesProcessService
                         BonusMode = 1,
                         ApplicationSchemeType = CardApplicationSchemeType.Resource,
                         IssuerNet = 1,
-                        OrganizationCode = 2600,
+                        OrganizationCode = 9999999,
                         PersonCode = 1,
-                        CardType = 2
+                        CardType = 2,
+                        IssuerCode = 1,
+                        GraphicalNumber = "0"
                     }
                 ]
             },

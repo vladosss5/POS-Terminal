@@ -46,7 +46,7 @@ public class AndroidDiscountingLibraryService : IDiscountingLibraryService
             nOutputXmlBufferSize, 
             ref pnReturnBytes);
         
-        var resultString = Encoding.GetEncoding("windows-1251").GetString(pOutputXmlBuffer, 0, (int)pnReturnBytes);
+        var resultString = Encoding.GetEncoding(1251).GetString(pOutputXmlBuffer, 0, (int)pnReturnBytes);
 
         return resultString;
     }

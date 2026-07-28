@@ -1,11 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Terminal.Application.Dtos;
 using Terminal.Application.Dtos.CardInfoRoot;
+using Terminal.Application.Dtos.DiscountRoot;
+using Terminal.Application.Helpers;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
 
@@ -168,7 +171,9 @@ public class SalesProcessService : ISalesProcessService
     {
         var cardInfoRequestDto = GetRequestDto(cardInfo.Uid);
         var cardInfoResponseDto = await _discountingMethods.GetCardInfoAsync(cardInfoRequestDto);
-        
+
+        var discountRequestDto = await GetDiscountRequestDto(cardInfoResponseDto);
+        var discountResponseDto = await _discountingMethods.CalculateDiscountAsync(discountRequestDto);
     }
 
     /// <inheritdoc/>
@@ -190,7 +195,7 @@ public class SalesProcessService : ISalesProcessService
             sale.PersonName = user?.Name;
             sale.PersonKey = user?.UserId;
             sale.ShiftKey = shift?.ShiftKey;
-            sale.TerminalKey = long.Parse(terminalNumber);
+            sale.TerminalKey = long.Parse(terminalNumber!);
 
             // CalculateDiscounting(sale);
         }
@@ -259,6 +264,61 @@ public class SalesProcessService : ISalesProcessService
                 Flags = 2,
             }
         };
+
+        return request;
+    }
+    
+    private async Task<DiscountRequestDto> GetDiscountRequestDto(CardInfoDtoResponseDto cardInfoResponseDto)
+    {
+        var request = new DiscountRequestDto
+        {
+            Request = new RequestDto
+            {
+                Command = DiscounterCommand.CalculateDiscount,
+                IssuerId = cardInfoResponseDto.Request.IssuerId,
+                ShopId = cardInfoResponseDto.Request.ShopId
+            },
+            CartInfoDto = cardInfoResponseDto.CartInfo,
+            Parameters = cardInfoResponseDto.Parameters,
+            CardInfoList = cardInfoResponseDto.CardInfoList
+        };
+
+        var id = 1;
+
+        foreach (var selling in Cart)
+        {
+            var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(selling.ResourceKey!.Value);
+
+            if (resourceCode == null)
+                throw new NotFoundException($"Не найден resource code с ключом {selling.ResourceKey!.Value}");
+            
+            request.SaleInfoList.SaleInfos.Add(new SaleInfoDto
+            {
+                ResourcePrice = resourceCode!.ResourcePrice ?? 0,
+                RequestSum = selling.RequestedCost ?? 0,
+                RequestAmount = Math.Round(selling.RequestedAmount ?? 0, 3),
+                Density = (float)(selling.Density ?? 0.545000),
+                Flags = selling.RequestFlags ?? 0,
+                Id = id++,
+                RequestId = id,
+                ResourceSet = resourceCode.CollectionKey ?? 3,
+                ResourceCode = resourceCode.ResourceKey,
+                AquirerResourceCode = selling.ResourceCode ?? 0,
+                BasePaymentType = (int)selling.BaseType!,
+                DerivedPaymentType = (int)selling.DerivedType!,
+                VolumeDigits = 3,
+                InitialCardInfoIndex = 255,
+                InitialModifierCardInfoIndex = 255,
+                CalculatedCardInfoIndex = 255,
+                CalculatedModifierCardInfoIndex = 255,
+                VendorCode = selling.VendorKey ?? 0,
+                TaxCode = 9,
+                SalePrice = selling.RequestedCost ?? 0,
+                DateTime = XmlHelper.DateTimeToXml(selling.TransactionDatetime ?? DateTime.Now),
+                ResourceName = selling.ResourceName,
+                TransactionGuid = Guid.Empty.ToString()
+            });
+        }
 
         return request;
     }

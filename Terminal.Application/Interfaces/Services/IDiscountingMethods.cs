@@ -1,4 +1,5 @@
 ﻿using Terminal.Application.Dtos.CardInfoRoot;
+using Terminal.Application.Dtos.DiscountRoot;
 
 namespace Terminal.Application.Interfaces.Services;
 
@@ -13,4 +14,11 @@ public interface IDiscountingMethods
     /// <param name="dtoRequestDto">Запрос информации.</param>
     /// <returns>Ответ с информацией.</returns>
     public Task<CardInfoDtoResponseDto> GetCardInfoAsync(CardInfoDtoRequestDto dtoRequestDto);
+
+    /// <summary>
+    /// Предварительно расчиать данные продажи.
+    /// </summary>
+    /// <param name="requestDto">Dto запроса.</param>
+    /// <returns>Dto ответа.</returns>
+    public Task<DiscountResponseDto> CalculateDiscountAsync(DiscountRequestDto requestDto);
 }

@@ -65,6 +65,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ISalesReceiptMappingService, SalesReceiptMappingService>();
         
         // Сервисы логики
+        collection.AddSingleton<ITmsClient, TmsClient>();
         collection.AddTransient<IMessageBoxService, MessageBoxService>();
         collection.AddTransient<ISellingBuilder, SellingBuilder>();
         collection.AddSingleton<INavigationService, NavigationService>();
@@ -92,30 +93,6 @@ public static class ServiceCollectionExtensions
         
         // Фоновые сервисы
         collection.AddSingleton<IUpgradeBackgroundService, UpgradeBackgroundService>();
-    }
-
-    /// <summary>
-    /// Регистрация TMS клиента.
-    /// </summary>
-    public static void AddTmsClient(this IServiceCollection collection)
-    {
-        collection.AddSingleton<ITmsClient>(sp =>
-        {
-            var parameterService = sp.GetRequiredService<IParameterService>();
-            var loggerService = sp.GetRequiredService<ILogger<TmsClient>>();
-        
-            var ipTms = parameterService.GetValueAsync(AppParameter.TmsIp).GetAwaiter().GetResult();
-            if (string.IsNullOrEmpty(ipTms))
-                ipTms = "127.0.0.1";
-            
-            var portTms = parameterService.GetValueAsync(AppParameter.TmsPort).GetAwaiter().GetResult();
-            if (string.IsNullOrEmpty(portTms))
-                portTms = "5297";
-            
-            var addressBase = $"http://{ipTms}:{portTms}/";
-        
-            return new TmsClient(addressBase, loggerService);
-        });
     }
     
     /// <summary>

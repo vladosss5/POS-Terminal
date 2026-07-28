@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Terminal.Application.Interfaces.Services;
 using Terminal.ViewModels;
+using Terminal.ViewModels.Pages;
 
 namespace Terminal.Services.NavigationService;
 
@@ -12,6 +15,9 @@ public class NavigationService : INavigationService
 {
     ///<inheritdoc cref="IServiceProvider"/>
     private readonly IServiceProvider _serviceProvider;
+
+    ///<inheritdoc cref="IParameterService"/>
+    private readonly IParameterService _parameterService;
     
     /// <summary>
     /// Стек истории открытия страниц.
@@ -48,9 +54,14 @@ public class NavigationService : INavigationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public NavigationService(IServiceProvider serviceProvider)
+    public NavigationService(
+        IServiceProvider serviceProvider, 
+        IParameterService parameterService)
     {
         _serviceProvider = serviceProvider;
+        _parameterService = parameterService;
+
+        _ = OpenFirstPageAsync();
     }
     
     ///<inheritdoc/>
@@ -102,5 +113,27 @@ public class NavigationService : INavigationService
         }
 
         CurrentPage = page;
+    }
+
+    /// <summary>
+    /// Открытие первой страницы в зависимости от настройки.
+    /// </summary>
+    private async Task OpenFirstPageAsync()
+    {
+        bool isInstalled;
+        
+        try
+        {
+            isInstalled = await _parameterService.CheckSetupComplete();
+        }
+        catch (Exception e)
+        {
+            isInstalled = false;
+        }
+        
+        if (isInstalled)
+            NavigateTo<OpenShiftPageViewModel>();
+        else
+            NavigateTo<InitialSetupPageViewModel>();
     }
 }

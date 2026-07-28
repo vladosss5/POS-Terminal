@@ -18,7 +18,6 @@ internal static partial class Program
                 services.AddLogger();
                 services.AddCommonServices();
                 services.AddDataContext();
-                services.AddTmsClient();
             })
             .Build();
 

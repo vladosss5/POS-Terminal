@@ -19,7 +19,6 @@ internal static class Program
                 services.AddCommonServices();
                 services.AddDesktopServices();
                 services.AddDataContext();
-                services.AddTmsClient();
             })
             .Build();
     

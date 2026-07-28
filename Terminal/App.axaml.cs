@@ -12,21 +12,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.Background;
-using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
 using Terminal.Services.MessageBoxService;
-using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
-using Terminal.ViewModels.Pages;
 using Terminal.Views;
 
 namespace Terminal;
 
-public partial class App : Avalonia.Application
+public class App : Avalonia.Application
 {
     /// <summary>
     /// Логгер.
@@ -60,12 +56,8 @@ public partial class App : Avalonia.Application
             return;
         }
         
-        Logger = Services!.GetRequiredService<ILogger<App>>();
-        
         await InitializeDatabaseAsync();
-
-        await OpenFirstPage();
-
+        
         var mainViewModel = Services!.GetRequiredService<MainViewModel>();
 
         switch (ApplicationLifetime)
@@ -84,6 +76,8 @@ public partial class App : Avalonia.Application
                 break;
         }
 
+        Logger = Services!.GetRequiredService<ILogger<App>>();
+        
         await StartUpgradeAsync();
         
         base.OnFrameworkInitializationCompleted();
@@ -194,22 +188,6 @@ public partial class App : Avalonia.Application
         {
             Logger?.LogError($"[DB] Критическая ошибка при инициализации БД: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Открытие первой страницы в зависимости от настройки.
-    /// </summary>
-    private static async Task OpenFirstPage()
-    {
-        var navigationService = Services!.GetRequiredService<INavigationService>();
-        var parameterService = Services!.GetRequiredService<IParameterService>();
-
-        var isInstalled = await parameterService.CheckSetupComplete();
-
-        if (isInstalled)
-            navigationService.NavigateTo<OpenShiftPageViewModel>();
-        else
-            navigationService.NavigateTo<InitialSetupPageViewModel>();
     }
     
     /// <summary>

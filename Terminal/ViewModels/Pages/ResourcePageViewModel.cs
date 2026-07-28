@@ -149,7 +149,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
         if (SelectedResourceCode == null)
             return;
 
-        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey!.Value);
+        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey);
         
         if (resourceCode == null)
             return;

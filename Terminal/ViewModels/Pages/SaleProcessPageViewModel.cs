@@ -222,7 +222,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     public void SetAmount()
     {
-        _salesProcessService.SetAmount(SelectedResourceCode!.ResourceKey!.Value, _amountFuel, IsAmountMoney);
+        _salesProcessService.SetAmount(SelectedResourceCode!.ResourceKey, _amountFuel, IsAmountMoney);
         Steps[1].CompleteStepCommand.Execute(null);
     }
     

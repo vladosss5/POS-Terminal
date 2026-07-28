@@ -18,7 +18,7 @@ public class ResourceCode
     /// <summary>
     /// Ключ ресурса
     /// </summary>
-    public int? ResourceKey { get; set; }
+    public int ResourceKey { get; set; }
 
     /// <summary>
     /// Наименование ресурса

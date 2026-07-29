@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Globalization;
-
-namespace Terminal.Core.Entities.DbEntities.MainDb;
+﻿namespace Terminal.Core.Entities.DbEntities.MainDb;
 
 public class ResourceCode
 {
@@ -29,13 +26,6 @@ public class ResourceCode
     /// Цена ресурса
     /// </summary>
     public decimal? ResourcePrice { get; set; }
-
-    /// <summary>
-    /// Автосвойство для показа стоимости с десятичной частью через точку.
-    /// </summary>
-    [NotMapped] public string ResourcePriceFormatted => ResourcePrice != null 
-        ? ResourcePrice.Value.ToString(CultureInfo.InvariantCulture)
-        : "0";
 
     /// <summary>
     /// Признак отображения в интерфейсе

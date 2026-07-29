@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,9 +10,11 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
+using Terminal.Core.IRepositories;
+using Terminal.Dtos;
+using Terminal.Services.Mappers.ResourceCodeMapping;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -30,6 +33,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ISalesProcessService" />
     private readonly ISalesProcessService _salesProcessService;
 
+    /// <inheritdoc cref="IResourceCodeMapper" />
+    private readonly IResourceCodeMapper _resourceCodeMapper;
+
+    /// <inheritdoc cref="IResourceCodeRepository" />
+    private readonly IResourceCodeRepository _resourceCodeRepository;
     
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
@@ -59,19 +67,19 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Индекс текущего шага.
     /// </summary>
     [ObservableProperty] 
-    public partial int CurrentStepIndex { get; set; }
+    private partial int CurrentStepIndex { get; set; }
+
+    /// <summary>
+    /// Выбранный тип топлива (товар).
+    /// </summary>
+    [ObservableProperty]
+    private partial ResourceCodeDto? SelectedResourceCode { get; set; }
 
     /// <summary>
     /// Процесс начат?
     /// </summary>
     [ObservableProperty]
     public partial bool IsProcessStarted { get; set; }
-
-    /// <summary>
-    /// Выбранный тип топлива (товар).
-    /// </summary>
-    [ObservableProperty]
-    public partial ResourceCode? SelectedResourceCode { get; set; }
 
     /// <summary>
     /// Кол-во указано в деньгах?
@@ -96,7 +104,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Св-во для хранения товаров (типов топлива).
     /// </summary>
     [ObservableProperty]
-    public partial ObservableCollection<ResourceCode> Resources { get; set; }
+    public partial ObservableCollection<ResourceCodeDto> Resources { get; set; }
 
     /// <summary>
     /// Коллекция шагов заправки.
@@ -108,7 +116,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Типы оплаты.
     /// </summary>
     [ObservableProperty]
-    public partial Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; set; }
+    public partial Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary
+    {
+        get;
+        set;
+    }
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -159,12 +171,16 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     public SaleProcessPageViewModel(
         ILogger<SaleProcessPageViewModel> logger, 
         ICardReaderService cardReaderService, 
-        ISalesProcessService salesProcessService) 
+        ISalesProcessService salesProcessService,
+        IResourceCodeMapper resourceCodeMapper, 
+        IResourceCodeRepository resourceCodeRepository)
         : base(logger)
     {
         _logger = logger;
         _cardReaderService = cardReaderService;
         _salesProcessService = salesProcessService;
+        _resourceCodeMapper = resourceCodeMapper;
+        _resourceCodeRepository = resourceCodeRepository;
 
         InitializeSteps();
         _ = LoadDataAsync();
@@ -207,13 +223,17 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// <summary>
     /// Указать тип топлива (товара).
     /// </summary>
-    /// <param name="resource">Топливо.</param>
+    /// <param name="resourceDto">Топливо.</param>
     [RelayCommand]
-    private async Task SetFuelType(ResourceCode resource)
+    private async Task SetFuelType(ResourceCodeDto resourceDto)
     {
+        var resource = await _resourceCodeRepository.GetByResourceKeyAsync(resourceDto.ResourceKey);
+        if (resource == null)
+            return;
+        
         await _salesProcessService.AddToCartAsync(resource);
 
-        SelectedResourceCode = resource;
+        SelectedResourceCode = resourceDto;
         Steps[0].CompleteStepCommand.Execute(null);
     }
     
@@ -230,8 +250,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Добавить символы в предпросмотр кол-ва.
     /// </summary>
     /// <param name="symbols">Символ.</param>
-    [RelayCommand]
-    private void AddCharInAmountPreview(string symbols)
+    public void AddCharInAmountPreview(string symbols)
     {
         foreach (var symbol in symbols)
         {
@@ -460,6 +479,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     private async Task LoadDataAsync()
     {
         var resources = await _salesProcessService.GetAvailableResourceCodesAsync();
-        Resources = new ObservableCollection<ResourceCode>(resources);
+        var dtoResources = resources.Select(_resourceCodeMapper.MapResourceCodeDomainModelToDto);
+
+        Resources = [.. dtoResources];
     }
 }

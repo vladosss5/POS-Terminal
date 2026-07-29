@@ -19,6 +19,7 @@ using Terminal.Persistence.Repositories;
 using Terminal.Persistence.TmsClient;
 using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
+using Terminal.Services.Mappers.ResourceCodeMapping;
 using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
@@ -62,6 +63,7 @@ public static class ServiceCollectionExtensions
         // Мапперы
         collection.AddSingleton<ISettingPaymentTypeMapper, SettingPaymentTypeMapper>();
         collection.AddSingleton<ISalesReceiptMappingService, SalesReceiptMappingService>();
+        collection.AddSingleton<IResourceCodeMapper, ResourceCodeMapper>();
         
         // Сервисы логики
         collection.AddSingleton<ITmsClient, TmsClient>();

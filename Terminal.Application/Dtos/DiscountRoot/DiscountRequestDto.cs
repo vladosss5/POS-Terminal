@@ -3,7 +3,7 @@
 namespace Terminal.Application.Dtos.DiscountRoot;
 
 /// <summary>
-/// Модель запроса предварительного прасчёта к библиотеке скидок.
+/// Модель запроса предварительного просчёта к библиотеке скидок.
 /// </summary>
 [XmlRoot("Root")]
 public class DiscountRequestDto : DiscountBaseDto

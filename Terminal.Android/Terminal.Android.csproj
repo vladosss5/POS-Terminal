@@ -8,11 +8,6 @@
         <ApplicationVersion>1001</ApplicationVersion>
         <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
-        <PublishTrimmed>true</PublishTrimmed>
-        <TrimMode>partial</TrimMode>
-        <RunAOTCompilation>false</RunAOTCompilation>
-        <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-        <OptimizationPreference>Speed</OptimizationPreference>
         <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidUseIntermediateDesignerFile>true</AndroidUseIntermediateDesignerFile>

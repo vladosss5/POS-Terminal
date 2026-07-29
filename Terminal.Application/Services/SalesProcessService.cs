@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Terminal.Application.Dtos;
 using Terminal.Application.Dtos.CardInfoRoot;
+using Terminal.Application.Dtos.DebitRoot;
 using Terminal.Application.Dtos.DiscountRoot;
 using Terminal.Application.Helpers;
 using Terminal.Application.Interfaces.Mappers;
@@ -170,10 +171,32 @@ public class SalesProcessService : ISalesProcessService
     public async Task CalculateDiscountAsync(CardInfo cardInfo)
     {
         var cardInfoRequestDto = GetRequestDto(cardInfo.Uid);
-        var cardInfoResponseDto = await _discountingMethods.GetCardInfoAsync(cardInfoRequestDto);
+        var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
 
         var discountRequestDto = await GetDiscountRequestDto(cardInfoResponseDto);
-        var discountResponseDto = await _discountingMethods.CalculateDiscountAsync(discountRequestDto);
+        var discountResponseDto = _discountingMethods.CalculateDiscount(discountRequestDto);
+        
+        // Дебетование
+        var debitRequestDto = GetDebitRequestDto(discountResponseDto, cardInfoResponseDto);
+
+        for (var i = 1; i <= 3; i++)
+        {
+            var debitResponseDto = _discountingMethods.Debit(debitRequestDto);
+        
+            var viewTypeParameter = debitResponseDto.Request.ResultMessageExt?
+                .Split("\r\n")
+                .FirstOrDefault(x => x.Contains("ViewType"))?
+                .Split('=')
+                .Last();
+
+            if (debitResponseDto.Request.ResultCodeExt == 65549 && viewTypeParameter == "3")
+            {
+                debitRequestDto.Parameters.Pin = "2815";
+                continue;
+            }
+            
+            break;
+        }
     }
 
     /// <inheritdoc/>
@@ -321,5 +344,38 @@ public class SalesProcessService : ISalesProcessService
         }
 
         return request;
+    }
+    
+    private DebitRequestDto GetDebitRequestDto(
+        DiscountResponseDto discountResponseDto, 
+        CardInfoDtoResponseDto cardInfoResponseDto)
+    {
+        var result = new DebitRequestDto
+        {
+            Request = new RequestDto
+            {
+                Command = DiscounterCommand.OnlineConfirm,
+                IssuerId = discountResponseDto.Request.IssuerId,
+                ShopId = discountResponseDto.Request.ShopId
+            },
+            CartInfoDto = discountResponseDto.CartInfoDto,
+            Parameters = discountResponseDto.Parameters
+        };
+
+        var index = 0;
+
+        foreach (var cardInfo in cardInfoResponseDto.CardInfoList.CardInfos)
+        {
+            cardInfo.Index = index++;
+            result.CardInfoList.CardInfos.Add(cardInfo);
+        }
+        
+        foreach (var saleInfo in discountResponseDto.SaleInfoList.SaleInfos)
+        {
+            saleInfo.InitialCardInfoIndex = saleInfo.CalculatedCardInfoIndex;
+            result.SaleInfoList.SaleInfos.Add(saleInfo);
+        }
+        
+        return result;
     }
 }

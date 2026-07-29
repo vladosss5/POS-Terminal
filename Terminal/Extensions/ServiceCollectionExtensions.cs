@@ -91,7 +91,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ISettingRepository, SettingRepository>();
         collection.AddTransient<IShiftRepository, ShiftRepository>();
         collection.AddTransient<IUserRepository, UserRepository>();
-        collection.AddTransient<IResourceCodeRepository, ResourceCodeRepository>();
+        collection.AddSingleton<IResourceCodeRepository, ResourceCodeRepository>();
         
         // Фоновые сервисы
         collection.AddSingleton<IUpgradeBackgroundService, UpgradeBackgroundService>();

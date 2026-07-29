@@ -250,7 +250,8 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// Добавить символы в предпросмотр кол-ва.
     /// </summary>
     /// <param name="symbols">Символ.</param>
-    public void AddCharInAmountPreview(string symbols)
+    [RelayCommand]
+    private void AddCharInAmountPreview(string symbols)
     {
         foreach (var symbol in symbols)
         {

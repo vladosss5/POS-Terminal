@@ -6,71 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Terminal.Persistence.MainDB.Migrations
 {
     /// <inheritdoc />
-    public partial class AddOtherTables : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "Temperature",
-                table: "resource_code",
-                type: "NUMERIC( 20, 4 )",
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "NUMERIC(20,4)",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "ResourcePrice",
-                table: "resource_code",
-                type: "NUMERIC( 20, 3 )",
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "ResourceName",
-                table: "resource_code",
-                type: "VARCHAR( 50 )",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "TEXT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "ResourceKey",
-                table: "resource_code",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "INTEGER");
-
-            migrationBuilder.AlterColumn<byte>(
-                name: "IsShow",
-                table: "resource_code",
-                type: "TINYINT",
-                nullable: true,
-                oldClrType: typeof(byte),
-                oldType: "tinyint");
-
-            migrationBuilder.AlterColumn<double>(
-                name: "Density",
-                table: "resource_code",
-                type: "NUMERIC( 20, 4 )",
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "NUMERIC(20,4)",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "CollectionKey",
-                table: "resource_code",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "INTEGER");
-
             migrationBuilder.CreateTable(
                 name: "allow",
                 columns: table => new
@@ -436,6 +376,25 @@ namespace Terminal.Persistence.MainDB.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "resource_code",
+                columns: table => new
+                {
+                    FuelCodeKey = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CollectionKey = table.Column<int>(type: "INTEGER", nullable: true),
+                    ResourceKey = table.Column<int>(type: "INTEGER", nullable: false),
+                    ResourceName = table.Column<string>(type: "VARCHAR( 50 )", nullable: true),
+                    ResourcePrice = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    IsShow = table.Column<byte>(type: "TINYINT", nullable: true),
+                    Density = table.Column<double>(type: "NUMERIC( 20, 4 )", nullable: true),
+                    Temperature = table.Column<int>(type: "NUMERIC( 20, 4 )", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_resource_code", x => x.FuelCodeKey);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "selling",
                 columns: table => new
                 {
@@ -449,10 +408,10 @@ namespace Terminal.Persistence.MainDB.Migrations
                     ElectronicNumber = table.Column<long>(type: "NUMERIC( 20 )", nullable: true),
                     BaseType = table.Column<int>(type: "INTEGER( 1 )", nullable: true),
                     DerivedType = table.Column<int>(type: "INTEGER( 1 )", nullable: true),
-                    Amount = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    ShopCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    ShopBaseCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    SellingPrice = table.Column<int>(type: "NUMERIC( 10, 3 )", nullable: true),
+                    Amount = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    ShopCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    ShopBaseCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    SellingPrice = table.Column<decimal>(type: "NUMERIC( 10, 3 )", nullable: true),
                     ShoppingCartKey = table.Column<int>(type: "INTEGER", nullable: true),
                     ResourceKey = table.Column<int>(type: "INTEGER", nullable: true),
                     CollectionKey = table.Column<int>(type: "INTEGER", nullable: true),
@@ -468,37 +427,37 @@ namespace Terminal.Persistence.MainDB.Migrations
                     Sign = table.Column<string>(type: "VARCHAR( 255 )", nullable: true),
                     AppStatus = table.Column<int>(type: "INTEGER", nullable: true),
                     AppMode = table.Column<int>(type: "INTEGER", nullable: true),
-                    AppLimit = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    AppValue = table.Column<double>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    AppSecondLimit = table.Column<double>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    AppLimit = table.Column<float>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    AppValue = table.Column<float>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    AppSecondLimit = table.Column<float>(type: "NUMERIC( 20, 3 )", nullable: true),
                     AppSecondValue = table.Column<double>(type: "NUMERIC( 20, 3 )", nullable: true),
                     CheckNumber = table.Column<int>(type: "INTEGER", nullable: true),
                     ValidityPeriod = table.Column<long>(type: "INTEGER", nullable: true),
                     CommonApplicationID = table.Column<int>(type: "INTEGER", nullable: true),
-                    Guid = table.Column<Guid>(type: "VARCHAR(35)", nullable: true),
+                    Guid = table.Column<string>(type: "VARCHAR(35)", nullable: true),
                     ErrorCode = table.Column<int>(type: "INTEGER", nullable: true),
-                    BonusIn = table.Column<double>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    BonusOut = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    BonusInCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    BonusOutCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    BonusIn = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    BonusOut = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    BonusInCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    BonusOutCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
                     IsAccountRep = table.Column<int>(type: "INTEGER", nullable: true),
-                    RequestedAmount = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    RequestedCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
-                    BasePrice = table.Column<int>(type: "NUMERIC( 10, 3 )", nullable: true),
-                    ClientCost = table.Column<int>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    RequestedAmount = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    RequestedCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
+                    BasePrice = table.Column<decimal>(type: "NUMERIC( 10, 3 )", nullable: true),
+                    ClientCost = table.Column<decimal>(type: "NUMERIC( 20, 3 )", nullable: true),
                     RequestFlags = table.Column<int>(type: "INTEGER", nullable: true, defaultValue: 0),
                     DelayedBonusType = table.Column<int>(type: "INTEGER", nullable: true),
-                    ParcelPrice = table.Column<int>(type: "NUMERIC( 10, 3 )", nullable: true),
+                    ParcelPrice = table.Column<decimal>(type: "NUMERIC( 10, 3 )", nullable: true),
                     CommodityKey = table.Column<int>(type: "INTEGER", nullable: true),
                     PaymentOfCommodityKey = table.Column<int>(type: "INTEGER", nullable: true),
                     SetOfGoodsKey = table.Column<int>(type: "INTEGER", nullable: true),
                     VendorKey = table.Column<int>(type: "INTEGER", nullable: true),
-                    Temperature = table.Column<int>(type: "NUMERIC( 10, 4 )", nullable: true),
-                    Density = table.Column<int>(type: "NUMERIC( 10, 4 )", nullable: true),
-                    CommodityGuid = table.Column<Guid>(type: "VARCHAR( 255 )", nullable: true),
-                    SetOfGoodsGuid = table.Column<Guid>(type: "VARCHAR( 255 )", nullable: true),
-                    BeginTemperature = table.Column<decimal>(type: "NUMERIC( 10, 4 )", nullable: true),
-                    EndTemperature = table.Column<decimal>(type: "NUMERIC( 10, 4 )", nullable: true),
+                    Temperature = table.Column<float>(type: "NUMERIC( 10, 4 )", nullable: true),
+                    Density = table.Column<float>(type: "NUMERIC( 10, 4 )", nullable: true),
+                    CommodityGuid = table.Column<string>(type: "VARCHAR( 255 )", nullable: true),
+                    SetOfGoodsGuid = table.Column<string>(type: "VARCHAR( 255 )", nullable: true),
+                    BeginTemperature = table.Column<float>(type: "NUMERIC( 10, 4 )", nullable: true),
+                    EndTemperature = table.Column<float>(type: "NUMERIC( 10, 4 )", nullable: true),
                     SellingFlags = table.Column<long>(type: "BIGINT", nullable: true),
                     Overflow = table.Column<decimal>(type: "NUMERIC( 10, 4 )", nullable: true),
                     CardType = table.Column<int>(type: "INTEGER", nullable: true),
@@ -706,12 +665,6 @@ namespace Terminal.Persistence.MainDB.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ResourceUnique",
-                table: "resource_code",
-                columns: new[] { "CollectionKey", "ResourceKey" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "BonChange1",
                 table: "bonus_change",
                 column: "SetOfGoodsGuid",
@@ -733,6 +686,12 @@ namespace Terminal.Persistence.MainDB.Migrations
                 name: "PosUpdateIndex",
                 table: "pos_update",
                 column: "Guid",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ResourceUnique",
+                table: "resource_code",
+                columns: new[] { "CollectionKey", "ResourceKey" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -798,6 +757,9 @@ namespace Terminal.Persistence.MainDB.Migrations
                 name: "request");
 
             migrationBuilder.DropTable(
+                name: "resource_code");
+
+            migrationBuilder.DropTable(
                 name: "selling");
 
             migrationBuilder.DropTable(
@@ -820,76 +782,6 @@ namespace Terminal.Persistence.MainDB.Migrations
 
             migrationBuilder.DropTable(
                 name: "list_org");
-
-            migrationBuilder.DropIndex(
-                name: "ResourceUnique",
-                table: "resource_code");
-
-            migrationBuilder.AlterColumn<decimal>(
-                name: "Temperature",
-                table: "resource_code",
-                type: "NUMERIC(20,4)",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "NUMERIC( 20, 4 )",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<decimal>(
-                name: "ResourcePrice",
-                table: "resource_code",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "NUMERIC( 20, 3 )",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "ResourceName",
-                table: "resource_code",
-                type: "TEXT",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "VARCHAR( 50 )",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "ResourceKey",
-                table: "resource_code",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<byte>(
-                name: "IsShow",
-                table: "resource_code",
-                type: "tinyint",
-                nullable: false,
-                defaultValue: (byte)0,
-                oldClrType: typeof(byte),
-                oldType: "TINYINT",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<decimal>(
-                name: "Density",
-                table: "resource_code",
-                type: "NUMERIC(20,4)",
-                nullable: true,
-                oldClrType: typeof(double),
-                oldType: "NUMERIC( 20, 4 )",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "CollectionKey",
-                table: "resource_code",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "INTEGER",
-                oldNullable: true);
         }
     }
 }

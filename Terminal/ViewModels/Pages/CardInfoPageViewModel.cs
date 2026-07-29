@@ -69,7 +69,7 @@ public partial class CardInfoPageViewModel : PageViewModelBase
                 return;
 
             var request = GetRequestDto(int.Parse(result.Card!.Uid));
-            var response = await _discountingMethods.GetCardInfoAsync(request);
+            var response = _discountingMethods.GetCardInfo(request);
 
             CardInfoText = XmlHelper.SerializeXml(response);
             ShowCardInfo = true;

@@ -200,7 +200,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
             return;
 
-        await _salesProcessService.SetPaymentTypeAsync(value.BaseType, value.DerivedType);
+        _salesProcessService.SetPaymentType(value.BaseType, value.DerivedType);
         
         if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
         {
@@ -231,7 +231,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         if (resource == null)
             return;
         
-        await _salesProcessService.AddToCartAsync(resource);
+        _salesProcessService.AddToCart(resource);
 
         SelectedResourceCode = resourceDto;
         Steps[0].CompleteStepCommand.Execute(null);

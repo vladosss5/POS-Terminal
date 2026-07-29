@@ -116,7 +116,7 @@ public class SalesProcessService : ISalesProcessService
     }
 
     /// <inheritdoc/>
-    public async Task AddToCartAsync(ResourceCode resource)
+    public void AddToCart(ResourceCode resource)
     {
         var sale = new Selling
         {
@@ -130,7 +130,7 @@ public class SalesProcessService : ISalesProcessService
     }
 
     /// <inheritdoc/>
-    public async Task SetAmount(long resourceCodeId, decimal amount, bool isMoney)
+    public void SetAmount(long resourceCodeId, decimal amount, bool isMoney)
     {
         var sale = Cart.FirstOrDefault(x => x.ResourceKey == resourceCodeId);
 
@@ -152,13 +152,13 @@ public class SalesProcessService : ISalesProcessService
     }
 
     /// <inheritdoc/>
-    public async Task RemoveFromCartAsync(ResourceCode resource)
+    public void RemoveFromCart(ResourceCode resource)
     {
         throw new NotImplementedException();
     }
 
     /// <inheritdoc/>
-    public async Task SetPaymentTypeAsync(BasePaymentType baseType, DerivedPaymentType derivedType)
+    public void SetPaymentType(BasePaymentType baseType, DerivedPaymentType derivedType)
     {
         foreach (var sale in Cart)
         {

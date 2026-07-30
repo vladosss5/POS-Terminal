@@ -29,8 +29,8 @@ public interface ISalesProcessService
     /// </summary>
     /// <param name="resourceCodeId">Id ресурса.</param>
     /// <param name="amount">Кол-во чего-то.</param>
-    /// <param name="isMoney">Если true, то указывается кол-во денег; если false, то объём ресурса.</param>
-    public void SetAmount(long resourceCodeId, decimal amount, bool isMoney);
+    /// <param name="calculatedField">Поле требующее вычисление значения.</param>
+    public void SetAmount(int resourceCodeId, decimal amount, CalculatedField calculatedField);
     
     /// <summary>
     /// Удалить ресурс из корзины.

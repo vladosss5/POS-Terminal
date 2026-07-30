@@ -42,8 +42,8 @@ public class SalesProcessService : ISalesProcessService
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
     
-    /// <inheritdoc cref="ISalesReceiptMappingService" />
-    private readonly ISalesReceiptMappingService _receiptMappingService;
+    /// <inheritdoc cref="ISellingMappingService" />
+    private readonly ISellingMappingService _receiptMappingService;
     
     /// <inheritdoc cref="ISettingPaymentTypeMapper" />
     private readonly ISettingPaymentTypeMapper _settingPaymentTypeMapper;
@@ -53,6 +53,9 @@ public class SalesProcessService : ISalesProcessService
 
     /// <inheritdoc cref="IAuthService" />
     private readonly IAuthService _authService;
+
+    /// <inheritdoc cref="IAuthService" />
+    private readonly ISellingMappingService _sellingMappingService;
 
 
     /// <summary>
@@ -69,11 +72,11 @@ public class SalesProcessService : ISalesProcessService
         IReceiptPrintService receiptPrintService, 
         ISellingRepository sellingRepository, 
         IResourceCodeRepository resourceCodeRepository, 
-        ISalesReceiptMappingService receiptMappingService, 
+        ISellingMappingService receiptMappingService, 
         ISettingPaymentTypeMapper settingPaymentTypeMapper, 
         IAuthService authService, 
         ISettingRepository settingRepository, 
-        IShiftService shiftService, IParameterService parameterService, IDiscountingMethods discountingMethods)
+        IShiftService shiftService, IParameterService parameterService, IDiscountingMethods discountingMethods, ISellingMappingService sellingMappingService)
     {
         _logger = logger;
         _configurationService = configurationService;
@@ -87,6 +90,7 @@ public class SalesProcessService : ISalesProcessService
         _shiftService = shiftService;
         _parameterService = parameterService;
         _discountingMethods = discountingMethods;
+        _sellingMappingService = sellingMappingService;
     }
 
     /// <inheritdoc/>
@@ -123,31 +127,31 @@ public class SalesProcessService : ISalesProcessService
             ResourceKey = resource.ResourceKey,
             ResourceCode = resource.ResourceKey,
             ResourceName = resource.ResourceName,
-            SellingPrice = resource.ResourcePrice
+            BasePrice = resource.ResourcePrice
         };
         
         Cart.Add(sale);
     }
 
     /// <inheritdoc/>
-    public void SetAmount(long resourceCodeId, decimal amount, bool isMoney)
+    public void SetAmount(int resourceCodeId, decimal amount, CalculatedField calculatedField)
     {
         var sale = Cart.FirstOrDefault(x => x.ResourceKey == resourceCodeId);
-
         if (sale == null)
             throw new Exception("ResourceCode not found");
 
-        sale.Amount = amount;
+        sale.CalculatedField = calculatedField;
         
-        if (isMoney)
+        if (sale.CalculatedField == CalculatedField.Amount)
         {
-            sale.RequestedCost = Math.Round(amount, 2);
-            sale.RequestedAmount = sale.RequestedCost / sale.Amount;
+            sale.RequestFlags = 4;
+            sale.RequestedCost = amount;
+            sale.RequestedAmount = PriceHelper.CalculateAmount(sale.BasePrice!.Value, amount);
         }
         else
         {
-            sale.RequestedAmount = Math.Round(amount, 3);
-            sale.RequestedCost = sale.RequestedAmount / sale.Amount;
+            sale.RequestedAmount = amount;
+            sale.RequestedCost = PriceHelper.CalculatePrice(sale.BasePrice!.Value, amount);
         }
     }
 
@@ -170,35 +174,18 @@ public class SalesProcessService : ISalesProcessService
     /// <inheritdoc/>
     public async Task CalculateDiscountAsync(CardInfo cardInfo)
     {
-        var cardInfoRequestDto = GetRequestDto(cardInfo.Uid);
-        var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+        var cardInfoFromDiscounting = GetCardInfoFromDiscounting(cardInfo.Uid);
+        var discountResponse = await PreCalculateDiscountsAsync(cardInfoFromDiscounting);
 
-        var discountRequestDto = await GetDiscountRequestDto(cardInfoResponseDto);
-        var discountResponseDto = _discountingMethods.CalculateDiscount(discountRequestDto);
-        
-        // Дебетование
-        var debitRequestDto = GetDebitRequestDto(discountResponseDto, cardInfoResponseDto);
+        var salesInfoDtos = Debit(cardInfoFromDiscounting, discountResponse);
 
-        for (var i = 1; i <= 3; i++)
+        foreach (var sale in salesInfoDtos.Select(_sellingMappingService.MapSaleInfoDtoToDomainModel))
         {
-            var debitResponseDto = _discountingMethods.Debit(debitRequestDto);
-        
-            var viewTypeParameter = debitResponseDto.Request.ResultMessageExt?
-                .Split("\r\n")
-                .FirstOrDefault(x => x.Contains("ViewType"))?
-                .Split('=')
-                .Last();
-
-            if (debitResponseDto.Request.ResultCodeExt == 65549 && viewTypeParameter == "3")
-            {
-                debitRequestDto.Parameters.Pin = "2815";
-                continue;
-            }
-            
-            break;
+            await _sellingRepository.AddAsync(sale);
+            await PrintReceiptAsync(sale);
         }
     }
-
+    
     /// <inheritdoc/>
     public async Task CompleteProcessAsync()
     {
@@ -224,8 +211,63 @@ public class SalesProcessService : ISalesProcessService
         }
 
         await _sellingRepository.AddRangeAsync(Cart);
+
     }
     
+    private CardInfoDtoResponseDto GetCardInfoFromDiscounting(string cardUid)
+    {
+        var cardInfoRequestDto = GetRequestDto(cardUid);
+        var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+
+        var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
+            .Split("\r\n")
+            .FirstOrDefault(x => x.Contains("Type"))?
+            .Split('=')
+            .Last();
+
+        if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4"))
+            return cardInfoResponseDto;
+        
+        cardInfoRequestDto.Parameters.ReadCard = 4;
+        cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+
+        return cardInfoResponseDto;
+    }
+
+    private async Task<DiscountResponseDto> PreCalculateDiscountsAsync(CardInfoDtoResponseDto cardInfoFromDiscounting)
+    {
+        var discountRequestDto = await GetDiscountRequestDto(cardInfoFromDiscounting);
+        var discountResponseDto = _discountingMethods.CalculateDiscount(discountRequestDto);
+
+        return discountResponseDto;
+    }
+    
+    private List<SaleInfoDto> Debit(CardInfoDtoResponseDto cardInfoFromDiscounting, DiscountResponseDto discountResponse)
+    {
+        var debitRequestDto = GetDebitRequestDto(discountResponse, cardInfoFromDiscounting);
+        var debitResponseDto = new DebitResponseDto();
+        
+        for (var i = 1; i <= 3; i++)
+        {
+            debitResponseDto = _discountingMethods.Debit(debitRequestDto);
+        
+            var viewTypeParameter = debitResponseDto.Request.ResultMessageExt?
+                .Split("\r\n")
+                .FirstOrDefault(x => x.Contains("ViewType"))?
+                .Split('=')
+                .Last();
+
+            if (debitResponseDto.Request.ResultCodeExt == 65549 && viewTypeParameter == "3")
+            {
+                debitRequestDto.Parameters.Pin = "2815";
+                continue;
+            }
+            
+            break;
+        }
+
+        return debitResponseDto.SaleInfoList.SaleInfos;
+    }
 
     /// <summary>
     /// Печать чека о продаже.
@@ -303,11 +345,16 @@ public class SalesProcessService : ISalesProcessService
             },
             CartInfoDto = cardInfoResponseDto.CartInfo,
             Parameters = cardInfoResponseDto.Parameters,
-            CardInfoList = cardInfoResponseDto.CardInfoList
         };
 
-        var id = 1;
+        var cardInfoIndex = 0;
+        foreach (var cardInfo in cardInfoResponseDto.CardInfoList.CardInfos)
+        {
+            cardInfo.Index = cardInfoIndex++;
+            request.CardInfoList.CardInfos.Add(cardInfo);
+        }
 
+        var id = 1;
         foreach (var selling in Cart)
         {
             var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(selling.ResourceKey!.Value);
@@ -317,16 +364,16 @@ public class SalesProcessService : ISalesProcessService
             
             request.SaleInfoList.SaleInfos.Add(new SaleInfoDto
             {
-                ResourcePrice = resourceCode!.ResourcePrice ?? 0,
+                ResourcePrice = resourceCode.ResourcePrice ?? 0,
                 RequestSum = selling.RequestedCost ?? 0,
-                RequestAmount = Math.Round(selling.RequestedAmount ?? 0, 3),
+                RequestAmount = selling.RequestedAmount ?? 0,
                 Density = (float)(selling.Density ?? 0.545000),
                 Flags = selling.RequestFlags ?? 0,
                 Id = id++,
                 RequestId = id,
                 ResourceSet = resourceCode.CollectionKey ?? 3,
                 ResourceCode = resourceCode.ResourceKey,
-                AquirerResourceCode = selling.ResourceCode ?? 0,
+                AcquirerResourceCode = selling.ResourceCode ?? 0,
                 BasePaymentType = (int)selling.BaseType!,
                 DerivedPaymentType = (int)selling.DerivedType!,
                 VolumeDigits = 3,

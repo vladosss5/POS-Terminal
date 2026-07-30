@@ -242,7 +242,11 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
     /// </summary>
     public void SetAmount()
     {
-        _salesProcessService.SetAmount(SelectedResourceCode!.ResourceKey, _amountFuel, IsAmountMoney);
+        var calculatedField = IsAmountMoney 
+            ? CalculatedField.Amount 
+            : CalculatedField.Price;
+        
+        _salesProcessService.SetAmount(SelectedResourceCode!.ResourceKey, _amountFuel, calculatedField);
         Steps[1].CompleteStepCommand.Execute(null);
     }
     
@@ -411,8 +415,7 @@ public partial class SaleProcessPageViewModel : PageViewModelBase
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            _logger.LogError(e.Message, e.InnerException);
         }
     }
     

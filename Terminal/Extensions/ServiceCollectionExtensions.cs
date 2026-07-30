@@ -62,7 +62,7 @@ public static class ServiceCollectionExtensions
         
         // Мапперы
         collection.AddSingleton<ISettingPaymentTypeMapper, SettingPaymentTypeMapper>();
-        collection.AddSingleton<ISalesReceiptMappingService, SalesReceiptMappingService>();
+        collection.AddSingleton<ISellingMappingService, SellingMappingService>();
         collection.AddSingleton<IResourceCodeMapper, ResourceCodeMapper>();
         
         // Сервисы логики

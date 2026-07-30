@@ -124,7 +124,7 @@ public class DiscountingMethods : IDiscountingMethods
 
             response = XmlHelper.DeserializeXml<DiscountResponseDto>(resultString);
 
-            _logger.LogDebug("Успешно рассчитаны скидки. Размер ответа: {ResponseSize} байт", returnBytes);
+            _logger.LogDebug("Успешно рассчитаны скидки. Output - {resultString}", resultString);
         }
         catch (Exception e)
         {
@@ -153,6 +153,8 @@ public class DiscountingMethods : IDiscountingMethods
             ref returnBytes);
 
         var response = XmlHelper.DeserializeXml<DebitResponseDto>(resultString);
+        
+        _logger.LogDebug("Завершено дебетование. Output = {resultString}", resultString);
 
         return response;
     }

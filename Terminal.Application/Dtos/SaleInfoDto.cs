@@ -91,7 +91,7 @@ public class SaleInfoDto
     /// Код ресурса эквайрера
     /// </summary>
     [XmlElement("AquirerResourceCode")]
-    public int AquirerResourceCode { get; set; }
+    public int AcquirerResourceCode { get; set; }
 
     /// <summary>
     /// Базовый тип оплаты
@@ -160,7 +160,7 @@ public class SaleInfoDto
     public decimal CalculatedSalePrice { get; set; }
     
     [XmlIgnore]
-    private DateTime DateTimeValue { get; set; }
+    public DateTime DateTimeValue { get; set; }
 
     /// <summary>
     /// Дата и время

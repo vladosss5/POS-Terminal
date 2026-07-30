@@ -29,8 +29,8 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IReceiptPrintService" />
     private readonly IReceiptPrintService _printService;
 
-    /// <inheritdoc cref="ISalesReceiptMappingService" />
-    private readonly ISalesReceiptMappingService _receiptMappingService;
+    /// <inheritdoc cref="ISellingMappingService" />
+    private readonly ISellingMappingService _receiptMappingService;
     
     private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
@@ -86,7 +86,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
         ILogger<PageViewModelBase> logger, 
         IDbContextFactory<DataContext> dbFactory, 
         IReceiptPrintService printService, 
-        ISalesReceiptMappingService receiptMappingService) 
+        ISellingMappingService receiptMappingService) 
         : base(logger)
     {
         _dbFactory = dbFactory;

@@ -1,0 +1,47 @@
+﻿namespace Terminal.Core.Enums;
+
+/// <summary>
+/// Действия в ходе продажи.
+/// </summary>
+public enum SaleProcessAction
+{
+    /// <summary>
+    /// Выбор ресурса.
+    /// </summary>
+    SelectionResourceCode,
+    
+    /// <summary>
+    /// Задание кол-ва единиц ресурса или платёжных средств.
+    /// </summary>
+    SettingAmount,
+    
+    /// <summary>
+    /// Выбор типа оплаты.
+    /// </summary>
+    SelectionPaymentType,
+    
+    /// <summary>
+    /// Чтение карты.
+    /// </summary>
+    CardReading,
+    
+    /// <summary>
+    /// Расчёт с учётом скидок.
+    /// </summary>
+    Discounting,
+    
+    /// <summary>
+    /// Дебетование.
+    /// </summary>
+    Debit,
+    
+    /// <summary>
+    /// СОхранение в БД.
+    /// </summary>
+    SaveToDataBase,
+    
+    /// <summary>
+    /// Печать чека.
+    /// </summary>
+    PrintReceipt
+}

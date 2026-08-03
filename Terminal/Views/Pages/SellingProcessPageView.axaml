@@ -1,0 +1,138 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pages="clr-namespace:Terminal.ViewModels.Pages"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Terminal.Views.Pages.SellingProcessPageView"
+             x:DataType="pages:SellingProcessPageViewModel"
+             x:Name="ThisUserControl">
+   
+    <Grid RowDefinitions="Auto, *">
+        <!-- Шапка -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *">
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding NameCurrentPage}" 
+                       Classes="page-title"/>
+            
+            <Button Grid.Column="1" HorizontalAlignment="Right"
+                    Command="{Binding StepBackCommand}"
+                    MaxHeight="60"
+                    Background="Transparent" CornerRadius="50">
+                <Image Source="../../Assets/Icons/arrow-left.png"/>
+            </Button>
+        </Grid>
+        
+        <!-- Тело страницы -->
+        <ScrollViewer Grid.Row="1" Background="WhiteSmoke"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch">
+            <Panel>
+                <!-- Ресурсы -->
+                <ItemsControl ItemsSource="{Binding Resources}"
+                              IsVisible="{Binding Steps[0].IsActive}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" 
+                                         HorizontalAlignment="Stretch" 
+                                         VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding Path=#ThisUserControl.((pages:SellingProcessPageViewModel)DataContext).SetFuelTypeCommand}"
+                                    CommandParameter="{Binding}"
+                                    Classes="selector-button">
+                                <TextBlock Text="{Binding ResourceName}"
+                                           Classes="text-button"/>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                
+                <!-- Количество -->
+                <Grid RowDefinitions="*, Auto, *"
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Stretch"
+                      IsVisible="{Binding Steps[1].IsActive}">
+                    <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">
+                        <TextBlock Text="{Binding AmountPreview}"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Stretch"
+                                   FontSize="60" TextWrapping="Wrap"/>
+                    </Border>
+                      
+                    <Panel Grid.Row="1">
+                        <TextBlock Text="{Binding AmountMessages[0]}"
+                                   IsVisible="{Binding IsAmountMoney}"
+                                   VerticalAlignment="Bottom" 
+                                   HorizontalAlignment="Center"/>
+                        
+                        <TextBlock Text="{Binding AmountMessages[1]}"
+                                   IsVisible="{Binding !IsAmountMoney}"
+                                   VerticalAlignment="Bottom" 
+                                   HorizontalAlignment="Center"/>
+                    </Panel>
+                    
+                    <Grid Grid.Row="2"
+                          RowDefinitions="*,*,*,*"
+                          ColumnDefinitions="*,*,*,*"
+                          Margin="8">
+
+                        <ItemsControl Grid.Row="0" Grid.RowSpan="4"
+                                      Grid.Column="0" Grid.ColumnSpan="3"
+                                      ItemsSource="{Binding KeypadButtons}">
+
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" 
+                                                 Rows="4"
+                                                 HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Stretch"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding 
+                                    #ThisUserControl.((pages:SellingProcessPageViewModel)DataContext).AddNumberCommand}"
+                                            CommandParameter="{Binding }"
+                                            Classes="number-button">
+                                        <TextBlock Text="{Binding}" Classes="text-button"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Grid.Row="0" Grid.Column="3" Classes="number-button"
+                                Command="{Binding ToggleModeCommand}">
+                            <Panel MaxHeight="70">
+                                <Image IsVisible="{Binding IsAmountMoney}"
+                                       Source="../../Assets/Icons/fuel.png"/>
+                                <Image IsVisible="{Binding !IsAmountMoney}"
+                                       Source="../../Assets/Icons/ruble.png"/>
+                            </Panel>
+                        </Button>
+
+                        <Button Grid.Row="1" Grid.Column="3" 
+                                Classes="number-button"
+                                Tapped="OnButtonTapped"
+                                Holding="OnButtonHolding"
+                                InputElement.IsHoldWithMouseEnabled="True"
+                                InputElement.IsHoldingEnabled="True">
+                            <Image Source="../../Assets/Icons/backspace.png"/>
+                        </Button>
+
+                        <Button Grid.Row="2" Grid.RowSpan="2" Grid.Column="3"
+                                Classes="number-button"
+                                Command="{Binding SetAmountCommand}"
+                                CornerRadius="20">
+                            <Image Source="../../Assets/Icons/enter.png"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                
+            </Panel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

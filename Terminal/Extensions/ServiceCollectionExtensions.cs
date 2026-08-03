@@ -55,6 +55,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ResourcePageViewModel>();
         collection.AddTransient<AuthOperatorPageViewModel>();
         collection.AddTransient<CardInfoPageViewModel>();
+        collection.AddTransient<SellingProcessPageViewModel>();
         
         // Конвертеры
         collection.AddSingleton<EnumFriendlyNameConverter>();

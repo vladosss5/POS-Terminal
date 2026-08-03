@@ -7,14 +7,9 @@ namespace Terminal.Application.Services;
 public class StepNotifierService : IStepNotifierService
 {
     /// <summary>
-    /// Текущий шаг.
-    /// </summary>
-    private SaleProcessStep _currentStep = SaleProcessStep.SelectionResourceCode;
-    
-    /// <summary>
     /// Порядок шагов продажи.
     /// </summary>
-    private readonly SaleProcessStep[] _steps = 
+    private static readonly SaleProcessStep[] Steps = 
     [
         SaleProcessStep.SelectionResourceCode,
         SaleProcessStep.SettingAmount,
@@ -25,6 +20,11 @@ public class StepNotifierService : IStepNotifierService
         SaleProcessStep.SaveToDataBase,
         SaleProcessStep.PrintReceipt
     ];
+    
+    /// <summary>
+    /// Текущий шаг.
+    /// </summary>
+    private SaleProcessStep _currentStep = Steps[1];
     
     /// <summary>
     /// Список подписчиков.
@@ -55,8 +55,8 @@ public class StepNotifierService : IStepNotifierService
     /// <inheritdoc/>
     public void CompleteCurrentStep()
     {
-        var currentIndex = Array.IndexOf(_steps, _currentStep);
-        _currentStep = _steps[++currentIndex];
+        var currentIndex = Array.IndexOf(Steps, _currentStep);
+        _currentStep = Steps[++currentIndex];
 
         Notify();
     }
@@ -64,8 +64,8 @@ public class StepNotifierService : IStepNotifierService
     /// <inheritdoc/>
     public void StepBack()
     {
-        var currentIndex = Array.IndexOf(_steps, _currentStep);
-        _currentStep = _steps[--currentIndex];
+        var currentIndex = Array.IndexOf(Steps, _currentStep);
+        _currentStep = Steps[--currentIndex];
         
         Notify();
     }
@@ -74,5 +74,10 @@ public class StepNotifierService : IStepNotifierService
     public void RetryCurrentStep()
     {
         Notify();
+    }
+
+    public SaleProcessStep GetCurrentStep()
+    {
+        return _currentStep;
     }
 }

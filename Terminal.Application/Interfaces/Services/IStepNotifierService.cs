@@ -1,4 +1,6 @@
-﻿namespace Terminal.Application.Interfaces.Services;
+﻿using Terminal.Core.Enums;
+
+namespace Terminal.Application.Interfaces.Services;
 
 /// <summary>
 /// Машина состояний шагов продажи.
@@ -36,4 +38,6 @@ public interface IStepNotifierService
     /// Повторить текущий шаг.
     /// </summary>
     public void RetryCurrentStep();
+
+    public SaleProcessStep GetCurrentStep();
 }

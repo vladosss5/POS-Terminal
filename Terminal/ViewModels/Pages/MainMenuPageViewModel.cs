@@ -146,7 +146,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Заправка", 
-                Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
+                // Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
+                Command = new RelayCommand(delegate { Navigation!.NavigateTo<SellingProcessPageViewModel>(); })
             },
             new MainMenuItemModel
             {

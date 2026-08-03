@@ -3,7 +3,7 @@
 /// <summary>
 /// Действия в ходе продажи.
 /// </summary>
-public enum SaleProcessAction
+public enum SaleProcessStep
 {
     /// <summary>
     /// Выбор ресурса.

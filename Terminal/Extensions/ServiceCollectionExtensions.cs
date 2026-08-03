@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
         collection.AddTransient<ITmsService, TmsService>();
         collection.AddSingleton<IConfigurationUpdatingService, ConfigurationUpdatingService>();
         collection.AddSingleton<IStatusNotifierService, StatusNotifierService>();
+        collection.AddSingleton<IStepNotifierService, StepNotifierService>();
         collection.AddTransient<ISalesProcessService, SalesProcessService>();
         collection.AddSingleton<IDiscountingMethods, DiscountingMethods>();
         

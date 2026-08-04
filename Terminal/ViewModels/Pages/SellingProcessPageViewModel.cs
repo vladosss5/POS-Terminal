@@ -143,33 +143,21 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     private void AddNumber(string number)
     {
         var maxDecimals = IsAmountMoney ? 2 : 3;
+        var dotIndex = AmountPreview.IndexOf('.');
         
-        foreach (var symbol in number)
-        {
-            var dotIndex = AmountPreview.IndexOf('.');
+        if (AmountPreview == "0")
+            AmountPreview = string.Empty;
+        
+        if (AmountPreview.Length == 26)
+            return;
+        
+        if (number == "." && dotIndex != -1)
+            return;
 
-            if (dotIndex >= 0 && symbol != '.')
-                if (AmountPreview.Length - dotIndex - 1 >= maxDecimals) 
-                    return;
-            
-            if (symbol == '.' && dotIndex == -1)
-                return;
-            
-            if (AmountPreview == "0" && symbol == '.')
-                AmountPreview = "0";
-            
-            string newValue;
-            
-            if (AmountPreview == "0" && symbol != '.')
-                newValue = symbol.ToString(_culture);
-            else
-                newValue = AmountPreview + symbol;
-            
-            if (newValue.Length > 27) 
-                return;
-
-            AmountPreview = newValue;
-        }
+        if (AmountPreview.Length - dotIndex - 1 >= maxDecimals && dotIndex != -1)
+            return;
+        
+        AmountPreview += number;
     }
 
     public void RemoveLastNumber() => AmountPreview = AmountPreview.Length > 1 ? AmountPreview[..^1] : "0";

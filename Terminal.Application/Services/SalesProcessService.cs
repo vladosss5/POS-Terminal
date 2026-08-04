@@ -57,6 +57,9 @@ public class SalesProcessService : ISalesProcessService
     /// <inheritdoc cref="IAuthService" />
     private readonly ISellingMappingService _sellingMappingService;
 
+    /// <inheritdoc cref="IStepNotifierService" />
+    private readonly IStepNotifierService _stepNotifierService;
+
 
     /// <summary>
     /// Коллекция потенциальных покупок, т.к. в рамках одной покупки может быть только один ресурс.
@@ -76,7 +79,11 @@ public class SalesProcessService : ISalesProcessService
         ISettingPaymentTypeMapper settingPaymentTypeMapper, 
         IAuthService authService, 
         ISettingRepository settingRepository, 
-        IShiftService shiftService, IParameterService parameterService, IDiscountingMethods discountingMethods, ISellingMappingService sellingMappingService)
+        IShiftService shiftService, 
+        IParameterService parameterService, 
+        IDiscountingMethods discountingMethods, 
+        ISellingMappingService sellingMappingService, 
+        IStepNotifierService stepNotifierService)
     {
         _logger = logger;
         _configurationService = configurationService;
@@ -91,6 +98,7 @@ public class SalesProcessService : ISalesProcessService
         _parameterService = parameterService;
         _discountingMethods = discountingMethods;
         _sellingMappingService = sellingMappingService;
+        _stepNotifierService = stepNotifierService;
     }
 
     /// <inheritdoc/>
@@ -131,6 +139,8 @@ public class SalesProcessService : ISalesProcessService
         };
         
         Cart.Add(sale);
+        
+        _stepNotifierService.CompleteCurrentStep();
     }
 
     /// <inheritdoc/>

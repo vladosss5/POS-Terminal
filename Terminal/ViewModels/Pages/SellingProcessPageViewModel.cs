@@ -126,6 +126,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [RelayCommand]
     private async Task SetFuelType(ResourceCodeDto resourceCodeDto)
     {
+        var resourceCode = _resourceCodeMapper.MapResourceCodeDtoToDomainModel(resourceCodeDto);
+        _salesProcessService.AddToCart(resourceCode);
         SelectedResourceCode = resourceCodeDto;
     }
 
@@ -136,7 +138,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
             SelectedResourceCode.ResourcePrice == 0)
             return;
         
-        var amount = decimal.Parse(AmountPreview);
+        var amount = decimal.Parse(AmountPreview, _culture);
         var calculatedField = IsAmountMoney ? CalculatedField.Amount : CalculatedField.Price;
 
         _salesProcessService.SetAmount(SelectedResourceCode.ResourceKey, amount, calculatedField);
@@ -145,17 +147,23 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [RelayCommand]
     private void ToggleMode()
     {
-        if (SelectedResourceCode == null || 
-            SelectedResourceCode.ResourcePrice == 0)
-            return;
+        if (SelectedResourceCode != null &&
+            SelectedResourceCode.ResourcePrice != 0)
+        {
+            var amount = decimal.Parse(AmountPreview, _culture);
+            amount = Math.Round(amount, IsAmountMoney ? 2 : 3);
+            
+            if (amount != 0)
+            {
+                var newValue = IsAmountMoney
+                    ? amount / SelectedResourceCode.ResourcePrice
+                    : amount * SelectedResourceCode.ResourcePrice;
 
-        var amount = decimal.Parse(AmountPreview);
-
-        var newValue = IsAmountMoney
-            ? amount / SelectedResourceCode.ResourcePrice
-            : amount * SelectedResourceCode.ResourcePrice;
-
-        AmountPreview = newValue.ToString(_culture);
+                newValue = Math.Round(newValue, IsAmountMoney ? 3 : 2);
+                AmountPreview = newValue.ToString(_culture);
+            }
+        }
+        
         IsAmountMoney = !IsAmountMoney;
     }
     

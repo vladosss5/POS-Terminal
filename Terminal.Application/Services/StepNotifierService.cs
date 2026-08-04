@@ -24,7 +24,7 @@ public class StepNotifierService : IStepNotifierService
     /// <summary>
     /// Текущий шаг.
     /// </summary>
-    private SaleProcessStep _currentStep = Steps[1];
+    private SaleProcessStep _currentStep = Steps[0];
     
     /// <summary>
     /// Список подписчиков.

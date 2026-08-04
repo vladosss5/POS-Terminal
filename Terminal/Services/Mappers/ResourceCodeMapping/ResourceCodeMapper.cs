@@ -1,4 +1,5 @@
-﻿using Terminal.Core.Entities.DbEntities.MainDb;
+﻿using System.Collections.Generic;
+using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Dtos;
 
 namespace Terminal.Services.Mappers.ResourceCodeMapping;
@@ -19,6 +20,19 @@ public class ResourceCodeMapper : IResourceCodeMapper
 
         return resourceCode;
     }
+    
+    /// <inheritdoc/>
+    public List<ResourceCode> MapResourceCodeDtoToDomainModelRange(IEnumerable<ResourceCodeDto> dtos)
+    {
+        var resultList = new List<ResourceCode>();
+
+        foreach (var dto in dtos)
+        {
+            resultList.Add(MapResourceCodeDtoToDomainModel(dto));
+        }
+        
+        return resultList;
+    }
 
     /// <inheritdoc/>
     public ResourceCodeDto MapResourceCodeDomainModelToDto(ResourceCode resourceCode)
@@ -32,5 +46,18 @@ public class ResourceCodeMapper : IResourceCodeMapper
         };
 
         return dto;
+    }
+
+    /// <inheritdoc/>
+    public List<ResourceCodeDto> MapResourceCodeDomainModelToDtoRange(IEnumerable<ResourceCode> resourceCodes)
+    {
+        var resultList = new List<ResourceCodeDto>();
+
+        foreach (var resourceCode in resourceCodes)
+        {
+            resultList.Add(MapResourceCodeDomainModelToDto(resourceCode));
+        }
+        
+        return resultList;
     }
 }

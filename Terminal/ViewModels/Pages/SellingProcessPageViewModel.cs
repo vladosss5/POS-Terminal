@@ -30,12 +30,12 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Культура для приведения чисел с точкой к строке.
     /// </summary>
     private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
-    
+
     /// <summary>
     /// Словарь для маппинга шага продажи к отображаемому элементу.
     /// </summary>
     private readonly Dictionary<SaleProcessStep, SellingStepViewModel> _stepMap;
-    
+
     /// <summary>
     /// Коллекция цифровых кнопок. 
     /// </summary>
@@ -67,17 +67,11 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     public ObservableCollection<ResourceCodeDto> Resources { get; set; } = [];
 
     /// <summary>
-    /// Выбранный товар (тип топлива).
-    /// </summary>
-    [ObservableProperty]
-    public partial ResourceCodeDto SelectedResourceCode { get; set; }
-    
-    /// <summary>
     /// Наименование текущей страницы (шага).
     /// </summary>
     [ObservableProperty]
     public partial string NameCurrentPage { get; set; }
-    
+
     /// <summary>
     /// Кол-во указано в деньгах?
     /// Если нет, то в единицах товара.
@@ -85,35 +79,43 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [ObservableProperty]
     public partial bool IsAmountMoney { get; set; } = true;
 
-    [ObservableProperty]
+    /// <summary>
+    /// Кол-во в виде строки для отображения.
+    /// </summary>
+    [ObservableProperty] 
     public partial string AmountPreview { get; set; } = "0";
+    
+    /// <summary>
+    /// Выбранный товар (тип топлива).
+    /// </summary>
+    private ResourceCodeDto? SelectedResourceCode { get; set; }
 
 
     /// <summary>
     /// Конструктор.
     /// </summary>
     public SellingProcessPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILogger<PageViewModelBase> logger,
         IStepNotifierService stepNotifierService,
-        ISalesProcessService salesProcessService, 
-        IResourceCodeMapper resourceCodeMapper) 
+        ISalesProcessService salesProcessService,
+        IResourceCodeMapper resourceCodeMapper)
         : base(logger)
     {
         stepNotifierService.Attach(this);
-        
+
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
-        
+
         _ = LoadDataAsync();
         InitStepsCollection();
-        
+
         _stepMap = Steps.ToDictionary(s => s.Step, s => s);
 
         var currentStep = stepNotifierService.GetCurrentStep();
         ChangeCurrentStep(currentStep);
     }
 
-    
+
     [RelayCommand]
     private void StepBack()
     {
@@ -130,13 +132,31 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [RelayCommand]
     private async Task SetAmount()
     {
+        if (SelectedResourceCode == null || 
+            SelectedResourceCode.ResourcePrice == 0)
+            return;
         
+        var amount = decimal.Parse(AmountPreview);
+        var calculatedField = IsAmountMoney ? CalculatedField.Amount : CalculatedField.Price;
+
+        _salesProcessService.SetAmount(SelectedResourceCode.ResourceKey, amount, calculatedField);
     }
 
     [RelayCommand]
     private void ToggleMode()
     {
-        
+        if (SelectedResourceCode == null || 
+            SelectedResourceCode.ResourcePrice == 0)
+            return;
+
+        var amount = decimal.Parse(AmountPreview);
+
+        var newValue = IsAmountMoney
+            ? amount / SelectedResourceCode.ResourcePrice
+            : amount * SelectedResourceCode.ResourcePrice;
+
+        AmountPreview = newValue.ToString(_culture);
+        IsAmountMoney = !IsAmountMoney;
     }
     
     [RelayCommand]

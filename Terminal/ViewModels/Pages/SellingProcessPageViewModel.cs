@@ -101,8 +101,6 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         IResourceCodeMapper resourceCodeMapper)
         : base(logger)
     {
-        stepNotifierService.Attach(this);
-
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
 
@@ -110,7 +108,9 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         InitStepsCollection();
 
         _stepMap = Steps.ToDictionary(s => s.Step, s => s);
-
+        PaymentTypesDictionary = _salesProcessService.GetAvailablePaymentTypes();
+        
+        stepNotifierService.Attach(this);
         var currentStep = stepNotifierService.GetCurrentStep();
         ChangeCurrentStep(currentStep);
     }
@@ -226,8 +226,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     private async Task LoadDataAsync()
     {
         var resources = await _salesProcessService.GetAvailableResourceCodesAsync();
-        var dtoResources = resources.Select(_resourceCodeMapper.MapResourceCodeDomainModelToDto);
-
+        var dtoResources = _resourceCodeMapper.MapResourceCodeDomainModelToDtoRange(resources);
+        
         Resources = [.. dtoResources];
     }
 }

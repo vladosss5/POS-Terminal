@@ -1,4 +1,5 @@
-﻿using Terminal.Application.Interfaces.Services;
+﻿using Microsoft.Extensions.Logging;
+using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 
 namespace Terminal.Application.Services;
@@ -6,6 +7,8 @@ namespace Terminal.Application.Services;
 /// <inheritdoc/>
 public class StepNotifierService : IStepNotifierService
 {
+    private readonly ILogger<StepNotifierService> _logger;
+    
     /// <summary>
     /// Порядок шагов продажи.
     /// </summary>
@@ -20,6 +23,8 @@ public class StepNotifierService : IStepNotifierService
         SaleProcessStep.SaveToDataBase,
         SaleProcessStep.PrintReceipt
     ];
+    // Enum.GetValues<SaleProcessStep>();
+    
     
     /// <summary>
     /// Текущий шаг.
@@ -30,6 +35,14 @@ public class StepNotifierService : IStepNotifierService
     /// Список подписчиков.
     /// </summary>
     private readonly List<IStepObserver> _observers = [];
+
+    /// <summary>
+    /// Конструктор.
+    /// </summary>
+    public StepNotifierService(ILogger<StepNotifierService> logger)
+    {
+        _logger = logger;
+    }
 
     /// <inheritdoc/>
     public void Attach(IStepObserver observer)
@@ -55,8 +68,31 @@ public class StepNotifierService : IStepNotifierService
     /// <inheritdoc/>
     public void CompleteCurrentStep()
     {
-        var currentIndex = Array.IndexOf(Steps, _currentStep);
-        _currentStep = Steps[++currentIndex];
+        try
+        {
+            var currentIndex = Array.IndexOf(Steps, _currentStep);
+            _currentStep = Steps[++currentIndex];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
+
+        Notify();
+    }
+
+    /// <inheritdoc/>
+    public void GoToStep(SaleProcessStep step)
+    {
+        try
+        {
+            var targetIndex = Array.IndexOf(Steps, step);
+            _currentStep = Steps[targetIndex];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
 
         Notify();
     }
@@ -64,8 +100,15 @@ public class StepNotifierService : IStepNotifierService
     /// <inheritdoc/>
     public void StepBack()
     {
-        var currentIndex = Array.IndexOf(Steps, _currentStep);
-        _currentStep = Steps[--currentIndex];
+        try
+        {
+            var currentIndex = Array.IndexOf(Steps, _currentStep);
+            _currentStep = Steps[--currentIndex];
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
         
         Notify();
     }

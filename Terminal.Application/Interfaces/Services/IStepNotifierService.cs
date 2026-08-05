@@ -30,6 +30,12 @@ public interface IStepNotifierService
     public void CompleteCurrentStep();
 
     /// <summary>
+    /// Перейти к указанному шагу.
+    /// </summary>
+    /// <param name="step">Шаг.</param>
+    public void GoToStep(SaleProcessStep step);
+
+    /// <summary>
     /// Вернуться к предыдущему шагу.
     /// </summary>
     public void StepBack();

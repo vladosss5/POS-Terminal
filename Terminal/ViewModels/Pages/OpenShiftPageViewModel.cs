@@ -291,8 +291,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         
         IsWaitingForInput = false;
 
-        var intCardNumber = Convert.ToInt32(cardNumber, 16);
-        var authorizeIsSuccess = await _authService.LoginWithCardNumber(_selectedUser.Name!, intCardNumber);
+        var longCardNumber = Convert.ToInt64(cardNumber, 16);
+        var authorizeIsSuccess = await _authService.LoginWithCardNumber(_selectedUser.Name!, longCardNumber);
         
         if (!authorizeIsSuccess)
         {

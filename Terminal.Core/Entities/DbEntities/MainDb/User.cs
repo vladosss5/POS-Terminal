@@ -20,7 +20,7 @@ public class User
     /// <summary>
     /// Номер карты
     /// </summary>
-    public int? CardNumber { get; set; }
+    public long? CardNumber { get; set; }
 
     /// <summary>
     /// Тип пользователя

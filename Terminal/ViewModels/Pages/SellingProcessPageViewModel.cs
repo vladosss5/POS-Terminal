@@ -28,6 +28,9 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// <inheritdoc cref="IMessageBoxService"/>
     private readonly IMessageBoxService _messageBoxService;
 
+    /// <inheritdoc cref="IMessageBoxService"/>
+    private readonly IStepNotifierService _stepNotifierService;
+
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
     /// </summary>
@@ -138,6 +141,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         IMessageBoxService messageBoxService)
         : base(logger)
     {
+        _stepNotifierService = stepNotifierService;
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
         _messageBoxService = messageBoxService;
@@ -159,6 +163,13 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     {
         // Сброс текущих изменений.
         // Вызов сервиса для перехода на предыдущий шаг.
+        if (_stepNotifierService.GetCurrentStep() == SaleProcessStep.SelectionResourceCode)
+        {
+            Navigation!.GoBack();
+            return;
+        }
+        
+        _stepNotifierService.StepBack();
     }
 
     [RelayCommand]

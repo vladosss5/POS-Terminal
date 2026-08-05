@@ -9,10 +9,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Application.Services;
 using Terminal.Core.Enums;
 using Terminal.Dtos;
 using Terminal.Services.Mappers.ResourceCodeMapping;
+using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -25,6 +25,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// <inheritdoc cref="IResourceCodeMapper" />
     private readonly IResourceCodeMapper _resourceCodeMapper;
 
+    /// <inheritdoc cref="IMessageBoxService"/>
+    private readonly IMessageBoxService _messageBoxService;
 
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
@@ -35,6 +37,12 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Словарь для маппинга шага продажи к отображаемому элементу.
     /// </summary>
     private readonly Dictionary<SaleProcessStep, SellingStepViewModel> _stepMap;
+    
+    /// <summary>
+    /// Типы оплаты.
+    /// </summary>
+    [ObservableProperty]
+    public partial Dictionary<string, (BasePaymentType BaseType, DerivedPaymentType DerivedType)> PaymentTypesDictionary { get; set; }
 
     /// <summary>
     /// Коллекция цифровых кнопок. 
@@ -86,6 +94,34 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     public partial string AmountPreview { get; set; } = "0";
     
     /// <summary>
+    /// Пароль пустой?
+    /// </summary>
+    [ObservableProperty] 
+    public partial bool PinIsEmpty { get; private set; } = true;
+    
+    /// <summary>
+    /// Предпросмотр пароля.
+    /// </summary>
+    [ObservableProperty] 
+    public partial string PinChar { get; private set; }
+    
+    /// <summary>
+    /// Пароль в исходном виде.
+    /// </summary>
+    private string Pin
+    {
+        get;
+        set
+        {
+            if (!SetProperty(ref field, value)) 
+                return;
+            
+            PinChar = new string('*', value.Length);
+            PinIsEmpty = string.IsNullOrEmpty(field);
+        }
+    }
+    
+    /// <summary>
     /// Выбранный товар (тип топлива).
     /// </summary>
     private ResourceCodeDto? SelectedResourceCode { get; set; }
@@ -98,11 +134,13 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         ILogger<PageViewModelBase> logger,
         IStepNotifierService stepNotifierService,
         ISalesProcessService salesProcessService,
-        IResourceCodeMapper resourceCodeMapper)
+        IResourceCodeMapper resourceCodeMapper, 
+        IMessageBoxService messageBoxService)
         : base(logger)
     {
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
+        _messageBoxService = messageBoxService;
 
         _ = LoadDataAsync();
         InitStepsCollection();
@@ -142,6 +180,20 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         var calculatedField = IsAmountMoney ? CalculatedField.Amount : CalculatedField.Price;
 
         _salesProcessService.SetAmount(SelectedResourceCode.ResourceKey, amount, calculatedField);
+    }
+
+    [RelayCommand]
+    private async Task SetPaymentType(string typeKey)
+    {
+        if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
+            return;
+        
+        _salesProcessService.SetPaymentType(value.BaseType, value.DerivedType);
+
+        if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
+            await _salesProcessService.ReadCardAsync();
+        
+        await _salesProcessService.CompleteProcessAsync();
     }
 
     [RelayCommand]
@@ -187,6 +239,33 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         
         AmountPreview += number;
     }
+    
+    /// <summary>
+    /// Добавить символ к паролю.
+    /// </summary>
+    /// <param name="element">Символ.</param>
+    [RelayCommand]
+    private void AddCharInPin(string element) => Pin += element;
+    
+    /// <summary>
+    /// Удалить последний символ из пароля.
+    /// </summary>
+    public void RemoveLastCharFromPin() => Pin = Pin[..^1];
+
+    /// <summary>
+    /// Ввести пин.
+    /// </summary>
+    [RelayCommand]
+    private async Task EnterPin()
+    {
+        if (string.IsNullOrEmpty(Pin))
+        {
+            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Введите пароль");
+            return;
+        }
+
+        _salesProcessService.EnterPin(Pin);
+    }
 
     public void RemoveLastNumber() => AmountPreview = AmountPreview.Length > 1 ? AmountPreview[..^1] : "0";
 
@@ -216,7 +295,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
             new SellingStepViewModel(SaleProcessStep.Discounting, "Пред. расчёт"),
             new SellingStepViewModel(SaleProcessStep.Debit, "Дебетование"),
             new SellingStepViewModel(SaleProcessStep.SaveToDataBase, "Сохранение"),
-            new SellingStepViewModel(SaleProcessStep.PrintReceipt, "Печать чека")
+            new SellingStepViewModel(SaleProcessStep.PrintReceipt, "Печать чека"),
+            new SellingStepViewModel(SaleProcessStep.EnteringPin, "Пин карты")
         ]);
     }
     

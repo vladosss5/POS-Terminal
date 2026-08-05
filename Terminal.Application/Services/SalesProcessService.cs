@@ -59,13 +59,40 @@ public class SalesProcessService : ISalesProcessService
 
     /// <inheritdoc cref="IStepNotifierService" />
     private readonly IStepNotifierService _stepNotifierService;
+    
+    /// <inheritdoc cref="ICardReaderService" />
+    private readonly ICardReaderService _cardReaderService;
+    
+    /// <summary>
+    /// Токен отмены считывания карты.
+    /// </summary>
+    private CancellationTokenSource? _cardReadCts;
 
+    /// <summary>
+    /// Данные считанной карты.
+    /// </summary>
+    private CardInfo? CardInfo { get; set; }
+    
+    /// <summary>
+    /// Ответ из ПЦ с информацией по онлайн карте.
+    /// </summary>
+    private CardInfoDtoResponseDto? CardInfoFromDiscounting { get; set; }
 
+    /// <summary>
+    /// Кортеж с пин-кодом и статусом ввода.
+    /// </summary>
+    private (string, bool) PinAndReadyTuple { get; set; } = ("", false);
+    
     /// <summary>
     /// Коллекция потенциальных покупок, т.к. в рамках одной покупки может быть только один ресурс.
     /// </summary>
     private List<Selling> Cart { get; set; } = [];
 
+    /// <summary>
+    /// Предварительно рассчитанные скидки.
+    /// </summary>
+    public DiscountResponseDto PreCalculatedDiscount { get; private set; }
+    
     /// <summary>
     /// Конструктор.
     /// </summary>
@@ -83,7 +110,8 @@ public class SalesProcessService : ISalesProcessService
         IParameterService parameterService, 
         IDiscountingMethods discountingMethods, 
         ISellingMappingService sellingMappingService, 
-        IStepNotifierService stepNotifierService)
+        IStepNotifierService stepNotifierService, 
+        ICardReaderService cardReaderService)
     {
         _logger = logger;
         _configurationService = configurationService;
@@ -99,6 +127,7 @@ public class SalesProcessService : ISalesProcessService
         _discountingMethods = discountingMethods;
         _sellingMappingService = sellingMappingService;
         _stepNotifierService = stepNotifierService;
+        _cardReaderService = cardReaderService;
     }
 
     /// <inheritdoc/>
@@ -163,6 +192,8 @@ public class SalesProcessService : ISalesProcessService
             sale.RequestedAmount = amount;
             sale.RequestedCost = PriceHelper.CalculatePrice(sale.BasePrice!.Value, amount);
         }
+        
+        _stepNotifierService.CompleteCurrentStep();
     }
 
     /// <inheritdoc/>
@@ -180,50 +211,150 @@ public class SalesProcessService : ISalesProcessService
             sale.DerivedType = derivedType;
         }
     }
-
-    /// <inheritdoc/>
-    public async Task CalculateDiscountAsync(CardInfo cardInfo)
-    {
-        var cardInfoFromDiscounting = GetCardInfoFromDiscounting(cardInfo.Uid);
-        var discountResponse = await PreCalculateDiscountsAsync(cardInfoFromDiscounting);
-
-        var salesInfoDtos = Debit(cardInfoFromDiscounting, discountResponse);
-
-        foreach (var sale in salesInfoDtos.Select(_sellingMappingService.MapSaleInfoDtoToDomainModel))
-        {
-            await _sellingRepository.AddAsync(sale);
-            await PrintReceiptAsync(sale);
-        }
-    }
     
     /// <inheritdoc/>
     public async Task CompleteProcessAsync()
+    {
+        await CalculateDiscountAsync();
+        var debitResponse = await DebitAsync();
+        await SaveToDataBaseAsync(debitResponse);
+        await PrintReceiptAsync();
+    }
+    
+    /// <inheritdoc/>
+    public async Task ReadCardAsync()
+    {
+        _stepNotifierService.GoToStep(SaleProcessStep.CardReading);
+        
+        var result = new CardReadResult();
+        var counter = 0;
+
+        while (!result.IsSuccess && counter < 3)
+        {
+            try
+            {
+                if (_cardReadCts != null)
+                    await _cardReadCts?.CancelAsync()!;
+
+                _cardReadCts = new CancellationTokenSource();
+
+                result = await _cardReaderService.ReadCardAsync(30, _cardReadCts.Token);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.InnerException, result.ErrorMessage);
+            }
+            finally
+            {
+                counter++;
+            }
+        }
+        
+        CardInfo = result.Card!;
+    }
+
+    /// <inheritdoc/>
+    public void EnterPin(string pin)
+    {
+        PinAndReadyTuple = (pin, true);
+    }
+    
+    /// <summary>
+    /// Сохранение покупки в БД.
+    /// </summary>
+    /// <param name="debitResponse"></param>
+    private async Task SaveToDataBaseAsync(DebitResponseDto debitResponse)
     {
         var user = _authService.CurrentUser;
         var shift = await _shiftService.GetOpenedShiftOrDefaultAsync();
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         
-        // await _builder.SetIssuerNumber(); TODO: добавить логику считывания эмитента из топливной карты
+        // foreach (var sale in Cart)
+        // {
+        //     var chekNumberSetting = await _settingRepository.GetByKeyAsync(SettingsKey.Sale);
+        //     sale.CheckNumber = ++chekNumberSetting!.Value;
+        //     
+        //     await _settingRepository.UpdateAsync(chekNumberSetting);
+        //
+        //     sale.PersonName = user?.Name;
+        //     sale.PersonKey = user?.UserId;
+        //     sale.ShiftKey = shift?.ShiftKey;
+        //     sale.TerminalKey = long.Parse(terminalNumber!);
+        //
+        //     // CalculateDiscounting(sale);
+        // }
+        //
+        // await _sellingRepository.AddRangeAsync(Cart);
+    }
+
+    /// <summary>
+    /// Дебетование карты.
+    /// </summary>
+    /// <returns>Ответ от ПЦ с результатом дебетования.</returns>
+    private async Task<DebitResponseDto> DebitAsync()
+    {
+        var debitRequestDto = GetDebitRequestDto(PreCalculatedDiscount, CardInfoFromDiscounting);
+        var debitResponse = new DebitResponseDto();
         
-        foreach (var sale in Cart)
+        for (var i = 1; i <= 3; i++)
         {
-            var chekNumberSetting = await _settingRepository.GetByKeyAsync(SettingsKey.Sale);
-            sale.CheckNumber = ++chekNumberSetting!.Value;
-            
-            await _settingRepository.UpdateAsync(chekNumberSetting);
+            debitResponse = _discountingMethods.Debit(debitRequestDto);
 
-            sale.PersonName = user?.Name;
-            sale.PersonKey = user?.UserId;
-            sale.ShiftKey = shift?.ShiftKey;
-            sale.TerminalKey = long.Parse(terminalNumber!);
+            if (CheckPinRequest(debitResponse.Request))
+            {
+                _stepNotifierService.GoToStep(SaleProcessStep.EnteringPin);
 
-            // CalculateDiscounting(sale);
+                while (!PinAndReadyTuple.Item2)
+                    await Task.Delay(100);
+
+                debitRequestDto.Parameters.Pin = PinAndReadyTuple.Item1;
+                
+                continue;
+            }
+
+            break;
         }
 
-        await _sellingRepository.AddRangeAsync(Cart);
+        return debitResponse;
+    }
 
+    /// <summary>
+    /// Проверка требования PIN-кода процессинговый центром.
+    /// </summary>
+    /// <param name="requestDto">Модель запроса из ответа из ПЦ.</param>
+    /// <returns>Требуется или не требуется.</returns>
+    private bool CheckPinRequest(RequestDto requestDto)
+    {
+        if (string.IsNullOrEmpty(requestDto.ResultMessageExt))
+            return false;
+        
+        var viewTypeParameter = requestDto.ResultMessageExt
+            .Split("\r\n")
+            .FirstOrDefault(x => x.Contains("ViewType"))?
+            .Split('=')
+            .Last();
+
+        return requestDto.ResultCodeExt == 65549 && viewTypeParameter == "3";
+    }
+
+    /// <summary>
+    /// Предварительный расчёт скидок.
+    /// </summary>
+    private async Task CalculateDiscountAsync()
+    {
+        if (CardInfo == null)
+            return;
+        
+        CardInfoFromDiscounting = GetCardInfoFromDiscounting(CardInfo.Uid);
+        var discountRequestDto = await GetDiscountRequestDto(CardInfoFromDiscounting);
+        PreCalculatedDiscount = _discountingMethods.CalculateDiscount(discountRequestDto);
     }
     
+    /// <summary>
+    /// Получить информацию по карте из ПЦ.
+    /// </summary>
+    /// <param name="cardUid">Электронный номер карты.</param>
+    /// <returns>Информация по карте.</returns>
     private CardInfoDtoResponseDto GetCardInfoFromDiscounting(string cardUid)
     {
         var cardInfoRequestDto = GetRequestDto(cardUid);
@@ -243,48 +374,13 @@ public class SalesProcessService : ISalesProcessService
 
         return cardInfoResponseDto;
     }
-
-    private async Task<DiscountResponseDto> PreCalculateDiscountsAsync(CardInfoDtoResponseDto cardInfoFromDiscounting)
-    {
-        var discountRequestDto = await GetDiscountRequestDto(cardInfoFromDiscounting);
-        var discountResponseDto = _discountingMethods.CalculateDiscount(discountRequestDto);
-
-        return discountResponseDto;
-    }
     
-    private List<SaleInfoDto> Debit(CardInfoDtoResponseDto cardInfoFromDiscounting, DiscountResponseDto discountResponse)
-    {
-        var debitRequestDto = GetDebitRequestDto(discountResponse, cardInfoFromDiscounting);
-        var debitResponseDto = new DebitResponseDto();
-        
-        for (var i = 1; i <= 3; i++)
-        {
-            debitResponseDto = _discountingMethods.Debit(debitRequestDto);
-        
-            var viewTypeParameter = debitResponseDto.Request.ResultMessageExt?
-                .Split("\r\n")
-                .FirstOrDefault(x => x.Contains("ViewType"))?
-                .Split('=')
-                .Last();
-
-            if (debitResponseDto.Request.ResultCodeExt == 65549 && viewTypeParameter == "3")
-            {
-                debitRequestDto.Parameters.Pin = "2815";
-                continue;
-            }
-            
-            break;
-        }
-
-        return debitResponseDto.SaleInfoList.SaleInfos;
-    }
-
     /// <summary>
     /// Печать чека о продаже.
     /// </summary>
-    /// <param name="selling">Продажа.</param>
-    private async Task PrintReceiptAsync(Selling selling)
+    private async Task PrintReceiptAsync()
     {
+        var selling = new Selling();
         var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
         
         var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
@@ -343,14 +439,14 @@ public class SalesProcessService : ISalesProcessService
         return request;
     }
     
-    private async Task<DiscountRequestDto> GetDiscountRequestDto(CardInfoDtoResponseDto cardInfoResponseDto)
+    private async Task<DiscountRequestDto> GetDiscountRequestDto(CardInfoDtoResponseDto? cardInfoResponseDto)
     {
         var request = new DiscountRequestDto
         {
             Request = new RequestDto
             {
                 Command = DiscounterCommand.CalculateDiscount,
-                IssuerId = cardInfoResponseDto.Request.IssuerId,
+                IssuerId = cardInfoResponseDto!.Request.IssuerId,
                 ShopId = cardInfoResponseDto.Request.ShopId
             },
             CartInfoDto = cardInfoResponseDto.CartInfo,
@@ -416,7 +512,7 @@ public class SalesProcessService : ISalesProcessService
                 ShopId = discountResponseDto.Request.ShopId
             },
             CartInfoDto = discountResponseDto.CartInfoDto,
-            Parameters = discountResponseDto.Parameters
+            Parameters = discountResponseDto.Parameters,
         };
 
         var index = 0;

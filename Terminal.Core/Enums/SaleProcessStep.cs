@@ -43,5 +43,10 @@ public enum SaleProcessStep
     /// <summary>
     /// Печать чека.
     /// </summary>
-    PrintReceipt
+    PrintReceipt,
+    
+    /// <summary>
+    /// Ввод пин-кода карты.
+    /// </summary>
+    EnteringPin
 }

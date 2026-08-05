@@ -1,5 +1,4 @@
 ﻿using Terminal.Core.Entities.DbEntities.MainDb;
-using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 
 namespace Terminal.Application.Interfaces.Services;
@@ -37,7 +36,7 @@ public interface ISalesProcessService
     /// </summary>
     /// <param name="resource">Ресурс.</param>
     public void RemoveFromCart(ResourceCode resource);
-    
+
     /// <summary>
     /// Задать базовый и дополнительный типы оплаты.
     /// </summary>
@@ -45,11 +44,19 @@ public interface ISalesProcessService
     /// <param name="derivedType">Дополнительный.</param>
     public void SetPaymentType(BasePaymentType baseType, DerivedPaymentType derivedType);
 
-    public Task CalculateDiscountAsync(CardInfo cardInfo);
-
     /// <summary>
     /// Завершить процесс продажи.
     /// </summary>
-    /// <returns></returns>
     public Task CompleteProcessAsync();
+
+    /// <summary>
+    /// Прочитать карту.
+    /// </summary>
+    public Task ReadCardAsync();
+
+    /// <summary>
+    /// Ввести PIN карты.
+    /// </summary>
+    /// <param name="pin">PIN-код.</param>
+    public void EnterPin(string pin);
 }

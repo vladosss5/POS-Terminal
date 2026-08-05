@@ -21,7 +21,7 @@ public class CommonCardReaderService : ICardReaderService
         return Task.Run(() =>
         {
             Task.Delay(timeoutSeconds, cancellationToken);
-            return new CardReadResult{};
+            return CardReadResult.Success(new CardInfo("1990637772", CardType.MifareClassic1K, [])); // TODO: Убрать данные карты в проде.
         }, cancellationToken);
     }
 

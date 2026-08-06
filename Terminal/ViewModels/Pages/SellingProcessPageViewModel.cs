@@ -205,6 +205,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
             await _salesProcessService.ReadCardAsync();
         
         await _salesProcessService.CompleteProcessAsync();
+        
+        Navigation!.NavigateTo<MainMenuPageViewModel>();
     }
 
     [RelayCommand]

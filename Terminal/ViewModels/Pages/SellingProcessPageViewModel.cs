@@ -303,10 +303,6 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
             new SellingStepViewModel(SaleProcessStep.SettingAmount, "Количество"),
             new SellingStepViewModel(SaleProcessStep.SelectionPaymentType, "Тип оплаты"),
             new SellingStepViewModel(SaleProcessStep.CardReading, "Считывание"),
-            new SellingStepViewModel(SaleProcessStep.Discounting, "Пред. расчёт"),
-            new SellingStepViewModel(SaleProcessStep.Debit, "Дебетование"),
-            new SellingStepViewModel(SaleProcessStep.SaveToDataBase, "Сохранение"),
-            new SellingStepViewModel(SaleProcessStep.PrintReceipt, "Печать чека"),
             new SellingStepViewModel(SaleProcessStep.EnteringPin, "Пин карты")
         ]);
     }

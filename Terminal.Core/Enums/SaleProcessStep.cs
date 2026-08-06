@@ -26,26 +26,6 @@ public enum SaleProcessStep
     CardReading,
     
     /// <summary>
-    /// Расчёт с учётом скидок.
-    /// </summary>
-    Discounting,
-    
-    /// <summary>
-    /// Дебетование.
-    /// </summary>
-    Debit,
-    
-    /// <summary>
-    /// СОхранение в БД.
-    /// </summary>
-    SaveToDataBase,
-    
-    /// <summary>
-    /// Печать чека.
-    /// </summary>
-    PrintReceipt,
-    
-    /// <summary>
     /// Ввод пин-кода карты.
     /// </summary>
     EnteringPin

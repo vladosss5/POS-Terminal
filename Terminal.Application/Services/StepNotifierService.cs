@@ -18,12 +18,8 @@ public class StepNotifierService : IStepNotifierService
         SaleProcessStep.SettingAmount,
         SaleProcessStep.SelectionPaymentType,
         SaleProcessStep.CardReading,
-        SaleProcessStep.Discounting,
-        SaleProcessStep.Debit,
-        SaleProcessStep.SaveToDataBase,
-        SaleProcessStep.PrintReceipt
+        SaleProcessStep.EnteringPin
     ];
-    // Enum.GetValues<SaleProcessStep>();
     
     
     /// <summary>

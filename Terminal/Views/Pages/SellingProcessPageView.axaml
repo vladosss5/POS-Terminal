@@ -169,7 +169,7 @@
                 <Grid RowDefinitions="*, *"
                       HorizontalAlignment="Stretch" 
                       VerticalAlignment="Stretch"
-                      IsVisible="{Binding Steps[8].IsActive}">
+                      IsVisible="{Binding Steps[4].IsActive}">
                     
                     <!-- Вывод введённого -->
                     <Border Grid.Row="0" Margin="10" VerticalAlignment="Stretch">

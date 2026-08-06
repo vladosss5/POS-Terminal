@@ -72,11 +72,6 @@ public class SalesProcessService : ISalesProcessService
     /// Данные считанной карты.
     /// </summary>
     private CardInfo? CardInfo { get; set; }
-    
-    /// <summary>
-    /// Ответ из ПЦ с информацией по онлайн карте.
-    /// </summary>
-    private CardInfoDtoResponseDto? CardInfoFromDiscounting { get; set; }
 
     /// <summary>
     /// Кортеж с пин-кодом и статусом ввода.
@@ -87,11 +82,6 @@ public class SalesProcessService : ISalesProcessService
     /// Коллекция потенциальных покупок, т.к. в рамках одной покупки может быть только один ресурс.
     /// </summary>
     private List<Selling> Cart { get; set; } = [];
-
-    /// <summary>
-    /// Предварительно рассчитанные скидки.
-    /// </summary>
-    public DiscountResponseDto PreCalculatedDiscount { get; private set; }
     
     /// <summary>
     /// Конструктор.
@@ -215,12 +205,14 @@ public class SalesProcessService : ISalesProcessService
     /// <inheritdoc/>
     public async Task CompleteProcessAsync()
     {
-        await CalculateDiscountAsync();
-        var debitResponse = await DebitAsync();
+        var cardInfo = GetCardInfoFromDiscounting(CardInfo?.Uid);
+        var discountResult = await CalculateDiscountAsync(cardInfo);
+        var debitResponse = await DebitAsync(cardInfo, discountResult);
+        
         await SaveToDataBaseAsync(debitResponse);
         await PrintReceiptAsync();
     }
-    
+
     /// <inheritdoc/>
     public async Task ReadCardAsync()
     {
@@ -291,9 +283,9 @@ public class SalesProcessService : ISalesProcessService
     /// Дебетование карты.
     /// </summary>
     /// <returns>Ответ от ПЦ с результатом дебетования.</returns>
-    private async Task<DebitResponseDto> DebitAsync()
+    private async Task<DebitResponseDto> DebitAsync(CardInfoDtoResponseDto? cardInfo, DiscountResponseDto discountResult)
     {
-        var debitRequestDto = GetDebitRequestDto(PreCalculatedDiscount, CardInfoFromDiscounting);
+        var debitRequestDto = GetDebitRequestDto(discountResult, cardInfo);
         var debitResponse = new DebitResponseDto();
         
         for (var i = 1; i <= 3; i++)
@@ -340,14 +332,12 @@ public class SalesProcessService : ISalesProcessService
     /// <summary>
     /// Предварительный расчёт скидок.
     /// </summary>
-    private async Task CalculateDiscountAsync()
+    private async Task<DiscountResponseDto> CalculateDiscountAsync(CardInfoDtoResponseDto? cardInfoDto)
     {
-        if (CardInfo == null)
-            return;
+        var discountRequestDto = await GetDiscountRequestDto(cardInfoDto);
+        var result = _discountingMethods.CalculateDiscount(discountRequestDto);
         
-        CardInfoFromDiscounting = GetCardInfoFromDiscounting(CardInfo.Uid);
-        var discountRequestDto = await GetDiscountRequestDto(CardInfoFromDiscounting);
-        PreCalculatedDiscount = _discountingMethods.CalculateDiscount(discountRequestDto);
+        return result;
     }
     
     /// <summary>
@@ -355,22 +345,25 @@ public class SalesProcessService : ISalesProcessService
     /// </summary>
     /// <param name="cardUid">Электронный номер карты.</param>
     /// <returns>Информация по карте.</returns>
-    private CardInfoDtoResponseDto GetCardInfoFromDiscounting(string cardUid)
+    private CardInfoDtoResponseDto? GetCardInfoFromDiscounting(string? cardUid)
     {
+        if (string.IsNullOrEmpty(cardUid))
+            return null;
+        
         var cardInfoRequestDto = GetRequestDto(cardUid);
         var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
 
-        var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
-            .Split("\r\n")
-            .FirstOrDefault(x => x.Contains("Type"))?
-            .Split('=')
-            .Last();
-
-        if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4"))
-            return cardInfoResponseDto;
-        
-        cardInfoRequestDto.Parameters.ReadCard = 4;
-        cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+        // var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
+        //     .Split("\r\n")
+        //     .FirstOrDefault(x => x.Contains("Type"))?
+        //     .Split('=')
+        //     .Last();
+        //
+        // if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4")) // TODO Уточнить природу ошибки.
+        //     return cardInfoResponseDto;
+        //
+        // cardInfoRequestDto.Parameters.ReadCard = 4;
+        // cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
 
         return cardInfoResponseDto;
     }
@@ -428,7 +421,7 @@ public class SalesProcessService : ISalesProcessService
                 PrintData = -1,
                 PrintCommentData = -1,
                 CouponData = -1,
-                CurrencyType = "руб."
+                CurrencyType = "руб.",
             },
             CartInfo = new CartInfoDto
             {

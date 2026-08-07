@@ -383,12 +383,20 @@ public class SalesProcessService : ISalesProcessService
     /// </summary>
     private async Task PrintReceiptAsync()
     {
-        var selling = new Selling();
-        var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
-        
-        var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
-        
-        _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+        foreach (var checkNumber in _printCheckNumbers)
+        {
+            var selling = await _sellingRepository.GetSellingByCheckNumberAsync(checkNumber);
+            if (selling == null)
+            {
+                _logger.LogError("Продажа с номером чека {checkNumber} не найдена.", checkNumber);
+                continue;
+            }
+            
+            var receipt = _receiptMappingService.MapSellingToSalesReceipt(selling);
+            var printResult = await _receiptPrintService.PrintSalesReceiptAsync(receipt);
+            
+            _logger.LogInformation($"Чек отбит.\n Результаты печати: {printResult.Status}, {printResult.ErrorMessage}");
+        }
     }
 
     private CardInfoDtoRequestDto GetRequestDto(string cardNumber)

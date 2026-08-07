@@ -24,4 +24,11 @@ public interface ISellingRepository
     /// </summary>
     /// <param name="selling">Продажа.</param>
     public Task UpdateAsync(Selling selling);
+
+    /// <summary>
+    /// Получить запись о продаже по номеру чека.
+    /// </summary>
+    /// <param name="checkNumber">Номер чека.</param>
+    /// <returns>Запись продажи.</returns>
+    public Task<Selling?> GetSellingByCheckNumberAsync(int checkNumber);
 }

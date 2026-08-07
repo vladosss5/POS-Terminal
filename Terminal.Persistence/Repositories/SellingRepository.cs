@@ -39,4 +39,11 @@ public class SellingRepository : ISellingRepository
         _dataContext.Update(selling);
         await _dataContext.SaveChangesAsync();
     }
+
+    /// <inheritdoc/>
+    public async Task<Selling?> GetSellingByCheckNumberAsync(int checkNumber)
+    {
+        var selling = await _dataContext.Sales.FirstOrDefaultAsync(x => x.CheckNumber == checkNumber);
+        return selling;
+    }
 }

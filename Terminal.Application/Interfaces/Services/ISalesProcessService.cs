@@ -3,6 +3,9 @@ using Terminal.Core.Enums;
 
 namespace Terminal.Application.Interfaces.Services;
 
+/// <summary>
+/// Бизнес-логика процесса продажи.
+/// </summary>
 public interface ISalesProcessService
 {
     /// <summary>

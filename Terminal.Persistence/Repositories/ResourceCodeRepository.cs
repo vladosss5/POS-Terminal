@@ -9,9 +9,6 @@ namespace Terminal.Persistence.Repositories;
 /// <inheritdoc/>
 public class ResourceCodeRepository : IResourceCodeRepository
 {
-    /// <inheritdoc cref="DataContext" />
-    // private readonly DataContext _dataContext;
-
     private readonly IDbContextFactory<DataContext> _mainDbFactory;
 
     private readonly ILogger<ResourceCodeRepository> _logger;
@@ -25,7 +22,6 @@ public class ResourceCodeRepository : IResourceCodeRepository
     {
         _logger = logger;
         _mainDbFactory = mainDbFactory;
-        // _dataContext = mainDbFactory.CreateDbContext();
     }
 
     /// <inheritdoc/>

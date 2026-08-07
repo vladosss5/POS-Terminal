@@ -108,13 +108,8 @@ public class StepNotifierService : IStepNotifierService
         
         Notify();
     }
-
+    
     /// <inheritdoc/>
-    public void RetryCurrentStep()
-    {
-        Notify();
-    }
-
     public SaleProcessStep GetCurrentStep()
     {
         return _currentStep;

@@ -3,6 +3,9 @@ using System.Globalization;
 
 namespace Terminal.Dtos;
 
+/// <summary>
+/// Dto для отображения ресурсов.
+/// </summary>
 public class ResourceCodeDto
 {
     /// <summary>

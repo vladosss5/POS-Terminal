@@ -17,6 +17,9 @@ using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
 
+/// <summary>
+/// Логика работы страницы продажи.
+/// </summary>
 public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObserver
 {
     /// <inheritdoc cref="ISalesProcessService" />
@@ -81,7 +84,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Наименование текущей страницы (шага).
     /// </summary>
     [ObservableProperty]
-    public partial string NameCurrentPage { get; set; }
+    public partial string? NameCurrentPage { get; set; }
 
     /// <summary>
     /// Кол-во указано в деньгах?
@@ -106,8 +109,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Предпросмотр пароля.
     /// </summary>
     [ObservableProperty] 
-    public partial string PinChar { get; private set; }
-    
+    public partial string? PinChar { get; private set; }
+
     /// <summary>
     /// Пароль в исходном виде.
     /// </summary>
@@ -116,13 +119,13 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         get;
         set
         {
-            if (!SetProperty(ref field, value)) 
+            if (!SetProperty(ref field, value))
                 return;
-            
+
             PinChar = new string('*', value.Length);
             PinIsEmpty = string.IsNullOrEmpty(field);
         }
-    }
+    } = "";
     
     /// <summary>
     /// Выбранный товар (тип топлива).
@@ -158,11 +161,12 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     }
 
 
+    /// <summary>
+    /// Сделать шаг назад или выйти на предыдущий экран.
+    /// </summary>
     [RelayCommand]
     private void StepBack()
     {
-        // Сброс текущих изменений.
-        // Вызов сервиса для перехода на предыдущий шаг.
         if (_stepNotifierService.GetCurrentStep() == SaleProcessStep.SelectionResourceCode)
         {
             Navigation!.GoBack();
@@ -172,16 +176,23 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         _stepNotifierService.StepBack();
     }
 
+    /// <summary>
+    /// Задать требуемый ресурс.
+    /// </summary>
+    /// <param name="resourceCodeDto">Dto ресурса.</param>
     [RelayCommand]
-    private async Task SetFuelType(ResourceCodeDto resourceCodeDto)
+    private void SetFuelType(ResourceCodeDto resourceCodeDto)
     {
         var resourceCode = _resourceCodeMapper.MapResourceCodeDtoToDomainModel(resourceCodeDto);
         _salesProcessService.AddToCart(resourceCode);
         SelectedResourceCode = resourceCodeDto;
     }
 
+    /// <summary>
+    /// Задать товару запрашиваемое кол-во.
+    /// </summary>
     [RelayCommand]
-    private async Task SetAmount()
+    private void SetAmount()
     {
         if (SelectedResourceCode == null || 
             SelectedResourceCode.ResourcePrice == 0)
@@ -193,8 +204,12 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         _salesProcessService.SetAmount(SelectedResourceCode.ResourceKey, amount, calculatedField);
     }
 
+    /// <summary>
+    /// Задать продаже тип оплаты.
+    /// </summary>
+    /// <param name="typeKey">Ключ типа.</param>
     [RelayCommand]
-    private async Task SetPaymentType(string typeKey)
+    private async Task SetPaymentTypeAsync(string typeKey)
     {
         if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
             return;
@@ -209,6 +224,9 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         Navigation!.NavigateTo<MainMenuPageViewModel>();
     }
 
+    /// <summary>
+    /// Сменить режим ввода запрашиваемого кол-ва.
+    /// </summary>
     [RelayCommand]
     private void ToggleMode()
     {
@@ -232,6 +250,10 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         IsAmountMoney = !IsAmountMoney;
     }
     
+    /// <summary>
+    /// Добавить цифру в конец кол-ва.
+    /// </summary>
+    /// <param name="number">Символ цифры.</param>
     [RelayCommand]
     private void AddNumber(string number)
     {
@@ -252,6 +274,16 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         
         AmountPreview += number;
     }
+    
+    /// <summary>
+    /// Удалить последнюю цифру из кол-ва. 
+    /// </summary>
+    public void RemoveLastNumber() => AmountPreview = AmountPreview.Length > 1 ? AmountPreview[..^1] : "0";
+
+    /// <summary>
+    /// Стереть кол-во.
+    /// </summary>
+    public void SetZero() => AmountPreview = "0";
     
     /// <summary>
     /// Добавить символ к паролю.
@@ -279,10 +311,6 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
 
         _salesProcessService.EnterPin(Pin);
     }
-
-    public void RemoveLastNumber() => AmountPreview = AmountPreview.Length > 1 ? AmountPreview[..^1] : "0";
-
-    public void SetZero() => AmountPreview = "0";
     
     /// <inheritdoc/>
     public void ChangeCurrentStep(SaleProcessStep step)

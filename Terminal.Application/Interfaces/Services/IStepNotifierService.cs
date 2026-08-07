@@ -41,9 +41,8 @@ public interface IStepNotifierService
     public void StepBack();
 
     /// <summary>
-    /// Повторить текущий шаг.
+    /// Получить текущий шаг.
     /// </summary>
-    public void RetryCurrentStep();
-
+    /// <returns>Тип шага.</returns>
     public SaleProcessStep GetCurrentStep();
 }

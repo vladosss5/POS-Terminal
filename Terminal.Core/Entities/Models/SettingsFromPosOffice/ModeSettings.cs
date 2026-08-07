@@ -11,7 +11,7 @@ public class ModeSettings
     /// <summary>
     /// Способ авторизации.
     /// </summary>
-    [JsonPropertyName("authorizeMethod")]
+    [XmlElement("authorizeMethod")]
     public int AuthorizeMethod { get; set; }
     
     /// <summary>

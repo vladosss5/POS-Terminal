@@ -1,18 +1,14 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Markup.Xaml;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Views.Pages;
 
-/// <summary>
-/// Страница процесса продажи.
-/// </summary>
-public partial class SaleProcessPageView : UserControl
+public partial class SellingProcessPageView : UserControl
 {
-    /// <summary>
-    /// Конструктор.
-    /// </summary>
-    public SaleProcessPageView()
+    public SellingProcessPageView()
     {
         InitializeComponent();
     }
@@ -27,7 +23,7 @@ public partial class SaleProcessPageView : UserControl
         switch (e.HoldingState)
         {
             case HoldingState.Started:
-                (DataContext as SaleProcessPageViewModel)?.AmountPreviewSetZero();
+                (DataContext as SellingProcessPageViewModel)?.SetZero();
                 break;
         }
     }
@@ -39,6 +35,6 @@ public partial class SaleProcessPageView : UserControl
     /// <param name="e"></param>
     private void OnButtonTapped(object? sender, TappedEventArgs e)
     {
-        (DataContext as SaleProcessPageViewModel)?.DeleteLastCharFromPreview();
+        (DataContext as SellingProcessPageViewModel)?.RemoveLastNumber();
     }
 }

@@ -15,9 +15,9 @@ namespace Terminal.Persistence.MainDB.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Allow", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Allow", b =>
                 {
                     b.Property<int>("AllowKey")
                         .ValueGeneratedOnAdd()
@@ -37,7 +37,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("allow", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.BonusChange", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.BonusChange", b =>
                 {
                     b.Property<int>("BonusChangeShopKey")
                         .ValueGeneratedOnAdd()
@@ -106,7 +106,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("bonus_change", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.CardPassword", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.CardPassword", b =>
                 {
                     b.Property<int>("CardPasswordKey")
                         .ValueGeneratedOnAdd()
@@ -139,7 +139,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("card_password", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.CardUpdate", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.CardUpdate", b =>
                 {
                     b.Property<int>("CardUpdateKey")
                         .ValueGeneratedOnAdd()
@@ -228,7 +228,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("card_update", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Correction", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Correction", b =>
                 {
                     b.Property<int>("CorrectionsKey")
                         .ValueGeneratedOnAdd()
@@ -293,7 +293,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("corrections", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Dispenser", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Dispenser", b =>
                 {
                     b.Property<int>("DispenserShopKey")
                         .ValueGeneratedOnAdd()
@@ -352,7 +352,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("dispenser", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Event", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Event", b =>
                 {
                     b.Property<int>("EventsKey")
                         .ValueGeneratedOnAdd()
@@ -381,7 +381,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("events", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.IssuerFuelTable", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.IssuerFuelTable", b =>
                 {
                     b.Property<int>("IssuerFuelCodeKey")
                         .ValueGeneratedOnAdd()
@@ -405,7 +405,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("issuer_fuel_table", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.ListOrg", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.ListOrg", b =>
                 {
                     b.Property<int>("ListOrgKey")
                         .ValueGeneratedOnAdd()
@@ -422,7 +422,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("list_org", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.ListOwner", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.ListOwner", b =>
                 {
                     b.Property<int>("ListOwnerKey")
                         .ValueGeneratedOnAdd()
@@ -445,7 +445,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("list_owner", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Payment", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Payment", b =>
                 {
                     b.Property<int>("PaymentShopKey")
                         .ValueGeneratedOnAdd()
@@ -537,7 +537,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("payment", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.PosUpdate", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.PosUpdate", b =>
                 {
                     b.Property<int>("PosUpdateShopKey")
                         .ValueGeneratedOnAdd()
@@ -621,7 +621,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("pos_update", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Prohibition", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Prohibition", b =>
                 {
                     b.Property<int>("ProhibitionKey")
                         .ValueGeneratedOnAdd()
@@ -653,7 +653,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("prohibition", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Repayment", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Repayment", b =>
                 {
                     b.Property<int>("RepaymentShopKey")
                         .ValueGeneratedOnAdd()
@@ -713,7 +713,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("repayment", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Request", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Request", b =>
                 {
                     b.Property<int>("VendorKey")
                         .HasColumnType("INTEGER");
@@ -759,7 +759,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("request", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.ResourceCode", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.ResourceCode", b =>
                 {
                     b.Property<int>("FuelCodeKey")
                         .ValueGeneratedOnAdd()
@@ -774,13 +774,13 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<byte?>("IsShow")
                         .HasColumnType("TINYINT");
 
-                    b.Property<int?>("ResourceKey")
+                    b.Property<int>("ResourceKey")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ResourceName")
                         .HasColumnType("VARCHAR( 50 )");
 
-                    b.Property<int?>("ResourcePrice")
+                    b.Property<decimal?>("ResourcePrice")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("Temperature")
@@ -794,22 +794,22 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("resource_code", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Selling", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Selling", b =>
                 {
                     b.Property<int>("TransactionShopKey")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Amount")
+                    b.Property<decimal?>("Amount")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("AppLimit")
+                    b.Property<float?>("AppLimit")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("AppMode")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double?>("AppSecondLimit")
+                    b.Property<float?>("AppSecondLimit")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<double?>("AppSecondValue")
@@ -818,32 +818,32 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<int?>("AppStatus")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double?>("AppValue")
+                    b.Property<float?>("AppValue")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("ApplicationId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("ApplicationID");
 
-                    b.Property<int?>("BasePrice")
+                    b.Property<decimal?>("BasePrice")
                         .HasColumnType("NUMERIC( 10, 3 )");
 
                     b.Property<int?>("BaseType")
                         .HasColumnType("INTEGER( 1 )");
 
-                    b.Property<decimal?>("BeginTemperature")
+                    b.Property<float?>("BeginTemperature")
                         .HasColumnType("NUMERIC( 10, 4 )");
 
-                    b.Property<double?>("BonusIn")
+                    b.Property<decimal?>("BonusIn")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("BonusInCost")
+                    b.Property<decimal?>("BonusInCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("BonusOut")
+                    b.Property<decimal?>("BonusOut")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("BonusOutCost")
+                    b.Property<decimal?>("BonusOutCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("CardType")
@@ -852,13 +852,13 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<int?>("CheckNumber")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ClientCost")
+                    b.Property<decimal?>("ClientCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("CollectionKey")
                         .HasColumnType("INTEGER");
 
-                    b.Property<Guid?>("CommodityGuid")
+                    b.Property<string>("CommodityGuid")
                         .HasColumnType("VARCHAR( 255 )");
 
                     b.Property<int?>("CommodityKey")
@@ -871,7 +871,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<int?>("DelayedBonusType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Density")
+                    b.Property<float?>("Density")
                         .HasColumnType("NUMERIC( 10, 4 )");
 
                     b.Property<int?>("DerivedType")
@@ -880,7 +880,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<long?>("ElectronicNumber")
                         .HasColumnType("NUMERIC( 20 )");
 
-                    b.Property<decimal?>("EndTemperature")
+                    b.Property<float?>("EndTemperature")
                         .HasColumnType("NUMERIC( 10, 4 )");
 
                     b.Property<int?>("ErrorCode")
@@ -892,7 +892,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<double?>("GraphicalNumber")
                         .HasColumnType("NUMERIC( 20 )");
 
-                    b.Property<Guid?>("Guid")
+                    b.Property<string>("Guid")
                         .HasColumnType("VARCHAR(35)");
 
                     b.Property<int?>("IsAccountRep")
@@ -912,7 +912,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<decimal?>("Overflow")
                         .HasColumnType("NUMERIC( 10, 4 )");
 
-                    b.Property<int?>("ParcelPrice")
+                    b.Property<decimal?>("ParcelPrice")
                         .HasColumnType("NUMERIC( 10, 3 )");
 
                     b.Property<int?>("PaymentOfCommodityKey")
@@ -926,10 +926,10 @@ namespace Terminal.Persistence.MainDB.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(0);
 
-                    b.Property<int?>("RequestedAmount")
+                    b.Property<decimal?>("RequestedAmount")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("RequestedCost")
+                    b.Property<decimal?>("RequestedCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("ResourceCode")
@@ -947,10 +947,10 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<long?>("SellingFlags")
                         .HasColumnType("BIGINT");
 
-                    b.Property<int?>("SellingPrice")
+                    b.Property<decimal?>("SellingPrice")
                         .HasColumnType("NUMERIC( 10, 3 )");
 
-                    b.Property<Guid?>("SetOfGoodsGuid")
+                    b.Property<string>("SetOfGoodsGuid")
                         .HasColumnType("VARCHAR( 255 )");
 
                     b.Property<int?>("SetOfGoodsKey")
@@ -959,10 +959,10 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<int?>("ShiftKey")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ShopBaseCost")
+                    b.Property<decimal?>("ShopBaseCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
-                    b.Property<int?>("ShopCost")
+                    b.Property<decimal?>("ShopCost")
                         .HasColumnType("NUMERIC( 20, 3 )");
 
                     b.Property<int?>("ShopKey")
@@ -974,7 +974,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Property<string>("Sign")
                         .HasColumnType("VARCHAR( 255 )");
 
-                    b.Property<int?>("Temperature")
+                    b.Property<float?>("Temperature")
                         .HasColumnType("NUMERIC( 10, 4 )");
 
                     b.Property<long?>("TerminalKey")
@@ -1000,7 +1000,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("selling", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.SellingCoupon", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.SellingCoupon", b =>
                 {
                     b.Property<int>("SellingCouponShopKey")
                         .ValueGeneratedOnAdd()
@@ -1065,7 +1065,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("sellingcoupon", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.SellingIgnore", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.SellingIgnore", b =>
                 {
                     b.Property<int>("TransactionShopKey")
                         .ValueGeneratedOnAdd()
@@ -1265,7 +1265,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("selling_ignore", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Setting", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Setting", b =>
                 {
                     b.Property<int>("SettingsKey")
                         .HasColumnType("INTEGER");
@@ -1278,7 +1278,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("settings", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.Shift", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.Shift", b =>
                 {
                     b.Property<int>("ShiftShopKey")
                         .ValueGeneratedOnAdd()
@@ -1316,7 +1316,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("shift", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.TransferCard", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.TransferCard", b =>
                 {
                     b.Property<int>("TransferCardKey")
                         .ValueGeneratedOnAdd()
@@ -1386,7 +1386,7 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("transfer_card", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.User", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.User", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
@@ -1423,9 +1423,52 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.TransferCard", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.Models.SalesReportResult", b =>
                 {
-                    b.HasOne("Terminal.Core.DbEntities.ListOrg", "Organisation")
+                    b.Property<decimal?>("A")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("AR")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("ARA")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ICI")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("N")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OK")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PT")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("SBC")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SBCR")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SBCRA")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SC")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SCR")
+                        .HasColumnType("TEXT");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
+
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.TransferCard", b =>
+                {
+                    b.HasOne("Terminal.Core.Entities.DbEntities.MainDb.ListOrg", "Organisation")
                         .WithMany()
                         .HasForeignKey("OrganisationListOrgKey")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1434,9 +1477,9 @@ namespace Terminal.Persistence.MainDB.Migrations
                     b.Navigation("Organisation");
                 });
 
-            modelBuilder.Entity("Terminal.Core.DbEntities.User", b =>
+            modelBuilder.Entity("Terminal.Core.Entities.DbEntities.MainDb.User", b =>
                 {
-                    b.HasOne("Terminal.Core.DbEntities.ListOrg", "Organisation")
+                    b.HasOne("Terminal.Core.Entities.DbEntities.MainDb.ListOrg", "Organisation")
                         .WithMany()
                         .HasForeignKey("OrganisationId");
 

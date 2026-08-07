@@ -12,6 +12,8 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MsBox.Avalonia.Enums;
+using Terminal.Application.Dtos;
+using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
@@ -144,7 +146,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             new MainMenuItemModel
             {
                 Title = "Заправка", 
-                Command = new RelayCommand(delegate { Navigation!.NavigateTo<SaleProcessPageViewModel>(); })
+                Command = new RelayCommand(delegate { Navigation!.NavigateTo<SellingProcessPageViewModel>(); })
             },
             new MainMenuItemModel
             {

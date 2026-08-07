@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
-using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
+using Terminal.Dtos;
+using Terminal.Services.Mappers.ResourceCodeMapping;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -30,6 +32,9 @@ public partial class ResourcePageViewModel : PageViewModelBase
 
     ///<inheritdoc cref="IResourceCodeRepository"/>
     private readonly IResourceCodeRepository _resourceCodeRepository;
+    
+    ///<inheritdoc cref="IResourceCodeMapper"/>
+    private readonly IResourceCodeMapper _resourceCodeMapper;
 
     private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
 
@@ -68,7 +73,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// <summary>
     /// Выбранный для редактирования ресурс.
     /// </summary>
-    public ResourceCode? SelectedResourceCode
+    public ResourceCodeDto? SelectedResourceCode
     {
         get;
         private set
@@ -80,14 +85,14 @@ public partial class ResourcePageViewModel : PageViewModelBase
                 return;
             
             ResourceHasBeenSelected = true;
-            Title = value.ResourceName ?? string.Empty;
+            Title = value.ResourceName;
         }
     }
 
     /// <summary>
     /// Коллекция ресурсов.
     /// </summary>
-    public ObservableCollection<ResourceCode> Resources
+    public ObservableCollection<ResourceCodeDto> Resources
     {
         get; set => SetProperty(ref field, value);
     } = [];
@@ -100,7 +105,8 @@ public partial class ResourcePageViewModel : PageViewModelBase
         IReceiptPrintService receiptPrintService, 
         IAuthService authService, 
         IParameterService parameterService, 
-        IResourceCodeRepository resourceCodeRepository) 
+        IResourceCodeRepository resourceCodeRepository, 
+        IResourceCodeMapper resourceCodeMapper) 
         : base(logger)
     {
         Title = DefaultTitle;
@@ -108,6 +114,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
         _authService = authService;
         _parameterService = parameterService;
         _resourceCodeRepository = resourceCodeRepository;
+        _resourceCodeMapper = resourceCodeMapper;
 
         _ = LoadData();
     }
@@ -117,12 +124,10 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// </summary>
     /// <param name="resource">Редактируемый ресурс.</param>
     [RelayCommand]
-    public void SelectResource(ResourceCode resource)
+    private void SelectResource(ResourceCodeDto resource)
     {
         SelectedResourceCode = resource;
-        PricePreview = resource.ResourcePrice != null 
-            ? resource.ResourcePrice.Value.ToString(CultureInfo.InvariantCulture)
-            : "0";
+        PricePreview = SelectedResourceCode.ResourcePriceFormatted;
     }
 
     /// <summary>
@@ -149,19 +154,17 @@ public partial class ResourcePageViewModel : PageViewModelBase
         if (SelectedResourceCode == null)
             return;
 
-        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey!.Value);
-        
-        if (resourceCode == null)
+        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey);
+
+        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice) || resourceCode == null)
             return;
 
-        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice))
-            return;
-
-        if (resourceCode.ResourcePrice!.Value == newPrice)
+        if (resourceCode.ResourcePrice == newPrice)
             ResetPageData();
 
         var oldValue = resourceCode.ResourcePrice;
 
+        newPrice = Math.Round(newPrice, 2);
         resourceCode.ResourcePrice = newPrice;
 
         await _resourceCodeRepository.UpdateResourceCodeAsync(resourceCode);
@@ -242,7 +245,9 @@ public partial class ResourcePageViewModel : PageViewModelBase
     private async Task LoadData()
     {
         var resources = await _resourceCodeRepository.GetResourceCodeCollectionAsync();
-        Resources.AddRange(resources);
+        var dtoResources = resources.Select(_resourceCodeMapper.MapResourceCodeDomainModelToDto);
+        
+        Resources.AddRange(dtoResources);
     }
     
     /// <summary>

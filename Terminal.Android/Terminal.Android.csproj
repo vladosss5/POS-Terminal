@@ -8,11 +8,6 @@
         <ApplicationVersion>1001</ApplicationVersion>
         <ApplicationDisplayVersion>0.1.1</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
-        <PublishTrimmed>true</PublishTrimmed>
-        <TrimMode>partial</TrimMode>
-        <RunAOTCompilation>false</RunAOTCompilation>
-        <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-        <OptimizationPreference>Speed</OptimizationPreference>
         <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidUseIntermediateDesignerFile>true</AndroidUseIntermediateDesignerFile>
@@ -28,5 +23,20 @@
     <ItemGroup>
         <ProjectReference Include="..\Sunyard.Binding\Sunyard.Binding.csproj" />
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AndroidNativeLibrary Update="libs\arm64-v8a\libc++_shared.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </AndroidNativeLibrary>
+      <AndroidNativeLibrary Update="libs\arm64-v8a\libdiscounting.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </AndroidNativeLibrary>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AndroidAsset Include="..\Terminal.Application\Xmls\*.xml">
+            <Link>Assets\Xmls\%(FileName)%(Extension)</Link>
+        </AndroidAsset>
     </ItemGroup>
 </Project>

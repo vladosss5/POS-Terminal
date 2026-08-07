@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<root>
+	<parameters>
+		<IssuerID>1</IssuerID>
+		<ShopID>401</ShopID>
+	</parameters>
+	<IssuerList>
+		<Issuer>
+			<Code>1</Code>
+			<Host>192.168.100.33:1333</Host>
+		</Issuer>
+	</IssuerList>
+	<HaspList>
+		<Hasp id="647560701">
+			<Feature id="100" />
+			<Feature id="200" />
+			<Feature id="300" />
+			<Feature id="400" />
+			<Feature id="600" />
+			<Feature id="700" />
+			<Feature id="800" />
+			<Feature id="1000" />
+			<Feature id="1200" />
+			<Feature id="1400" />
+			<Feature id="1500" />
+			<Feature id="1700" />
+			<Feature id="1800" />
+			<Feature id="2500" />
+			<Feature id="2800" />
+			<Feature id="2900" />
+			<Feature id="3000" />
+			<Feature id="3500" />
+			<Feature id="3600" />
+			<Feature id="3400" />
+			<Feature id="3300" />
+		</Hasp>
+	</HaspList>
+</root>

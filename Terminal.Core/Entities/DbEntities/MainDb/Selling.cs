@@ -57,6 +57,12 @@ public class Selling
     /// Кол-во проданного товара.
     /// </summary>
     public decimal? Amount { get; set; }
+    
+    /// <summary>
+    /// Какое поле необходимо вычислить.
+    /// </summary>
+    [NotMapped]
+    public CalculatedField CalculatedField { get; set; }
 
     /// <summary>
     /// Итоговая стоимость покупки (с учётом скидок) за транзакцию.

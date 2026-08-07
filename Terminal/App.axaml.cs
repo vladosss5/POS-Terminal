@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Avalonia.Controls.ApplicationLifetimes;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -47,6 +48,8 @@ public class App : Avalonia.Application
     /// </summary>
     public override async void OnFrameworkInitializationCompleted()
     {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        
         if (Design.IsDesignMode) 
         {
             base.OnFrameworkInitializationCompleted();
@@ -61,6 +64,7 @@ public class App : Avalonia.Application
         {
             case IClassicDesktopStyleApplicationLifetime desktopApp:
                 desktopApp.MainWindow = new MainWindow { DataContext = mainViewModel };
+                desktopApp.Exit += OnApplicationExit;
                 break;
             
             case IActivityApplicationLifetime activityLifetime:
@@ -106,6 +110,17 @@ public class App : Avalonia.Application
         {
             Logger!.LogError(e.Message, e.InnerException);
         }
+    }
+    
+    /// <summary>
+    /// Метод вызывающий метод Dispose в сервисах реализующих IDisposable.
+    /// </summary>
+    private void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        if (Services is IDisposable disposable)
+            disposable.Dispose();
+        
+        Logger!.LogInformation("Services have been disposed");
     }
     
     /// <summary>

@@ -27,9 +27,23 @@ public class SellingRepository : ISellingRepository
     }
 
     /// <inheritdoc/>
+    public async Task AddRangeAsync(IEnumerable<Selling> sales)
+    {
+        await _dataContext.AddRangeAsync(sales);
+        await _dataContext.SaveChangesAsync();
+    }
+
+    /// <inheritdoc/>
     public async Task UpdateAsync(Selling selling)
     {
         _dataContext.Update(selling);
         await _dataContext.SaveChangesAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<Selling?> GetSellingByCheckNumberAsync(int checkNumber)
+    {
+        var selling = await _dataContext.Sales.FirstOrDefaultAsync(x => x.CheckNumber == checkNumber);
+        return selling;
     }
 }

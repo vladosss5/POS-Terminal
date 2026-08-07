@@ -47,7 +47,7 @@ public class AuthService : IAuthService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> LoginWithCardNumber(string userName, int cardNumber)
+    public async Task<bool> LoginWithCardNumber(string userName, long cardNumber)
     {
         var user = await _userRepository.GetByUserName(userName);
 

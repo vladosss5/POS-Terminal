@@ -5,6 +5,7 @@
         See https://docs.avaloniaui.net/docs/guides/platforms/platform-specific-code/dotnet for more details.-->
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <PlatformTarget>x86</PlatformTarget>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -19,5 +20,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Terminal\Terminal.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Libs\Discounting.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

@@ -199,8 +199,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             },
             new MainMenuItemModel
             {
-                Title = "Инфо по карте",
-                Command = new RelayCommand(delegate { Navigation!.NavigateTo<CardInfoPageViewModel>(); })
+                Title = "Инфо по карте"
             }
         ]);
     }

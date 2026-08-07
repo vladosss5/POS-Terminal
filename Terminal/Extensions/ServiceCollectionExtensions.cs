@@ -9,7 +9,6 @@ using Terminal.Application.Interfaces.Services;
 using Terminal.Application.Mappers;
 using Terminal.Application.Services;
 using Terminal.Converters;
-using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
 using Terminal.Persistence.EventDB;
@@ -53,7 +52,6 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<ShiftReportPageViewModel>();
         collection.AddTransient<ResourcePageViewModel>();
         collection.AddTransient<AuthOperatorPageViewModel>();
-        collection.AddTransient<CardInfoPageViewModel>();
         collection.AddTransient<SellingProcessPageViewModel>();
         
         // Конвертеры

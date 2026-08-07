@@ -353,17 +353,18 @@ public class SalesProcessService : ISalesProcessService
         var cardInfoRequestDto = GetRequestDto(cardUid);
         var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
 
-        // var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
-        //     .Split("\r\n")
-        //     .FirstOrDefault(x => x.Contains("Type"))?
-        //     .Split('=')
-        //     .Last();
-        //
-        // if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4")) // TODO Уточнить природу ошибки.
-        //     return cardInfoResponseDto;
-        //
-        // cardInfoRequestDto.Parameters.ReadCard = 4;
-        // cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+        var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
+            .Split("\r\n")
+            .FirstOrDefault(x => x.Contains("Type"))?
+            .Split('=')
+            .Last();
+        
+        if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4")) // TODO Уточнить природу ошибки.
+            return cardInfoResponseDto;
+        
+        cardInfoRequestDto.Parameters.ReadCard = 4;
+        cardInfoRequestDto.CardInfoList = cardInfoResponseDto.CardInfoList;
+        cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
 
         return cardInfoResponseDto;
     }

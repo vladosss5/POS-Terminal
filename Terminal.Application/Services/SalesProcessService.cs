@@ -82,6 +82,11 @@ public class SalesProcessService : ISalesProcessService
     /// Коллекция потенциальных покупок, т.к. в рамках одной покупки может быть только один ресурс.
     /// </summary>
     private List<Selling> Cart { get; set; } = [];
+
+    /// <summary>
+    /// Номера чеков обязательных для печати.
+    /// </summary>
+    private List<int> _printCheckNumbers = [];
     
     /// <summary>
     /// Конструктор.
@@ -257,26 +262,30 @@ public class SalesProcessService : ISalesProcessService
     /// <param name="debitResponse"></param>
     private async Task SaveToDataBaseAsync(DebitResponseDto debitResponse)
     {
+        var sellingIntoSave = new List<Selling>();
+        
         var user = _authService.CurrentUser;
         var shift = await _shiftService.GetOpenedShiftOrDefaultAsync();
         var terminalNumber = await _parameterService.GetValueAsync(AppParameter.SerialNO111);
         
-        // foreach (var sale in Cart)
-        // {
-        //     var chekNumberSetting = await _settingRepository.GetByKeyAsync(SettingsKey.Sale);
-        //     sale.CheckNumber = ++chekNumberSetting!.Value;
-        //     
-        //     await _settingRepository.UpdateAsync(chekNumberSetting);
-        //
-        //     sale.PersonName = user?.Name;
-        //     sale.PersonKey = user?.UserId;
-        //     sale.ShiftKey = shift?.ShiftKey;
-        //     sale.TerminalKey = long.Parse(terminalNumber!);
-        //
-        //     // CalculateDiscounting(sale);
-        // }
-        //
-        // await _sellingRepository.AddRangeAsync(Cart);
+        foreach (var sale in debitResponse.SaleInfoList.SaleInfos)
+        {
+            var saleDomain = _sellingMappingService.MapSaleInfoDtoToDomainModel(sale);
+            
+            var chekNumberSetting = await _settingRepository.GetByKeyAsync(SettingsKey.Sale);
+            saleDomain.CheckNumber = ++chekNumberSetting!.Value;
+            _printCheckNumbers.Add(saleDomain.CheckNumber!.Value);
+            await _settingRepository.UpdateAsync(chekNumberSetting);
+        
+            saleDomain.PersonName = user?.Name;
+            saleDomain.PersonKey = user?.UserId;
+            saleDomain.ShiftKey = shift?.ShiftKey;
+            saleDomain.TerminalKey = long.Parse(terminalNumber!);
+        
+            sellingIntoSave.Add(saleDomain);
+        }
+        
+        await _sellingRepository.AddRangeAsync(sellingIntoSave);
     }
 
     /// <summary>

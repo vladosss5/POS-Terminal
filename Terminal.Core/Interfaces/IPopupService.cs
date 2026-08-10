@@ -23,6 +23,6 @@ public interface IPopupService
     /// <summary>
     /// Показать индивидуальное уведомление.
     /// </summary>
-    /// <param name="popup"></param>
+    /// <param name="popup">Данные всплывающего уведомления.</param>
     public void ShowCustomPopup(Popup popup);
 }

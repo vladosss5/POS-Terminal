@@ -4,12 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Terminal.ViewModels"
              xmlns:converters="clr-namespace:Terminal.Converters"
+             xmlns:models="clr-namespace:Terminal.Core.Entities.Models;assembly=Terminal.Core"
              mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="840"
              x:Class="Terminal.Views.MainView"
              x:DataType="vm:MainViewModel">
     
     <UserControl.Resources>
         <converters:PathToImageConverter x:Key="PathToImageConverter"/>
+        <converters:PopupTypeToBrushConverter x:Key="PopupTypeToBrushConverter"/>
     </UserControl.Resources>
     
     <Grid RowDefinitions="Auto, *">
@@ -37,6 +39,33 @@
             </Grid>
         </Border>
         
-        <TransitioningContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+        <Panel Grid.Row="1">
+            <!-- Основной контент -->
+            <TransitioningContentControl Content="{Binding CurrentPage}" />
+            
+            <!-- Стек всплывающих уведомлений -->
+            <ItemsControl ItemsSource="{Binding Popups}"
+                          VerticalAlignment="Top"
+                          HorizontalAlignment="Stretch"
+                          Margin="10,0,10,10">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical" Spacing="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:Popup">
+                        <Border Padding="12,8"
+                                CornerRadius="4"
+                                Background="{Binding Type, Converter={StaticResource PopupTypeToBrushConverter}}">
+                            <TextBlock Text="{Binding Message}"
+                                       Foreground="White"
+                                       TextWrapping="Wrap"
+                                       FontSize="14" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Panel>
     </Grid>
 </UserControl>

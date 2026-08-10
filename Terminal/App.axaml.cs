@@ -10,13 +10,13 @@ using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia.Enums;
 using Terminal.Application.Interfaces.Background;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Persistence.EventDB;
 using Terminal.Persistence.MainDB;
 using Terminal.Persistence.ParamDB;
-using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels;
 using Terminal.Views;
 
@@ -88,28 +88,21 @@ public class App : Avalonia.Application
     /// </summary>
     private static async Task StartUpgradeAsync()
     {
-        try
-        {
-            var messageService = Services!.GetRequiredService<IMessageBoxService>();
-            var updateService = Services!.GetRequiredService<IUpgradeBackgroundService>();
+        var updateService = Services!.GetRequiredService<IUpgradeBackgroundService>();
+        var popupService = Services!.GetRequiredService<IPopupService>();
 
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    await updateService.StartAutoUpgradeAsync();
-                }
-                catch (Exception e)
-                {
-                    Logger!.LogError(e.Message, e.InnerException);
-                    await messageService.ShowMessageBoxAsync("Ошибка", e.Message, ButtonEnum.Ok, Icon.Error);
-                }
-            });
-        }
-        catch (Exception e)
+        await Task.Run(async () =>
         {
-            Logger!.LogError(e.Message, e.InnerException);
-        }
+            try
+            {
+                await updateService.StartAutoUpgradeAsync();
+            }
+            catch (Exception e)
+            {
+                Logger!.LogError(e.Message, e.InnerException);
+                popupService.ShowCustomPopup(new Popup($"Ошибка: {e.Message}", PopupType.Error));
+            }
+        });
     }
     
     /// <summary>

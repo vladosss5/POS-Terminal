@@ -10,9 +10,9 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 using Terminal.Dtos;
 using Terminal.Services.Mappers.ResourceCodeMapping;
-using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -28,11 +28,11 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// <inheritdoc cref="IResourceCodeMapper" />
     private readonly IResourceCodeMapper _resourceCodeMapper;
 
-    /// <inheritdoc cref="IMessageBoxService"/>
-    private readonly IMessageBoxService _messageBoxService;
-
-    /// <inheritdoc cref="IMessageBoxService"/>
+    /// <inheritdoc cref="IStepNotifierService"/>
     private readonly IStepNotifierService _stepNotifierService;
+
+    /// <inheritdoc cref="IPopupService"/>
+    private readonly IPopupService _popupService;
 
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
@@ -141,13 +141,13 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         IStepNotifierService stepNotifierService,
         ISalesProcessService salesProcessService,
         IResourceCodeMapper resourceCodeMapper, 
-        IMessageBoxService messageBoxService)
+        IPopupService popupService)
         : base(logger)
     {
         _stepNotifierService = stepNotifierService;
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
-        _messageBoxService = messageBoxService;
+        _popupService = popupService;
 
         _ = LoadDataAsync();
         InitStepsCollection();
@@ -301,11 +301,11 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Ввести пин.
     /// </summary>
     [RelayCommand]
-    private async Task EnterPin()
+    private void EnterPin()
     {
         if (string.IsNullOrEmpty(Pin))
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Введите пароль");
+            _popupService.ShowError("Введите пароль!");
             return;
         }
 

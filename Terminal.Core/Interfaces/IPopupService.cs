@@ -25,4 +25,22 @@ public interface IPopupService
     /// </summary>
     /// <param name="popup">Данные всплывающего уведомления.</param>
     public void ShowCustomPopup(Popup popup);
+
+    /// <summary>
+    /// Показать уведомление информирования.
+    /// </summary>
+    /// <param name="message">Текст сообщения.</param>
+    public void ShowInfo(string message);
+
+    /// <summary>
+    /// Показать сообщение об ошибке.
+    /// </summary>
+    /// <param name="message">Текст сообщения.</param>
+    public void ShowError(string message);
+
+    /// <summary>
+    /// Показать сообщение об успехе.
+    /// </summary>
+    /// <param name="message">Текст сообщения.</param>
+    public void ShowSuccess(string message);
 }

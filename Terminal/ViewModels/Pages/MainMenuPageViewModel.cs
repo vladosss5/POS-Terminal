@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
@@ -11,18 +10,13 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MsBox.Avalonia.Enums;
-using Terminal.Application.Dtos;
-using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
-using Terminal.Core.Exceptions;
 using Terminal.Core.Interfaces;
-using Terminal.Persistence.MainDB;
 using Terminal.Dtos;
+using Terminal.Persistence.MainDB;
 using Terminal.Services.AuthPageFactory;
-using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels.Items;
 
@@ -31,7 +25,7 @@ namespace Terminal.ViewModels.Pages;
 /// <summary>
 /// Логика работы страницы главного меню.
 /// </summary>
-public partial class MainMenuPageViewModel : PageViewModelBase
+public class MainMenuPageViewModel : PageViewModelBase
 {
     ///<inheritdoc cref="ILogger"/>
     private readonly ILogger<MainMenuPageViewModel> _logger;
@@ -47,9 +41,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
     ///<inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
-    
-    /// <inheritdoc cref="IMessageBoxService"/>
-    private readonly IMessageBoxService _messageBoxService;
 
     /// <inheritdoc cref="IReceiptPrintService"/>
     private readonly IReceiptPrintService _receiptPrintService;
@@ -74,6 +65,9 @@ public partial class MainMenuPageViewModel : PageViewModelBase
     
     /// Фабрика экземпляров: <inheritdoc cref="IAuthPageFactory"/>
     private readonly IAuthPageFactory _authPageFactory;
+
+    /// <inheritdoc cref="IPopupService" />
+    private readonly IPopupService _popupService;
     
     
     /// <summary>
@@ -106,7 +100,6 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         ILogger<MainMenuPageViewModel> logger, 
         IAuthService authService, 
         IShiftService shiftService, 
-        IMessageBoxService messageBoxService, 
         IReceiptPrintService receiptPrintService, 
         IDbContextFactory<DataContext> dbFactory,
         IConfigurationService configurationService, 
@@ -115,14 +108,14 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         IEncashmentService encashmentService,
         IUpdateInstallerService installerService, 
         IConfigurationUpdatingService configurationUpdatingService, 
-        IStatusNotifierService statusNotifierService) 
+        IStatusNotifierService statusNotifierService, 
+        IPopupService popupService) 
         : base(logger)
     {
         _fileExplorer = fileExplorer;
         _logger = logger;
         _authService = authService;
         _shiftService = shiftService;
-        _messageBoxService = messageBoxService;
         _receiptPrintService = receiptPrintService;
         _dbFactory = dbFactory;
         _configurationService = configurationService;
@@ -132,6 +125,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _installerService = installerService;
         _configurationUpdatingService = configurationUpdatingService;
         _statusNotifierService = statusNotifierService;
+        _popupService = popupService;
         Title = "Главная";
         
         AddItemsIntoMenu();
@@ -223,31 +217,17 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             _logger.LogInformation("Update downloaded successfully");
             UpdateDownloadingStatus(DownloadStatus.Completed);
             
-            var confirmedResult = await _messageBoxService
-                .ShowMessageBoxAsync("Инфо", "Загружено обновление. Хотите установить сейчас?", ButtonEnum.YesNo, Icon.Info);
+            // var confirmedResult = await _messageBoxService // TODO: Сюда диалоговое окно.
+            //     .ShowMessageBoxAsync("Инфо", "Загружено обновление. Хотите установить сейчас?", ButtonEnum.YesNo, Icon.Info);
+            //
+            // if(confirmedResult == ButtonResult.Yes)
             
-            if(confirmedResult == ButtonResult.Yes)
-                await _installerService.InstallUpdatingPatchAsync();
-        }
-        catch (NotFoundException e)
-        {
-            await _messageBoxService
-                .ShowMessageBoxAsync("Инфо", e.Message, ButtonEnum.Ok, Icon.Info);
-        }
-        catch (InvalidFileException e)
-        {
-            await _messageBoxService
-                .ShowMessageBoxAsync("Ошибка", e.Message, ButtonEnum.Ok, Icon.Error);
-        }
-        catch (HttpRequestException e)
-        {
-            await _messageBoxService
-                .ShowMessageBoxAsync("Ошибка сервера", e.Message, ButtonEnum.Ok, Icon.Error);
+            await _installerService.InstallUpdatingPatchAsync();
         }
         catch (Exception e)
         {
-            await _messageBoxService
-                .ShowMessageBoxAsync("Ошибка", $"{e.Message} \n{e.InnerException}", ButtonEnum.Ok, Icon.Error);
+            _popupService.ShowCustomPopup(new Popup($"Ошибка обновления", PopupType.Error, 3000));
+            _logger.LogError("{EMessage} \n{EInnerException}", e.Message, e.InnerException);
         }
         
         _ = Task.Run(async () =>
@@ -274,7 +254,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         _logger.LogInformation("Вызвано копирование");
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
 
-        await _messageBoxService.ShowMessageBoxAsync("Успех", "Каталог скопирован!");
+        _popupService.ShowSuccess("Каталог успешно скопирован!");
+        _logger.LogInformation("Каталог успешно скопирован!");
     }
     
     /// <summary>
@@ -331,7 +312,7 @@ public partial class MainMenuPageViewModel : PageViewModelBase
 
             if (openShift == null)
             {
-                await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Ни одна смена не открыта.");
+                _popupService.ShowError("Ни одна смена не открыта.");
                 return;
             }
         
@@ -358,8 +339,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             var reportData = new ShiftReportDataDto
             {
                 ReceiptNumber = receiptNumber,
-                IssuerNumber = issuerNumber,
-                TerminalNumber = terminalNumber,
+                IssuerNumber = issuerNumber ?? "",
+                TerminalNumber = terminalNumber ?? "",
                 Shift = openShift,
                 SalesList = sales,
                 OperatorName = !string.IsNullOrEmpty(operatorName) ? operatorName : "undefined"
@@ -369,7 +350,8 @@ public partial class MainMenuPageViewModel : PageViewModelBase
         }
         catch (Exception e)
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+            _popupService.ShowError(e.Message);
+            _logger.LogError(e.Message, e.InnerException);
         }
     }
 
@@ -434,11 +416,11 @@ public partial class MainMenuPageViewModel : PageViewModelBase
             
             stopwatch.Stop();
     
-            await _messageBoxService.ShowMessageBoxAsync("Успех", $"Инкассация выполнена за {stopwatch.Elapsed}");
+            _popupService.ShowSuccess($"Инкассация выполнена за {stopwatch.Elapsed}");
         }
         catch (Exception e)
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", e.Message);
+            _popupService.ShowError(e.Message);
         }
     }
 

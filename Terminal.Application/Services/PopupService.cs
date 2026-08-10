@@ -1,4 +1,5 @@
 ﻿using Terminal.Core.Entities.Models;
+using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 
 namespace Terminal.Application.Services;
@@ -41,6 +42,24 @@ public class PopupService : IPopupService
             _popups.Remove(popup);
             Notify();
         });
+    }
+
+    /// <inheritdoc/>
+    public void ShowInfo(string message)
+    {
+        ShowCustomPopup(new Popup(message, PopupType.Info));
+    }
+
+    /// <inheritdoc/>
+    public void ShowError(string message)
+    {
+        ShowCustomPopup(new Popup(message, PopupType.Error, 10000));
+    }
+
+    /// <inheritdoc/>
+    public void ShowSuccess(string message)
+    {
+        ShowCustomPopup(new Popup(message, PopupType.Success, 3000));
     }
 
     /// <summary>

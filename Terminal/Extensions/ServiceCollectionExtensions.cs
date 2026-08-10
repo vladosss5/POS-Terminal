@@ -82,6 +82,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IStepNotifierService, StepNotifierService>();
         collection.AddTransient<ISalesProcessService, SalesProcessService>();
         collection.AddSingleton<IDiscountingMethods, DiscountingMethods>();
+        collection.AddSingleton<IPopupService, PopupService>();
         
         // Репозитории.
         collection.AddTransient<IGenericRepository, GenericRepository>();

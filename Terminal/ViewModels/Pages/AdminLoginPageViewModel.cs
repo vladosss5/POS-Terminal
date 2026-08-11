@@ -3,8 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Terminal.Core.Entities.Models;
+using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
-using Terminal.Services.MessageBoxService;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -18,9 +19,9 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
 
     /// <inheritdoc cref="ICryptographyService"/>
     private readonly ICryptographyService _cryptographyService;
-    
-    /// <inheritdoc cref="IMessageBoxService"/>
-    private readonly IMessageBoxService _messageBoxService;
+
+    /// <inheritdoc cref="IPopupService"/>
+    private readonly IPopupService _popupService;
     
     /// <summary>
     /// Значение таймера по умолчанию.
@@ -46,7 +47,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
             PasswordChar = new string('*', value.Length);
             PasswordIsEmpty = string.IsNullOrEmpty(field);
         }
-    }
+    } = "";
 
     /// <summary>
     /// Предпросмотр пароля.
@@ -55,7 +56,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
     {
         get;
         private set => SetProperty(ref field, value);
-    }
+    } = "";
 
     /// <summary>
     /// Пароль пустой?
@@ -84,12 +85,12 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
         ILogger<PageViewModelBase> logger,
         IConfigurationService configurationService, 
         ICryptographyService cryptographyService, 
-        IMessageBoxService messageBoxService) 
+        IPopupService popupService) 
         : base(logger)
     {
         _configurationService = configurationService;
         _cryptographyService = cryptographyService;
-        _messageBoxService = messageBoxService;
+        _popupService = popupService;
 
         _defaultRemainingSeconds = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -139,7 +140,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
     /// <summary>
     /// Авторизация администратора.
     /// </summary>
-    public async Task Login()
+    public void Login()
     {
         StopInactivityTimer();
         
@@ -148,12 +149,12 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
 
         if (success)
         {
-            Navigation.NavigateTo<SettingsPageViewModel>();
+            Navigation!.NavigateTo<SettingsPageViewModel>();
         }
         else
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Неверный пароль");
-            Navigation.NavigateTo<MainMenuPageViewModel>();
+            _popupService.ShowCustomPopup(new Popup("Неверный пароль", PopupType.Error));
+            Navigation!.NavigateTo<MainMenuPageViewModel>();
         }
     }
     

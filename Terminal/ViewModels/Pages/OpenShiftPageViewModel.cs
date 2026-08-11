@@ -14,7 +14,6 @@ using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Persistence.MainDB;
-using Terminal.Services.MessageBoxService;
 using Terminal.ViewModels.Items;
 
 namespace Terminal.ViewModels.Pages;
@@ -36,19 +35,14 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IConfigurationService"/>
     private readonly IConfigurationService _configurationService;
 
-    /// <inheritdoc cref="IMessageBoxService"/>
-    private readonly IMessageBoxService _messageBoxService;
+    /// <inheritdoc cref="IPopupService"/>
+    private readonly IPopupService _popupService;
 
     /// <summary>
     /// Значение таймера по умолчанию.
     /// </summary>
     private readonly int _defaultRemainingSeconds;
-    
-    /// <summary>
-    /// Делегат для обработки нажатия Enter.
-    /// </summary>
-    private Action? _onEnterPressedHandler;
-    
+
     /// <summary>
     /// Токен отмены для операций ввода.
     /// </summary>
@@ -62,7 +56,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Выбранная учётная запись.
     /// </summary>
-    private User _selectedUser;
+    private User? _selectedUser;
     
     /// <summary>
     /// Индекс текущего шага.
@@ -83,7 +77,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             PasswordChar = new string('*', value.Length);
             PasswordIsEmpty = string.IsNullOrEmpty(field);
         }
-    }
+    } = "";
 
     /// <summary>
     /// Предпросмотр пароля.
@@ -92,7 +86,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     {
         get;
         private set => SetProperty(ref field, value);
-    }
+    } = "";
 
     /// <summary>
     /// Пароль пустой?
@@ -135,20 +129,16 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// True, если включён тип авторизации по карте.
     /// </summary>
     private bool IsMifareCardAuthorizeType { get; set; }
-    
+
     /// <summary>
     /// Коллекция шагов авторизации.
     /// </summary>
-    public ObservableCollection<StepViewModelBase> Steps
-    {
-        get;
-        private set => SetProperty(ref field, value);
-    }
+    public ObservableCollection<StepViewModelBase> Steps { get; } = [];
 
     /// <summary>
     /// Коллекция пользователей.
     /// </summary>
-    public ObservableCollection<User> Users { get; set; } = [];
+    public ObservableCollection<User> Users { get; } = [];
 
     /// <summary>
     /// Коллекция кнопок для авторизации.
@@ -164,7 +154,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <summary>
     /// Сообщение в окне пароля.
     /// </summary>
-    public string MessageInPreview { get; set; }
+    public string? MessageInPreview { get; set; }
     
     /// <summary>
     /// Показывать ли кнопки пароля.
@@ -182,8 +172,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         IShiftService shiftService, 
         ICardReaderService cardReaderService, 
         IConfigurationService configurationService, 
-        IMessageBoxService messageBoxService, 
-        IUpdateInstallerService installerService) 
+        IUpdateInstallerService installerService,
+        IPopupService popupService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
@@ -191,7 +181,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _shiftService = shiftService;
         _cardReaderService = cardReaderService;
         _configurationService = configurationService;
-        _messageBoxService = messageBoxService;
+        _popupService = popupService;
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -261,19 +251,22 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     {
         if (string.IsNullOrEmpty(Password))
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Введите пароль");
+            _popupService.ShowError("Введите пароль!");
             StartParallelInput();
             return;
         }
         
         CancelAllOperations();
         IsWaitingForInput = false;
+
+        if (SelectedUserIsNull())
+            return;
         
-        var authorizeIsSuccess = await _authService.LoginWithPasswordAsync(_selectedUser.Name!, Password);
+        var authorizeIsSuccess = await _authService.LoginWithPasswordAsync(_selectedUser!.Name!, Password);
         
         if (!authorizeIsSuccess)
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Пароли не совпали");
+            _popupService.ShowError("Пароли не совпали!");
             Password = string.Empty;
             StartParallelInput();
             return;
@@ -292,16 +285,33 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         IsWaitingForInput = false;
 
         var longCardNumber = Convert.ToInt64(cardNumber, 16);
-        var authorizeIsSuccess = await _authService.LoginWithCardNumber(_selectedUser.Name!, longCardNumber);
+        
+        if (SelectedUserIsNull())
+            return;
+        
+        var authorizeIsSuccess = await _authService.LoginWithCardNumber(_selectedUser!.Name!, longCardNumber);
         
         if (!authorizeIsSuccess)
         {
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Карта не зарегистрирована");
+            _popupService.ShowError("Карта не зарегистрирована!");
             StartParallelInput();
             return;
         }
 
         await CompleteAuthorizationAsync();
+    }
+    
+    /// <summary>
+    /// Проверить выбран ли оператор.
+    /// </summary>
+    /// <returns>True, если _selectedUser==null.</returns>
+    private bool SelectedUserIsNull()
+    {
+        if (_selectedUser != null) 
+            return false;
+        
+        _popupService.ShowError("Не выбран оператор.");
+        return true;
     }
     
     /// <summary>
@@ -314,7 +324,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         if (openedShift == null)
             await _shiftService.OpenShiftAsync();
         
-        Navigation.NavigateTo<MainMenuPageViewModel>();
+        Navigation!.NavigateTo<MainMenuPageViewModel>();
     }
 
     /// <summary>
@@ -329,12 +339,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         
         IsWaitingForInput = true;
         RemainingSeconds = _defaultRemainingSeconds;
-        
-        _onEnterPressedHandler = () =>
-        {
-            _inputCancellationTokenSource?.Cancel();
-        };
-        
+
         _ = StartCountdownTimer(_timeoutCancellationTokenSource.Token);
         _ = WaitForInputParallelAsync(_inputCancellationTokenSource.Token);
     }
@@ -388,7 +393,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
                 }
                 else if (cardResult.ErrorMessage != null && cardResult.ErrorType != CardReaderErrorType.Timeout)
                 {
-                    await _messageBoxService.ShowMessageBoxAsync("Ошибка", cardResult.ErrorMessage);
+                    _popupService.ShowError(cardResult.ErrorMessage);
                     StartParallelInput();
                 }
             }
@@ -398,7 +403,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         catch (Exception e)
         {
             Logger.LogError(e, "Ошибка при ожидании ввода");
-            await _messageBoxService.ShowMessageBoxAsync("Ошибка", $"Произошла ошибка: {e.Message}");
+            _popupService.ShowError("Ошибка при ожидании ввода");
         }
         finally
         {
@@ -457,11 +462,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
             
             if (RemainingSeconds <= 0 && !cancellationToken.IsCancellationRequested)
             {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
-                {
-                    await _messageBoxService.ShowMessageBoxAsync("Ошибка", "Вышло время ожидания");
-                    Navigation.NavigateTo<OpenShiftPageViewModel>();
-                });
+                _popupService.ShowInfo("Вышло время ожидания");
+                Navigation!.NavigateTo<OpenShiftPageViewModel>();
             }
         }
         catch (OperationCanceledException)
@@ -497,8 +499,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _timeoutCancellationTokenSource?.Cancel();
         _timeoutCancellationTokenSource?.Dispose();
         _timeoutCancellationTokenSource = null;
-        
-        _onEnterPressedHandler = null;
     }
 
     /// <summary>
@@ -515,10 +515,10 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// </summary>
     private async Task InitializeData()
     {
-        Steps = [
+        Steps.AddRange([
             new StepViewModelBase("Кассиры", OnStepCompleted),
             new StepViewModelBase("Пароль", OnStepCompleted)
-        ];
+        ]);
 
         Title = Steps[0].StepName;
         Steps[0].IsActive = true;

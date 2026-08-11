@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Interfaces;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 
@@ -24,6 +25,9 @@ public class NavigationService : INavigationService
 
     ///<inheritdoc cref="IParameterService"/>
     private readonly IParameterService _parameterService;
+
+    ///<inheritdoc cref="IPopupService"/>
+    private readonly IPopupService _popupService;
     
     /// <summary>
     /// Стек истории открытия страниц.
@@ -63,11 +67,13 @@ public class NavigationService : INavigationService
     public NavigationService(
         IServiceProvider serviceProvider, 
         ILogger<NavigationService> logger, 
-        IParameterService parameterService)
+        IParameterService parameterService, 
+        IPopupService popupService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _parameterService = parameterService;
+        _popupService = popupService;
 
         _ = OpenFirstPageAsync();
     }
@@ -83,33 +89,58 @@ public class NavigationService : INavigationService
         catch (Exception e)
         {
             _logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
 
     ///<inheritdoc/>
     public void NavigateToInstancePage(PageViewModelBase page)
     {
-        NavigateToPage(page);
+        try
+        {
+            NavigateToPage(page);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка перехода: {e.Message}");
+        }
     }
     
     ///<inheritdoc/>
     public void NavigateTo<T>(Action<T> configure) where T : PageViewModelBase
     {
-        var page = _serviceProvider.GetRequiredService<T>();
-        configure(page);
-        NavigateToPage(page);
+        try
+        {
+            var page = _serviceProvider.GetRequiredService<T>();
+            configure(page);
+            NavigateToPage(page);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка перехода: {e.Message}");
+        }
     }
     
     ///<inheritdoc/>
     public void GoBack()
     {
-        if (_history.Count > 0)
+        try
         {
-            _currentPage?.OnDeactivated();
+            if (_history.Count <= 0) 
+                return;
             
+            _currentPage?.OnDeactivated();
+                
             var previousPage = _history.Pop();
             previousPage.OnActivated(this);
             CurrentPage = previousPage;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
     
@@ -119,15 +150,23 @@ public class NavigationService : INavigationService
     /// <param name="page">Страница которую нужно отобразить.</param>
     private void NavigateToPage(PageViewModelBase page)
     {
-        page.OnActivated(this);
-    
-        if (_currentPage != null)
+        try
         {
-            _currentPage.OnDeactivated();
-            _history.Push(_currentPage);
-        }
+            page.OnActivated(this);
+        
+            if (_currentPage != null)
+            {
+                _currentPage.OnDeactivated();
+                _history.Push(_currentPage);
+            }
 
-        CurrentPage = page;
+            CurrentPage = page;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка перехода: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -143,6 +182,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
+            _logger.LogError(e.Message, e.InnerException);
             isInstalled = false;
         }
         

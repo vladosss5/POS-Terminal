@@ -50,16 +50,18 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// Токен отмены для работы с БД.
     /// </summary>
     private CancellationTokenSource? _loadingCts;
-    
+
     /// <summary>
     /// Вернёт true если есть ли ещё не загруженные данные/
     /// </summary>
-    [ObservableProperty] private bool _hasMoreItems = true;
-    
+    [ObservableProperty]
+    public partial bool HasMoreItems { get; private set; } = true;
+
     /// <summary>
     /// Вернёт true, если идёт загрузка данных.
     /// </summary>
-    [ObservableProperty] private bool _isLoading;
+    [ObservableProperty]
+    public partial bool IsLoading { get; private set; }
 
     /// <summary>
     /// Коллекция чеков.

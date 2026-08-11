@@ -63,74 +63,49 @@ public class DiscountingMethods : IDiscountingMethods
     /// <inheritdoc/>
     public CardInfoDtoResponseDto GetCardInfo(CardInfoDtoRequestDto dtoRequestDto)
     {
-        try
-        {
-            var inputXml = XmlHelper.SerializeXml(dtoRequestDto);
+        var inputXml = XmlHelper.SerializeXml(dtoRequestDto);
 
-            var resultBuffer = new byte[MaxResultBufferSize];
-            uint returnBytes = 0;
+        var resultBuffer = new byte[MaxResultBufferSize];
+        uint returnBytes = 0;
 
-            var resultString = _discountingLibrary.Calculating(
-                inputXml,
-                _limitationXml,
-                _inputSchema,
-                _param,
-                resultBuffer,
-                resultBuffer.Length,
-                ref returnBytes);
+        var resultString = _discountingLibrary.Calculating(
+            inputXml,
+            _limitationXml,
+            _inputSchema,
+            _param,
+            resultBuffer,
+            resultBuffer.Length,
+            ref returnBytes);
 
-            var response = XmlHelper.DeserializeXml<CardInfoDtoResponseDto>(resultString);
+        var response = XmlHelper.DeserializeXml<CardInfoDtoResponseDto>(resultString);
 
-            _logger.LogDebug("Успешно получена информация о карте. Размер ответа: {ResponseSize} байт", returnBytes);
+        _logger.LogDebug("Успешно получена информация о карте. Размер ответа: {ResponseSize} байт", returnBytes);
 
-            return response;
-        }
-        catch (FileNotFoundException ex)
-        {
-            _logger.LogError(ex, "Не удалось найти XML-файлы конфигурации");
-            throw new InvalidOperationException(
-                "Ошибка инициализации: отсутствуют конфигурационные файлы. Обратитесь к администратору.", 
-                ex);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка при получении информации о карте");
-            throw;
-        }
+        return response;
     }
 
     /// <inheritdoc/>
     public DiscountResponseDto CalculateDiscount(DiscountRequestDto requestDto)
     {
-        var response = new DiscountResponseDto();
+        var inputXml = XmlHelper.SerializeXml(requestDto);
+
+        var resultBuffer = new byte[MaxResultBufferSize];
+        uint returnBytes = 0;
         
-        try
-        {
-            var inputXml = XmlHelper.SerializeXml(requestDto);
+        _logger.LogDebug("Предварительный расчёт скидок. input = {inputXml}", inputXml);
 
-            var resultBuffer = new byte[MaxResultBufferSize];
-            uint returnBytes = 0;
-            
-            _logger.LogDebug("Предварительный расчёт скидок. input = {inputXml}", inputXml);
+        var resultString = _discountingLibrary.Calculating(
+            inputXml,
+            _limitationXml,
+            _inputSchema,
+            _param,
+            resultBuffer,
+            resultBuffer.Length,
+            ref returnBytes);
 
-            var resultString = _discountingLibrary.Calculating(
-                inputXml,
-                _limitationXml,
-                _inputSchema,
-                _param,
-                resultBuffer,
-                resultBuffer.Length,
-                ref returnBytes);
+        var response = XmlHelper.DeserializeXml<DiscountResponseDto>(resultString);
 
-            response = XmlHelper.DeserializeXml<DiscountResponseDto>(resultString);
-
-            _logger.LogDebug("Успешно рассчитаны скидки. Output - {resultString}", resultString);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e.Message, e.InnerException);
-        }
-        
+        _logger.LogDebug("Успешно рассчитаны скидки. Output - {resultString}", resultString);
 
         return response;
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avalonia;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
@@ -22,6 +23,9 @@ public partial class SettingsPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
+
+    /// <inheritdoc cref="IPopupService" />
+    private readonly IPopupService _popupService;
 
     /// <summary>
     /// Ссылка на экземпляр класса настроек приложения.
@@ -95,8 +99,8 @@ public partial class SettingsPageViewModel : PageViewModelBase
             if (IpRegex().IsMatch(field))
                 _parameterService.SetValueAsync(AppParameter.TmsIp, field);
         }
-    }
-    
+    } = "";
+
     /// <summary>
     /// Порт TMS. Наблюдаемое св-во. При изменении автоматически сохраняет в значение БД.
     /// </summary>
@@ -111,7 +115,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
             if (PortRegex().IsMatch(field))
                 _parameterService.SetValueAsync(AppParameter.TmsPort, field);
         }
-    }
+    } = "";
     
     /// <summary>
     /// Безопасная зона для интерфейсов при открытии клавиатуры.
@@ -128,23 +132,25 @@ public partial class SettingsPageViewModel : PageViewModelBase
     public SettingsPageViewModel(
         ILogger<PageViewModelBase> logger,
         IConfigurationService configurationService, 
-        IParameterService parameterService) 
+        IParameterService parameterService, 
+        IPopupService popupService) 
         : base(logger)
     {
         _configurationService = configurationService;
         _parameterService = parameterService;
+        _popupService = popupService;
         Title = "Настройки";
         
         SettingsModel = _configurationService.CurrentSetting;
         SettingsFromPosOffice = _configurationService.SettingsFromPosOffice;
         
-        InitializeData();
+        _ = InitializeDataAsync();
     }
     
     /// <summary>
     /// Перейти к прошлому шагу.
     /// </summary>
-    public void StepBack() => Navigation.NavigateTo<MainMenuPageViewModel>();
+    public void StepBack() => Navigation!.NavigateTo<MainMenuPageViewModel>();
     
     /// <summary>
     /// Вызвать сохранение конфигурации в файл.
@@ -154,17 +160,25 @@ public partial class SettingsPageViewModel : PageViewModelBase
     /// <summary>
     /// Инициализировать данные.
     /// </summary>
-    private async void InitializeData()
+    private async Task InitializeDataAsync()
     {
-        var timeOutValue = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
+        try
+        {
+            var timeOutValue = _configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
-        SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = timeOutValue };
-        TimeoutValues.Add(SecondsAuthenticationCanceled);
+            SecondsAuthenticationCanceled = new TimeoutOptionDto { Seconds = timeOutValue };
+            TimeoutValues.Add(SecondsAuthenticationCanceled);
 
-        SelectedAuthorizeType = (AuthorizeType)_configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod;
+            SelectedAuthorizeType = (AuthorizeType)_configurationService.SettingsFromPosOffice.MainSettings.Mode.AuthorizeMethod;
 
-        TmsIpAddress = await _parameterService.GetValueAsync(AppParameter.TmsIp);
-        TmsPort = await _parameterService.GetValueAsync(AppParameter.TmsPort);
+            TmsIpAddress = await _parameterService.GetValueAsync(AppParameter.TmsIp) ?? "192.168.100.102";
+            TmsPort = await _parameterService.GetValueAsync(AppParameter.TmsPort) ?? "5297";
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Ошибка загрузки конфигурации: {e.Message}");
+        }
     }
 
     [GeneratedRegex(@"^((25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(25[0-5]|2[0-4]\d|1?\d?\d)$")]

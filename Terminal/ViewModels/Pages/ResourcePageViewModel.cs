@@ -36,6 +36,9 @@ public partial class ResourcePageViewModel : PageViewModelBase
     ///<inheritdoc cref="IResourceCodeMapper"/>
     private readonly IResourceCodeMapper _resourceCodeMapper;
 
+    ///<inheritdoc cref="IPopupService"/>
+    private readonly IPopupService _popupService;
+
     private static readonly CultureInfo CultureForNumbers = CultureInfo.InvariantCulture;
 
     /// <summary>
@@ -106,7 +109,8 @@ public partial class ResourcePageViewModel : PageViewModelBase
         IAuthService authService, 
         IParameterService parameterService, 
         IResourceCodeRepository resourceCodeRepository, 
-        IResourceCodeMapper resourceCodeMapper) 
+        IResourceCodeMapper resourceCodeMapper, 
+        IPopupService popupService) 
         : base(logger)
     {
         Title = DefaultTitle;
@@ -115,6 +119,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
         _parameterService = parameterService;
         _resourceCodeRepository = resourceCodeRepository;
         _resourceCodeMapper = resourceCodeMapper;
+        _popupService = popupService;
 
         _ = LoadData();
     }
@@ -151,35 +156,43 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// </summary>
     public async Task SavePrice()
     {
-        if (SelectedResourceCode == null)
-            return;
+        try
+        {
+            if (SelectedResourceCode == null)
+                return;
 
-        var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey);
+            var resourceCode = await _resourceCodeRepository.GetByResourceKeyAsync(SelectedResourceCode!.ResourceKey);
 
-        if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice) || resourceCode == null)
-            return;
+            if (!decimal.TryParse(PricePreview, NumberStyles.Any, CultureForNumbers, out var newPrice) || resourceCode == null)
+                return;
 
-        if (resourceCode.ResourcePrice == newPrice)
+            if (resourceCode.ResourcePrice == newPrice)
+                ResetPageData();
+
+            var oldValue = resourceCode.ResourcePrice;
+
+            newPrice = Math.Round(newPrice, 2);
+            resourceCode.ResourcePrice = newPrice;
+
+            await _resourceCodeRepository.UpdateResourceCodeAsync(resourceCode);
+
+            var index = Resources.IndexOf(SelectedResourceCode);
+
+            if (index < 0)
+                return;
+
+            await Print(oldValue, newPrice);
+
+            SelectedResourceCode.ResourcePrice = newPrice;
+            Resources[index] = SelectedResourceCode;
+
             ResetPageData();
-
-        var oldValue = resourceCode.ResourcePrice;
-
-        newPrice = Math.Round(newPrice, 2);
-        resourceCode.ResourcePrice = newPrice;
-
-        await _resourceCodeRepository.UpdateResourceCodeAsync(resourceCode);
-
-        var index = Resources.IndexOf(SelectedResourceCode);
-
-        if (index < 0)
-            return;
-
-        await Print(oldValue, newPrice);
-
-        SelectedResourceCode.ResourcePrice = newPrice;
-        Resources[index] = SelectedResourceCode;
-
-        ResetPageData();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError(e.Message);
+        }
     }
 
     /// <summary>
@@ -273,10 +286,10 @@ public partial class ResourcePageViewModel : PageViewModelBase
         
         var changeData = new PriceChangeData
         {
-            IssuerNumber = issuerNumber,
-            TerminalNumber = terminalNumber,
+            IssuerNumber = issuerNumber ?? "",
+            TerminalNumber = terminalNumber ?? "",
             ChangingDateTime = DateTime.Now,
-            ResourceName = SelectedResourceCode != null ? SelectedResourceCode.ResourceName! : "undefined",
+            ResourceName = SelectedResourceCode != null ? SelectedResourceCode.ResourceName : "undefined",
             PriceUpTo = oldValue ?? 0,
             PriceAfter = newValue,
             OperatorName = operatorName ?? "undefined"

@@ -29,7 +29,7 @@ public sealed record Popup
     /// <param name="type">Тип оповещения.</param>
     /// <param name="durationMs">Время показа в мс.</param>
     /// <exception cref="ArgumentException">Ошибка, если message является null или пустой строкой.</exception>
-    public Popup(string message, PopupType type, int durationMs)
+    public Popup(string message, PopupType type, int durationMs = 5000)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         

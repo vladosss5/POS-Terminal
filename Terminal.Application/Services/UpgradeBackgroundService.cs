@@ -23,6 +23,9 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     /// <inheritdoc cref="IStatusNotifierService" />
     private readonly IStatusNotifierService _statusNotifierService;
 
+    /// <inheritdoc cref="IPopupService" />
+    private readonly IPopupService _popupService;
+
     /// <summary>
     /// Название файла-иконки загрузки.
     /// </summary>
@@ -49,11 +52,13 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     public UpgradeBackgroundService(
         ILogger<UpgradeBackgroundService> logger, 
         IUpdateInstallerService updateInstallerService, 
-        IStatusNotifierService statusNotifierService)
+        IStatusNotifierService statusNotifierService, 
+        IPopupService popupService)
     {
         _logger = logger;
         _updateInstallerService = updateInstallerService;
         _statusNotifierService = statusNotifierService;
+        _popupService = popupService;
     }
 
     /// <summary>
@@ -63,19 +68,12 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     {
         _logger.LogInformation("Update check service started");
         
-        try
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
+        do
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(1));
-            do
-            {
-                await CheckAndDownloadUpdateAsync();
-            }
-            while (await timer.WaitForNextTickAsync() && !_downloadIsInProgress);
+            await CheckAndDownloadUpdateAsync();
         }
-        catch (Exception e)
-        {
-            _logger.LogInformation(e.Message, e.InnerException);
-        }
+        while (await timer.WaitForNextTickAsync() && !_downloadIsInProgress);
     }
 
     /// <summary>
@@ -83,27 +81,19 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     /// </summary>
     private async Task CheckAndDownloadUpdateAsync()
     {
-        try
-        {
-            _logger.LogInformation("Checking for updates...");
+        _logger.LogInformation("Checking for updates...");
 
-            if (!await _updateInstallerService.CheckForUpdates())
-                throw new Exception("Обновлений не найдено");
+        if (!await _updateInstallerService.CheckForUpdates())
+            return;
 
-            _logger.LogInformation("New version found. Downloading...");
-            UpdateDownloadingStatus(DownloadStatus.InProcess);
-            _downloadIsInProgress = true;
+        _logger.LogInformation("New version found. Downloading...");
+        UpdateDownloadingStatus(DownloadStatus.InProcess);
+        _downloadIsInProgress = true;
 
-            await _updateInstallerService.DownloadUpdatingFileAsync();
+        await _updateInstallerService.DownloadUpdatingFileAsync();
 
-            _logger.LogInformation("Update downloaded successfully");
-            UpdateDownloadingStatus(DownloadStatus.Completed);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking for updates");
-            UpdateDownloadingStatus(DownloadStatus.Aborted);
-        }
+        _logger.LogInformation("Update downloaded successfully");
+        UpdateDownloadingStatus(DownloadStatus.Completed);
             
         _downloadIsInProgress = false;
 

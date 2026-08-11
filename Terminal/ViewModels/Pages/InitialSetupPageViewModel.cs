@@ -4,6 +4,7 @@ using Avalonia;
 using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -17,6 +18,9 @@ public class InitialSetupPageViewModel : PageViewModelBase
     
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
+
+    /// <inheritdoc cref="IParameterService" />
+    private readonly IPopupService _popupService;
 
     /// <summary>
     /// Номер эмитента.
@@ -69,11 +73,13 @@ public class InitialSetupPageViewModel : PageViewModelBase
     public InitialSetupPageViewModel(
         IParameterService parameterService,
         ILogger<PageViewModelBase> logger, 
-        ILogger<InitialSetupPageViewModel> loggerService) 
+        ILogger<InitialSetupPageViewModel> loggerService, 
+        IPopupService popupService) 
         : base(logger)
     {
         _parameterService = parameterService;
         _logger = loggerService;
+        _popupService = popupService;
         Title = "Первичная настройка";
     }
 
@@ -95,7 +101,7 @@ public class InitialSetupPageViewModel : PageViewModelBase
         catch (Exception e)
         {
             _logger.LogError(e.Message);
-            throw;
+            _popupService.ShowError($"Ошибка сохранения {e.Message}");
         }
     }
 }

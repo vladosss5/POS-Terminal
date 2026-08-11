@@ -109,7 +109,8 @@ public partial class ResourcePageViewModel : PageViewModelBase
         IAuthService authService, 
         IParameterService parameterService, 
         IResourceCodeRepository resourceCodeRepository, 
-        IResourceCodeMapper resourceCodeMapper, IPopupService popupService) 
+        IResourceCodeMapper resourceCodeMapper, 
+        IPopupService popupService) 
         : base(logger)
     {
         Title = DefaultTitle;

@@ -2,6 +2,7 @@
 using Terminal.Core.Interfaces;
 using Android.Media;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Devices;
 using Terminal.Core.Enums;
 
 namespace Terminal.Android.Services;
@@ -39,6 +40,10 @@ public class AndroidSoundService : ISoundService
     /// <inheritdoc/>
     public void PlaySound(SoundType soundType)
     {
+        var deviceManufacturer = DeviceInfo.Current.Manufacturer;
+        if (deviceManufacturer == "alps" && soundType == SoundType.Button)
+            return;
+            
         var fileName = soundType switch
         {
             SoundType.Button => ButtonSoundPath,

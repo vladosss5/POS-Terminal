@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Terminal.Services.NavigationService;
 
@@ -42,8 +41,9 @@ public partial class PageViewModelBase : ViewModelBase
     /// </summary>
     public string Title
     {
-        get; set => SetProperty(ref field, value);
-    }
+        get;
+        set => SetProperty(ref field, value);
+    } = "";
 
     
     /// <summary>
@@ -77,7 +77,7 @@ public partial class PageViewModelBase : ViewModelBase
     {
         if (IsNavigationInitialized)
         {
-            Navigation.GoBack();
+            Navigation!.GoBack();
         }
     }
     
@@ -85,5 +85,5 @@ public partial class PageViewModelBase : ViewModelBase
     /// Можно ли вернуться назад?
     /// </summary>
     /// <returns>Можно или не можно.</returns>
-    protected bool CanGoBack() => IsNavigationInitialized && Navigation.CanGoBack;
+    protected bool CanGoBack() => IsNavigationInitialized && Navigation!.CanGoBack;
 }

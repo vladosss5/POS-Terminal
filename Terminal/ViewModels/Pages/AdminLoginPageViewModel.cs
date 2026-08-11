@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
-using Terminal.Services.MessageBoxService;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -21,7 +20,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
     /// <inheritdoc cref="ICryptographyService"/>
     private readonly ICryptographyService _cryptographyService;
 
-    /// <inheritdoc cref="IMessageBoxService"/>
+    /// <inheritdoc cref="IPopupService"/>
     private readonly IPopupService _popupService;
     
     /// <summary>

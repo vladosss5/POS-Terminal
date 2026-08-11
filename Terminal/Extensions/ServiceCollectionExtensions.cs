@@ -19,7 +19,6 @@ using Terminal.Persistence.TmsClient;
 using Terminal.Services;
 using Terminal.Services.AuthPageFactory;
 using Terminal.Services.Mappers.ResourceCodeMapping;
-using Terminal.Services.MessageBoxService;
 using Terminal.Services.NavigationService;
 using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
@@ -65,7 +64,6 @@ public static class ServiceCollectionExtensions
         
         // Сервисы логики
         collection.AddSingleton<ITmsClient, TmsClient>();
-        collection.AddTransient<IMessageBoxService, MessageBoxService>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();
         collection.AddScoped<ISqlExecutor, SqlExecutorMainDb>();

@@ -38,5 +38,8 @@
         <AndroidAsset Include="..\Terminal.Application\Xmls\*.xml">
             <Link>Assets\Xmls\%(FileName)%(Extension)</Link>
         </AndroidAsset>
+        <AndroidAsset Include="..\Terminal\Assets\Sounds\*.wav">
+            <Link>Assets\Sounds\%(FileName)%(Extension)</Link>
+        </AndroidAsset>
     </ItemGroup>
 </Project>

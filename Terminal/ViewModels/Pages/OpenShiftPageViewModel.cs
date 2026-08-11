@@ -201,7 +201,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void SelectUser(User user)
     {
-        _soundService.PlayBeep();
         _selectedUser = user;
         Steps[0].CompleteStepCommand.Execute(null);
         
@@ -230,7 +229,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void AddCharInPassword(string element)
     {
-        _soundService.PlayBeep();
+        _soundService.PlaySound(SoundType.Button);
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();
 
@@ -518,7 +517,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     }
     
     /// <summary>
-    /// Инициаизировать данные.
+    /// Инициализировать данные.
     /// </summary>
     private async Task InitializeData()
     {

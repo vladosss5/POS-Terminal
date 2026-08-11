@@ -42,6 +42,7 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <!-- XZ packages -->
     <PackageVersion Include="System.IO.Ports" Version="10.0.10" />
+    <PackageVersion Include="System.Windows.Extensions" Version="10.0.10" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.2" />
   </ItemGroup>
 </Project>

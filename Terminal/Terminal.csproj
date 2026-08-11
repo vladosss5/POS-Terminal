@@ -9,6 +9,7 @@
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
         <AvaloniaResource Include="Assets\Fonts\**" />
+        <AvaloniaResource Include="Assets\Sounds\**" />
         <AvaloniaResource Include="App.axaml" />
         <AvaloniaXaml Remove="App.axaml" />
     </ItemGroup>

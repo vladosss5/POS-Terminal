@@ -194,9 +194,12 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [RelayCommand]
     private void SetAmount()
     {
-        if (SelectedResourceCode == null || 
+        if (SelectedResourceCode == null ||
             SelectedResourceCode.ResourcePrice == 0)
+        {
+            _popupService.ShowInfo("Задайте кол-во отличное от 0");
             return;
+        }
         
         var amount = decimal.Parse(AmountPreview, _culture);
         var calculatedField = IsAmountMoney ? CalculatedField.Amount : CalculatedField.Price;
@@ -211,17 +214,27 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     [RelayCommand]
     private async Task SetPaymentTypeAsync(string typeKey)
     {
-        if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value)) 
-            return;
-        
-        _salesProcessService.SetPaymentType(value.BaseType, value.DerivedType);
+        try
+        {
+            if (!PaymentTypesDictionary.TryGetValue(typeKey, out var value))
+                return;
 
-        if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
-            await _salesProcessService.ReadCardAsync();
-        
-        await _salesProcessService.CompleteProcessAsync();
-        
-        Navigation!.NavigateTo<MainMenuPageViewModel>();
+            _salesProcessService.SetPaymentType(value.BaseType, value.DerivedType);
+
+            if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
+                await _salesProcessService.ReadCardAsync();
+
+            await _salesProcessService.CompleteProcessAsync();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError(e.Message);
+        }
+        finally
+        {
+            Navigation!.NavigateTo<MainMenuPageViewModel>();
+        }
     }
 
     /// <summary>
@@ -342,9 +355,17 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// </summary>
     private async Task LoadDataAsync()
     {
-        var resources = await _salesProcessService.GetAvailableResourceCodesAsync();
-        var dtoResources = _resourceCodeMapper.MapResourceCodeDomainModelToDtoRange(resources);
+        try
+        {
+            var resources = await _salesProcessService.GetAvailableResourceCodesAsync();
+            var dtoResources = _resourceCodeMapper.MapResourceCodeDomainModelToDtoRange(resources);
         
-        Resources = [.. dtoResources];
+            Resources = [.. dtoResources];
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e.Message, e.InnerException);
+            _popupService.ShowError($"Данные не загружены из-за ошибки: {e.Message}");
+        }
     }
 }

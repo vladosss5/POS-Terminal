@@ -27,6 +27,7 @@ public static class AndroidServiceCollectionExtensions
             collection.AddSingleton<IUpdateInstallerService, AndroidUpdateInstallerService>();
             collection.AddSingleton<IXmlResourceProvider, AndroidXmlResourceProvider>();
             collection.AddSingleton<IDiscountingLibraryService, AndroidDiscountingLibraryService>();
+            collection.AddSingleton<ISoundService, AndroidSoundService>();
         }
 
         /// <summary>

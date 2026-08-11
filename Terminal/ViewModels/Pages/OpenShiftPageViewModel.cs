@@ -38,6 +38,9 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// <inheritdoc cref="IPopupService"/>
     private readonly IPopupService _popupService;
 
+    /// <inheritdoc cref="IPopupService"/>
+    private readonly ISoundService _soundService;
+
     /// <summary>
     /// Значение таймера по умолчанию.
     /// </summary>
@@ -173,7 +176,8 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         ICardReaderService cardReaderService, 
         IConfigurationService configurationService, 
         IUpdateInstallerService installerService,
-        IPopupService popupService) 
+        IPopupService popupService, 
+        ISoundService soundService) 
         : base(logger)
     {
         _dbFactory = dbFactory;
@@ -182,6 +186,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         _cardReaderService = cardReaderService;
         _configurationService = configurationService;
         _popupService = popupService;
+        _soundService = soundService;
 
         _defaultRemainingSeconds = configurationService.CurrentSetting.SecondsAuthenticationCanceled;
 
@@ -196,6 +201,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void SelectUser(User user)
     {
+        _soundService.PlayBeep();
         _selectedUser = user;
         Steps[0].CompleteStepCommand.Execute(null);
         
@@ -224,6 +230,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void AddCharInPassword(string element)
     {
+        _soundService.PlayBeep();
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();
 

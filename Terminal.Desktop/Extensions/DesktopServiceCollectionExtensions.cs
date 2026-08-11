@@ -22,5 +22,6 @@ public static class DesktopServiceCollectionExtensions
         collection.AddSingleton<IUpdateInstallerService, DesktopUpdateInstallerService>();
         collection.AddSingleton<IDiscountingLibraryService, DesktopDiscountingLibraryService>();
         collection.AddSingleton<IXmlResourceProvider, DesktopXmlResourceProvider>();
+        collection.AddSingleton<ISoundService, DesktopSoundService>();
     }
 }

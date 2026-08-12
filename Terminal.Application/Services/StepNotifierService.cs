@@ -44,6 +44,7 @@ public class StepNotifierService : IStepNotifierService
     public void Attach(IStepObserver observer)
     {
         _observers.Add(observer);
+        observer.ChangeCurrentStep(_currentStep);
     }
 
     /// <inheritdoc/>
@@ -113,5 +114,11 @@ public class StepNotifierService : IStepNotifierService
     public SaleProcessStep GetCurrentStep()
     {
         return _currentStep;
+    }
+
+    /// <inheritdoc/>
+    public void ResetProcess()
+    {
+        _currentStep = Steps[0];
     }
 }

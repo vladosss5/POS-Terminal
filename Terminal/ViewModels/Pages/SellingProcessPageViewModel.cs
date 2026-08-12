@@ -160,9 +160,8 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         _stepMap = Steps.ToDictionary(s => s.Step, s => s);
         PaymentTypesDictionary = _salesProcessService.GetAvailablePaymentTypes();
         
+        stepNotifierService.ResetProcess();
         stepNotifierService.Attach(this);
-        var currentStep = stepNotifierService.GetCurrentStep();
-        ChangeCurrentStep(currentStep);
     }
 
 

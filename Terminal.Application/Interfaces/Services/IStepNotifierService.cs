@@ -45,4 +45,9 @@ public interface IStepNotifierService
     /// </summary>
     /// <returns>Тип шага.</returns>
     public SaleProcessStep GetCurrentStep();
+
+    /// <summary>
+    /// Сбросить процесс, вместо создания нового экземпляра.
+    /// </summary>
+    public void ResetProcess();
 }

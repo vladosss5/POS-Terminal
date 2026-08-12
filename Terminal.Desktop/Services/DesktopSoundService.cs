@@ -41,7 +41,7 @@ public class DesktopSoundService : ISoundService
     {
         if (OperatingSystem.IsWindows())
         {
-            Console.Beep(3000, 100);
+            Console.Beep(880, 450);
         }
         else if (OperatingSystem.IsLinux())
         {

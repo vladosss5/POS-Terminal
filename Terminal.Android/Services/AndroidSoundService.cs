@@ -23,6 +23,16 @@ public class AndroidSoundService : ISoundService
     private const string ButtonSoundPath = "Sounds/button-click.wav";
 
     /// <summary>
+    /// Путь к аудиофайлу успешное выполнение операции.
+    /// </summary>
+    private const string SuccessSoundPath = "Sounds/success.wav";
+    
+    /// <summary>
+    /// Путь к аудиофайлу ошибка.
+    /// </summary>
+    private const string ErrorSoundPath = "Sounds/error.wav";
+
+    /// <summary>
     /// Конструктор.
     /// </summary>
     public AndroidSoundService(ILogger<AndroidSoundService> logger)
@@ -47,6 +57,8 @@ public class AndroidSoundService : ISoundService
         var fileName = soundType switch
         {
             SoundType.Button => ButtonSoundPath,
+            SoundType.Success => SuccessSoundPath,
+            SoundType.Error => ErrorSoundPath,
             _ => ""
         };
 

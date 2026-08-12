@@ -14,7 +14,14 @@ namespace Terminal.Android.Services.Sunyard.SunyardCardReader;
 
 public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
 {
+    /// <summary>
+    /// Севрсис логгирования.
+    /// </summary>
     private readonly ILogger<SunyardCardReaderService> _logger;
+
+    /// <inheritdoc cref="ISoundService" />
+    private readonly ISoundService _soundService;
+    
     private readonly Context _context;
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
     
@@ -47,10 +54,12 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// </summary>
     public SunyardCardReaderService(
         Context context,
-        ILogger<SunyardCardReaderService> logger)
+        ILogger<SunyardCardReaderService> logger, 
+        ISoundService soundService)
     {
         _context = context;
         _logger = logger;
+        _soundService = soundService;
     }
 
     /// <inheritdoc />
@@ -91,6 +100,8 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
             var result = await tcs.Task.ConfigureAwait(false);
 
             OnStatusChanged(result.IsSuccess ? CardReaderStatus.SuccessfullyRead : CardReaderStatus.ErrorRead);
+
+            _soundService.PlaySound(result.IsSuccess ? SoundType.Success : SoundType.Error);
 
             return result;
         }

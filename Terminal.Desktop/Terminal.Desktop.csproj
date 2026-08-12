@@ -16,6 +16,7 @@
         <PackageReference Include="Avalonia.Desktop"/>
         <PackageReference Include="HotAvalonia" />
         <PackageReference Include="HotAvalonia.Extensions" />
+        <PackageReference Include="System.Windows.Extensions" />
     </ItemGroup>
 
     <ItemGroup>

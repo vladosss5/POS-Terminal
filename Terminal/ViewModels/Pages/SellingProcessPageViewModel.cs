@@ -34,6 +34,9 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// <inheritdoc cref="IPopupService"/>
     private readonly IPopupService _popupService;
 
+    /// <inheritdoc cref="ISoundService"/>
+    private readonly ISoundService _soundService;
+
     /// <summary>
     /// Культура для приведения чисел с точкой к строке.
     /// </summary>
@@ -141,13 +144,15 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         IStepNotifierService stepNotifierService,
         ISalesProcessService salesProcessService,
         IResourceCodeMapper resourceCodeMapper, 
-        IPopupService popupService)
+        IPopupService popupService, 
+        ISoundService soundService)
         : base(logger)
     {
         _stepNotifierService = stepNotifierService;
         _salesProcessService = salesProcessService;
         _resourceCodeMapper = resourceCodeMapper;
         _popupService = popupService;
+        _soundService = soundService;
 
         _ = LoadDataAsync();
         InitStepsCollection();
@@ -225,11 +230,13 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
                 await _salesProcessService.ReadCardAsync();
 
             await _salesProcessService.CompleteProcessAsync();
+            _soundService.PlaySound(SoundType.Success);
         }
         catch (Exception e)
         {
             Logger.LogError(e.Message, e.InnerException);
             _popupService.ShowError(e.Message);
+            _soundService.PlaySound(SoundType.Error);
         }
         finally
         {

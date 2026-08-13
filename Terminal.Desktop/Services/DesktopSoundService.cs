@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Media;
 using Avalonia.Platform;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 
@@ -16,7 +15,7 @@ public class DesktopSoundService : ISoundService
     /// <summary>
     /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<DesktopSoundService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Путь к файлу писка на Linux.
@@ -31,7 +30,7 @@ public class DesktopSoundService : ISoundService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public DesktopSoundService(ILogger<DesktopSoundService> logger)
+    public DesktopSoundService(ILoggingService logger)
     {
         _logger = logger;
     }
@@ -72,7 +71,7 @@ public class DesktopSoundService : ISoundService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка воспроизведения звука:\n{e.Message}\n{e.InnerException}");
         }
     }
 }

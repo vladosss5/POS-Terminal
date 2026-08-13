@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Avalonia;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
@@ -13,9 +12,6 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public class InitialSetupPageViewModel : PageViewModelBase
 {
-    /// <inheritdoc cref="ILogger" />
-    private readonly ILogger<InitialSetupPageViewModel> _logger;
-    
     /// <inheritdoc cref="IParameterService" />
     private readonly IParameterService _parameterService;
 
@@ -29,7 +25,7 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         get; 
         set => SetProperty(ref field, value);
-    }
+    } = "";
     
     /// <summary>
     /// Номер терминала.
@@ -38,7 +34,7 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         get; 
         set => SetProperty(ref field, value);
-    }
+    } = "";
 
     /// <summary>
     /// Адрес TMS.
@@ -47,8 +43,8 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         get;
         set => SetProperty(ref field, value);
-    }
-    
+    } = "";
+
     /// <summary>
     /// Порт TMS.
     /// </summary>
@@ -56,7 +52,7 @@ public class InitialSetupPageViewModel : PageViewModelBase
     {
         get;
         set => SetProperty(ref field, value);
-    }
+    } = "";
     
     /// <summary>
     /// Безопасная зона для интерфейсов при открытии клавиатуры.
@@ -72,13 +68,11 @@ public class InitialSetupPageViewModel : PageViewModelBase
     /// </summary>
     public InitialSetupPageViewModel(
         IParameterService parameterService,
-        ILogger<PageViewModelBase> logger, 
-        ILogger<InitialSetupPageViewModel> loggerService, 
+        ILoggingService logger,
         IPopupService popupService) 
         : base(logger)
     {
         _parameterService = parameterService;
-        _logger = loggerService;
         _popupService = popupService;
         Title = "Первичная настройка";
     }
@@ -100,7 +94,7 @@ public class InitialSetupPageViewModel : PageViewModelBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message);
+            Logger.LogError(e.Message);
             _popupService.ShowError($"Ошибка сохранения {e.Message}");
         }
     }

@@ -15,9 +15,9 @@ namespace Terminal.Android.Services.Sunyard.SunyardCardReader;
 public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
 {
     /// <summary>
-    /// Севрсис логгирования.
+    /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<SunyardCardReaderService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <inheritdoc cref="ISoundService" />
     private readonly ISoundService _soundService;
@@ -38,12 +38,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// Событие, возникающее при изменении состояния подключения к считывателю.
     /// </summary>
     public event EventHandler<bool>? ConnectionChanged;
-    
-    /// <summary>
-    /// Событие, возникающее при ошибках в работе сервиса.
-    /// </summary>
-    public event EventHandler<string>? ErrorOccurred;
-    
+
     /// <summary>
     /// Событие, возникающее при изменении статуса операции считывания.
     /// </summary>
@@ -54,7 +49,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
     /// </summary>
     public SunyardCardReaderService(
         Context context,
-        ILogger<SunyardCardReaderService> logger, 
+        ILoggingService logger, 
         ISoundService soundService)
     {
         _context = context;
@@ -90,7 +85,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error stopping card wait");
+                    _logger.LogError($"Error stopping card wait:\n{ex.Message}\n{ex.InnerException}");
                 }
             });
 
@@ -112,7 +107,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error during card reading");
+            _logger.LogError($"Unexpected error during card reading\n{ex.Message}\n{ex.InnerException}");
             OnStatusChanged(CardReaderStatus.InternalError);
             return CardReadResult.HardwareError(ex.Message);
         }
@@ -196,7 +191,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error while disconnecting from card reader service");
+            _logger.LogWarning($"Error while disconnecting from card reader service:\n{ex.Message}\n{ex.InnerException}");
         }
 
         lock (_lock)
@@ -220,8 +215,7 @@ public class SunyardCardReaderService : Java.Lang.Object, ICardReaderService
 
     private void OnStatusChanged(CardReaderStatus status)
     {
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug($"Reader status: {status}");
+        _logger.LogDebug($"Reader status: {status}");
         
         StatusChanged?.Invoke(this, status);
     }

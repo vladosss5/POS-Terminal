@@ -18,7 +18,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<AndroidUpdateInstallerService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <inheritdoc cref="ITmsService" />
     private readonly ITmsService _tmsService;
@@ -44,7 +44,7 @@ public class AndroidUpdateInstallerService : IUpdateInstallerService
     /// </summary>
     public AndroidUpdateInstallerService(
         Context context, 
-        ILogger<AndroidUpdateInstallerService> logger, 
+        ILoggingService logger, 
         ITmsService tmsService, IParameterService parameterService)
     {
         _context = context;

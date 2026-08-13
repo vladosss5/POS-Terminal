@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Entities.Models.Settings;
@@ -130,7 +129,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public SettingsPageViewModel(
-        ILogger<PageViewModelBase> logger,
+        ILoggingService logger,
         IConfigurationService configurationService, 
         IParameterService parameterService, 
         IPopupService popupService) 
@@ -176,7 +175,7 @@ public partial class SettingsPageViewModel : PageViewModelBase
         }
         catch (Exception e)
         {
-            Logger.LogError(e.Message, e.InnerException);
+            Logger.LogError($"Ошибка инициализации данных:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка загрузки конфигурации: {e.Message}");
         }
     }

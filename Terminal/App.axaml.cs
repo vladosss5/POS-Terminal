@@ -9,7 +9,6 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Background;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
@@ -27,7 +26,7 @@ public class App : Avalonia.Application
     /// <summary>
     /// Логгер.
     /// </summary>
-    private static ILogger<App>? Logger { get; set; }
+    private static ILoggingService? Logger { get; set; }
     
     /// <summary>
     /// Св-во для получения зарегистрированных сервисов.
@@ -76,7 +75,7 @@ public class App : Avalonia.Application
                 break;
         }
 
-        Logger = Services!.GetRequiredService<ILogger<App>>();
+        Logger = Services!.GetRequiredService<ILoggingService>();
         
         await StartUpgradeAsync();
         
@@ -99,7 +98,7 @@ public class App : Avalonia.Application
             }
             catch (Exception e)
             {
-                Logger!.LogError(e.Message, e.InnerException);
+                Logger!.LogError($"Ошибка фонового обновления приложения:\n{e.Message}\n{e.InnerException}");
                 popupService.ShowCustomPopup(new Popup($"Ошибка: {e.Message}", PopupType.Error));
             }
         });

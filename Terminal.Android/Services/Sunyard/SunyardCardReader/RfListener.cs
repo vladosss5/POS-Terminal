@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Com.Sunyard.Api.Rfreader;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Android.Services.Sunyard.SunyardCardReader;
 
@@ -14,7 +14,7 @@ public class RfListener : IOnRfListener.Stub
 {
     private readonly TaskCompletionSource<CardReadResult> _tcs;
     private readonly SunyardCardReaderService _service;
-    private readonly ILogger _logger;
+    private readonly ILoggingService _logger;
     private bool _completed;
 
     /// <summary>
@@ -23,7 +23,7 @@ public class RfListener : IOnRfListener.Stub
     public RfListener(
         TaskCompletionSource<CardReadResult> tcs,
         SunyardCardReaderService service,
-        ILogger logger)
+        ILoggingService logger)
     {
         _tcs = tcs;
         _service = service;
@@ -42,14 +42,14 @@ public class RfListener : IOnRfListener.Stub
 
         try
         {
-            _logger.LogDebug("Card detected, type code: {CardType}", cardType);
+            _logger.LogDebug($"Card detected, type code: {cardType}");
 
             var cardInfo = ParseCardInfo(cardType);
             _tcs.TrySetResult(CardReadResult.Success(cardInfo));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing card data");
+            _logger.LogError($"Error processing card data:\n{ex.Message}\n{ex.InnerException}");
             _tcs.TrySetResult(CardReadResult.HardwareError("Failed to read card data"));
         }
     }
@@ -64,7 +64,7 @@ public class RfListener : IOnRfListener.Stub
         
         _completed = true;
 
-        _logger.LogDebug("Card read failed: {Error} - {Message}", error, message);
+        _logger.LogDebug($"Card read failed: {error} - {message}");
 
         var result = error switch
         {
@@ -123,7 +123,7 @@ public class RfListener : IOnRfListener.Stub
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to read card UID");
+            _logger.LogWarning($"Failed to read card UID\n{ex.Message}\n{ex.InnerException}");
             return "UID_ERROR";
         }
     }

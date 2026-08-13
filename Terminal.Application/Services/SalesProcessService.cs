@@ -19,7 +19,7 @@ namespace Terminal.Application.Services;
 public class SalesProcessService : ISalesProcessService
 {
     /// <inheritdoc cref="ILogger"/>
-    private readonly ILogger<SalesProcessService> _logger;
+    private readonly ILoggingService _logger;
     
     /// <inheritdoc cref="IConfigurationService" />
     private readonly IConfigurationService _configurationService;
@@ -92,7 +92,7 @@ public class SalesProcessService : ISalesProcessService
     /// Конструктор.
     /// </summary>
     public SalesProcessService(
-        ILogger<SalesProcessService> logger,
+        ILoggingService logger,
         IConfigurationService configurationService, 
         IReceiptPrintService receiptPrintService, 
         ISellingRepository sellingRepository, 
@@ -239,7 +239,7 @@ public class SalesProcessService : ISalesProcessService
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message, e.InnerException, result.ErrorMessage);
+                _logger.LogError($"Ошибка чтения карты {e.Message}\n{e.InnerException}\n{result.ErrorMessage}");
             }
             finally
             {
@@ -388,7 +388,7 @@ public class SalesProcessService : ISalesProcessService
             var selling = await _sellingRepository.GetSellingByCheckNumberAsync(checkNumber);
             if (selling == null)
             {
-                _logger.LogError("Продажа с номером чека {checkNumber} не найдена.", checkNumber);
+                _logger.LogError($"Продажа с номером чека {checkNumber} не найдена.");
                 continue;
             }
             

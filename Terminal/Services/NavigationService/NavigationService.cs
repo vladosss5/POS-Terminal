@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Interfaces;
 using Terminal.ViewModels;
@@ -18,7 +17,7 @@ public class NavigationService : INavigationService
     /// <summary>
     /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<NavigationService> _logger;
+    private readonly ILoggingService _logger;
     
     ///<inheritdoc cref="IServiceProvider"/>
     private readonly IServiceProvider _serviceProvider;
@@ -66,7 +65,7 @@ public class NavigationService : INavigationService
     /// </summary>
     public NavigationService(
         IServiceProvider serviceProvider, 
-        ILogger<NavigationService> logger, 
+        ILoggingService logger, 
         IParameterService parameterService, 
         IPopupService popupService)
     {
@@ -88,7 +87,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка перехода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
@@ -102,7 +101,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка перехода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
@@ -118,7 +117,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка перехода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
@@ -139,7 +138,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка перехода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
@@ -164,7 +163,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка перехода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Ошибка перехода: {e.Message}");
         }
     }
@@ -182,7 +181,7 @@ public class NavigationService : INavigationService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка вычисления первой страницы:\n{e.Message}\n{e.InnerException}");
             isInstalled = false;
         }
         

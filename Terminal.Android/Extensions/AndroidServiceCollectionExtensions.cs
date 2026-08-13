@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.IO;
+﻿using System.IO;
 using MainHelpers.Logger;
 using Microsoft.Extensions.DependencyInjection;
 using Terminal.Android.Services;

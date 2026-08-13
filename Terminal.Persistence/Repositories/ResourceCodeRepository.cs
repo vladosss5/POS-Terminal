@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.DbEntities.MainDb;
+using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
 using Terminal.Persistence.MainDB;
 
@@ -11,14 +11,14 @@ public class ResourceCodeRepository : IResourceCodeRepository
 {
     private readonly IDbContextFactory<DataContext> _mainDbFactory;
 
-    private readonly ILogger<ResourceCodeRepository> _logger;
+    private readonly ILoggingService _logger;
     
     /// <summary>
     /// Конструктор.
     /// </summary>
     public ResourceCodeRepository(
         IDbContextFactory<DataContext> mainDbFactory, 
-        ILogger<ResourceCodeRepository> logger)
+        ILoggingService logger)
     {
         _logger = logger;
         _mainDbFactory = mainDbFactory;

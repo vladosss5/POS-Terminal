@@ -17,7 +17,7 @@ public sealed class AndroidXmlResourceProvider : IXmlResourceProvider
     private readonly Context _context;
 
     /// <inheritdoc cref="ILogger" />
-    private readonly ILogger<AndroidXmlResourceProvider> _logger;
+    private readonly ILoggingService _logger;
     
     /// <summary>
     /// Название каталога в котором хранятся xml файлы.
@@ -29,7 +29,7 @@ public sealed class AndroidXmlResourceProvider : IXmlResourceProvider
     /// </summary>
     public AndroidXmlResourceProvider(
         Context context, 
-        ILogger<AndroidXmlResourceProvider> logger)
+        ILoggingService logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger;

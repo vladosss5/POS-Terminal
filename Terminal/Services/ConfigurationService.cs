@@ -18,8 +18,8 @@ namespace Terminal.Services;
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
-    /// <inheritdoc cref="ILogger" />
-    private readonly ILogger<ConfigurationService> _logger;
+    /// <inheritdoc cref="ILoggingService" />
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Настройки сериализации.
@@ -108,7 +108,7 @@ public class ConfigurationService : IConfigurationService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public ConfigurationService(ILogger<ConfigurationService> logger)
+    public ConfigurationService(ILoggingService logger)
     {
         _logger = logger;
 
@@ -253,7 +253,7 @@ public class ConfigurationService : IConfigurationService
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message, e.InnerException);
+                _logger.LogError($"Ошибка загрузки настроек из файла:\n{e.Message}\n{e.InnerException}");
                 _currentSetting = new SettingsModel();
                 _isLoaded = true;
             }

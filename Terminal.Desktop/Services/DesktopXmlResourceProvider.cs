@@ -2,7 +2,6 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Interfaces;
 
 namespace Terminal.Desktop.Services;
@@ -12,12 +11,12 @@ public class DesktopXmlResourceProvider : IXmlResourceProvider
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<DesktopXmlResourceProvider> _logger;
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public DesktopXmlResourceProvider(ILogger<DesktopXmlResourceProvider> logger)
+    public DesktopXmlResourceProvider(ILoggingService logger)
     {
         _logger = logger;
     }

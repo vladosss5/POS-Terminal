@@ -16,6 +16,7 @@ internal static class Program
             .ConfigureServices((_, services) =>
             {
                 services.AddLogger();
+                services.AddDesktopLogger();
                 services.AddCommonServices();
                 services.AddDesktopServices();
                 services.AddDataContext();

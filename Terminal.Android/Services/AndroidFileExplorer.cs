@@ -18,7 +18,7 @@ public class AndroidFileExplorer : IFileExplorer
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<AndroidFileExplorer> _logger;
+    private readonly ILoggingService _logger;
     
     /// <inheritdoc cref="Context"/>
     private readonly Context _context;
@@ -28,7 +28,7 @@ public class AndroidFileExplorer : IFileExplorer
     /// </summary>
     public AndroidFileExplorer(
         Context context, 
-        ILogger<AndroidFileExplorer> logger)
+        ILoggingService logger)
     {
         _context = context;
         _logger = logger;

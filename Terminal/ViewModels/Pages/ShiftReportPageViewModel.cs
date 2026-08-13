@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using Microsoft.Extensions.Logging;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -37,13 +36,13 @@ public class ShiftReportPageViewModel : PageViewModelBase
     /// <param name="print">Метод вызываемый при отправке чека на печать.</param>
     /// <param name="exit">Метод вызываемый при выходе из предпросмотра.</param>
     public ShiftReportPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILoggingService logger, 
         string receiptText,
         Action? print = null,
         Action? exit = null)
         : base(logger)
     {
-        ReceiptLines = new ObservableCollection<string>(receiptText.Split('\n'));
+        ReceiptLines = [.. receiptText.Split('\n')];
 
         if (print != null)
             _print = print;

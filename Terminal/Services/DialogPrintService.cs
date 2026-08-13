@@ -2,12 +2,12 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Microsoft.Extensions.Logging;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 using Terminal.Application.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 using Terminal.Views.DialogWindows;
 
 namespace Terminal.Services;
@@ -20,13 +20,12 @@ public class DialogPrintService
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<DialogPrintService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Конструктор.
     /// </summary>
-    /// <param name="logger"></param>
-    public DialogPrintService(ILogger<DialogPrintService> logger)
+    public DialogPrintService(ILoggingService logger)
     {
         _logger = logger;
     }
@@ -53,7 +52,7 @@ public class DialogPrintService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при показе диалога печати");
+            _logger.LogError($"Ошибка при показе диалога печати:\n{ex.Message}\n{ex.InnerException}");
             return new PrintResult
             {
                 Success = false,
@@ -85,7 +84,7 @@ public class DialogPrintService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Ошибка при показе диалога печати");
+            _logger.LogError($"Ошибка при показе диалога печати:\n{e.Message}\n{e.InnerException}");
             return new PrintResult
             {
                 Success = false,
@@ -117,7 +116,7 @@ public class DialogPrintService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Ошибка при показе диалога печати");
+            _logger.LogError($"Ошибка при показе диалога печати:\n{e.Message}\n{e.InnerException}");
             return new PrintResult
             {
                 Success = false,

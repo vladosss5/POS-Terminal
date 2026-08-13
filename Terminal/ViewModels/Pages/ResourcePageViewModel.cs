@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
@@ -104,7 +103,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public ResourcePageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILoggingService logger, 
         IReceiptPrintService receiptPrintService, 
         IAuthService authService, 
         IParameterService parameterService, 
@@ -190,7 +189,7 @@ public partial class ResourcePageViewModel : PageViewModelBase
         }
         catch (Exception e)
         {
-            Logger.LogError(e.Message, e.InnerException);
+            Logger.LogError($"Ошибка сохранения:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError(e.Message);
         }
     }

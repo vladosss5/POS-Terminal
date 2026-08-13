@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using MainHelpers.Logger;
 using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Dtos.DebitRoot;
 using Terminal.Application.Dtos.DiscountRoot;
@@ -11,7 +11,8 @@ namespace Terminal.Application.Services;
 /// <inheritdoc/>
 public class DiscountingMethods : IDiscountingMethods
 {
-    private readonly ILogger<DiscountingMethods> _logger;
+    /// <inheritdoc cref="ILoggingService" />
+    private readonly ILoggingService _logger;
     
     /// <inheritdoc cref="IDiscountingLibraryService" />
     private readonly IDiscountingLibraryService _discountingLibrary;
@@ -34,7 +35,7 @@ public class DiscountingMethods : IDiscountingMethods
     public DiscountingMethods(
         IDiscountingLibraryService discountingLibrary, 
         IXmlResourceProvider xmlResourceProvider, 
-        ILogger<DiscountingMethods> logger)
+        ILoggingService logger)
     {
         _discountingLibrary = discountingLibrary;
         _xmlResourceProvider = xmlResourceProvider;
@@ -79,7 +80,7 @@ public class DiscountingMethods : IDiscountingMethods
 
         var response = XmlHelper.DeserializeXml<CardInfoDtoResponseDto>(resultString);
 
-        _logger.LogDebug("Успешно получена информация о карте. Размер ответа: {ResponseSize} байт", returnBytes);
+        _logger.LogInformation($"Успешно получена информация о карте. Размер ответа: {returnBytes} байт");
 
         return response;
     }
@@ -92,7 +93,7 @@ public class DiscountingMethods : IDiscountingMethods
         var resultBuffer = new byte[MaxResultBufferSize];
         uint returnBytes = 0;
         
-        _logger.LogDebug("Предварительный расчёт скидок. input = {inputXml}", inputXml);
+        _logger.LogInformation($"Предварительный расчёт скидок. input = {inputXml}");
 
         var resultString = _discountingLibrary.Calculating(
             inputXml,
@@ -105,7 +106,7 @@ public class DiscountingMethods : IDiscountingMethods
 
         var response = XmlHelper.DeserializeXml<DiscountResponseDto>(resultString);
 
-        _logger.LogDebug("Успешно рассчитаны скидки. Output - {resultString}", resultString);
+        _logger.LogInformation($"Успешно рассчитаны скидки. Output - {resultString}");
 
         return response;
     }
@@ -117,7 +118,7 @@ public class DiscountingMethods : IDiscountingMethods
         var resultBuffer = new byte[MaxResultBufferSize];
         uint returnBytes = 0;
 
-        _logger.LogDebug("Начато дебетование. input = {inputXml}", inputXml);
+        _logger.LogInformation($"Начато дебетование. input = {inputXml}");
         var resultString = _discountingLibrary.Calculating(
             inputXml,
             _limitationXml,
@@ -129,7 +130,7 @@ public class DiscountingMethods : IDiscountingMethods
 
         var response = XmlHelper.DeserializeXml<DebitResponseDto>(resultString);
         
-        _logger.LogDebug("Завершено дебетование. Output = {resultString}", resultString);
+        _logger.LogInformation($"Завершено дебетование. Output = {resultString}");
 
         return response;
     }

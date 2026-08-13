@@ -15,16 +15,13 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<UpgradeBackgroundService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <inheritdoc cref="IUpdateInstallerService" />
     private readonly IUpdateInstallerService _updateInstallerService;
 
     /// <inheritdoc cref="IStatusNotifierService" />
     private readonly IStatusNotifierService _statusNotifierService;
-
-    /// <inheritdoc cref="IPopupService" />
-    private readonly IPopupService _popupService;
 
     /// <summary>
     /// Название файла-иконки загрузки.
@@ -50,15 +47,13 @@ public class UpgradeBackgroundService : IUpgradeBackgroundService
     /// Конструктор.
     /// </summary>
     public UpgradeBackgroundService(
-        ILogger<UpgradeBackgroundService> logger, 
+        ILoggingService logger, 
         IUpdateInstallerService updateInstallerService, 
-        IStatusNotifierService statusNotifierService, 
-        IPopupService popupService)
+        IStatusNotifierService statusNotifierService)
     {
         _logger = logger;
         _updateInstallerService = updateInstallerService;
         _statusNotifierService = statusNotifierService;
-        _popupService = popupService;
     }
 
     /// <summary>

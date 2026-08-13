@@ -18,7 +18,7 @@ public class AndroidPrintService : IReceiptPrintService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public AndroidPrintService(ILogger<DialogPrintService> logger)
+    public AndroidPrintService(ILoggingService logger)
     {
         _dialogPrintService = new DialogPrintService(logger);
     }

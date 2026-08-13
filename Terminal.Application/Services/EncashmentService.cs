@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Entities.Models;
@@ -15,8 +14,8 @@ namespace Terminal.Application.Services;
 /// <inheritdoc/>
 public class EncashmentService : IEncashmentService
 {
-    /// <inheritdoc cref="ILogger" />
-    private readonly ILogger<EncashmentService> _logger;
+    /// <inheritdoc cref="ILoggingService" />
+    private readonly ILoggingService _logger;
 
     /// <inheritdoc cref="IGenericRepository" />
     private readonly IGenericRepository _genericRepository;
@@ -71,7 +70,7 @@ public class EncashmentService : IEncashmentService
     /// </summary>
     public EncashmentService(
         IConfigurationService configurationService,
-        ILogger<EncashmentService> logger, 
+        ILoggingService logger, 
         ITmsService tmsService, 
         IGenericRepository genericRepository)
     {
@@ -204,7 +203,7 @@ public class EncashmentService : IEncashmentService
 
             var affected = await _genericRepository.ExecuteSqlAsync(string.Format(sql, string.Join(",", ids)), "DataContext");
         
-            _logger.LogInformation("Deleted {Count} {Table} records", affected, table);
+            _logger.LogInformation($"Deleted {affected} {table} records");
         }
     }
 

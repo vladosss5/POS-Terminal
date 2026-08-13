@@ -63,6 +63,7 @@ public static class ServiceCollectionExtensions
         collection.AddSingleton<IResourceCodeMapper, ResourceCodeMapper>();
         
         // Сервисы логики
+        collection.AddSingleton<ILoggingService, LoggingService>();
         collection.AddSingleton<ITmsClient, TmsClient>();
         collection.AddSingleton<INavigationService, NavigationService>();
         collection.AddScoped<IFileReader, FileReader>();

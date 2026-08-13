@@ -9,13 +9,11 @@ using Android.OS;
 using Com.Sunyard.Api;
 using Com.Sunyard.Api.Printer;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
 using Terminal.Services.NavigationService;
-using Terminal.ViewModels;
 using Terminal.ViewModels.Pages;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
@@ -40,7 +38,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<SunyardPrintService> _logger;
+    private readonly ILoggingService _logger;
     
     /// <summary>
     /// Доступ к глобальной информации о среде приложения.
@@ -82,7 +80,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// </summary>
     public SunyardPrintService(
         Context context,
-        ILogger<SunyardPrintService> logger, 
+        ILoggingService logger, 
         INavigationService navigationService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -162,7 +160,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     public async Task<PrintResult> PrintShiftReportAsync(ShiftReportDataDto reportData)
     {
         var receiptText = TextReportGenerator.FormatShiftReportText(reportData);
-        var logger = App.Services!.GetRequiredService<ILogger<PageViewModelBase>>();
+        var logger = App.Services!.GetRequiredService<ILoggingService>();
         
         var tcs = new TaskCompletionSource<PrintResult>();
         

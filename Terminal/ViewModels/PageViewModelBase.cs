@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
+using Terminal.Core.Interfaces;
 using Terminal.Services.NavigationService;
 
 namespace Terminal.ViewModels;
@@ -9,10 +9,8 @@ namespace Terminal.ViewModels;
 /// </summary>
 public partial class PageViewModelBase : ViewModelBase
 {
-    /// <summary>
-    /// Логгер.
-    /// </summary>
-    protected readonly ILogger<PageViewModelBase> Logger;
+    /// <inheritdoc cref="ILoggingService"/>
+    protected readonly ILoggingService Logger;
     
     /// <inheritdoc cref="INavigationService"/>
     private INavigationService? _navigationService;
@@ -49,8 +47,7 @@ public partial class PageViewModelBase : ViewModelBase
     /// <summary>
     /// Конструктор.
     /// </summary>
-    protected PageViewModelBase(
-        ILogger<PageViewModelBase> logger)
+    protected PageViewModelBase(ILoggingService logger)
     {
         Logger = logger;
     }

@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
@@ -14,7 +13,7 @@ public class TmsClient : ITmsClient
     /// <summary>
     /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<TmsClient> _logger;
+    private readonly ILoggingService _logger;
 
     /// <inheritdoc cref="IParameterService"/>
     private readonly IParameterService _parameterService;
@@ -47,7 +46,7 @@ public class TmsClient : ITmsClient
     /// </summary>
     public TmsClient(
         IParameterService parameterService,
-        ILogger<TmsClient> logger)
+        ILoggingService logger)
     {
         _parameterService = parameterService;
         _logger = logger;
@@ -73,8 +72,7 @@ public class TmsClient : ITmsClient
         _httpClient.BaseAddress = new Uri(address);
         _baseAddressResolved = true;
 
-        _logger.LogInformation("TMS client base address has been changed. {Old} -> {New}",
-            oldAddress, _httpClient.BaseAddress);
+        _logger.LogInformation($"TMS client base address has been changed. {oldAddress} -> {_httpClient.BaseAddress}");
     }
 
     /// <inheritdoc/>
@@ -139,7 +137,7 @@ public class TmsClient : ITmsClient
             _httpClient.BaseAddress = new Uri(address);
             _baseAddressResolved = true;
 
-            _logger.LogInformation("TMS client base address resolved to {Address}", address);
+            _logger.LogInformation($"TMS client base address resolved to {address}");
         }
         finally
         {

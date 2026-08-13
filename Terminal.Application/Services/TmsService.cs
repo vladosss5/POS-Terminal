@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
+using MainHelpers.Logger;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Entities.TmsDtos.TerminalUpdate;
@@ -18,7 +18,7 @@ public class TmsService : ITmsService
     /// <summary>
     /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<TmsService> _logger;
+    private readonly ILoggingService _logger;
     
     /// <inheritdoc cref="ITmsClient" />
     private readonly ITmsClient _tmsClient;
@@ -36,7 +36,7 @@ public class TmsService : ITmsService
     /// Конструктор.
     /// </summary>
     public TmsService(
-        ILogger<TmsService> logger,
+        ILoggingService logger,
         ITmsClient tmsClient, 
         IParameterService parameterService, 
         IConfigurationService configurationService, 
@@ -126,7 +126,7 @@ public class TmsService : ITmsService
             }
             catch (Exception e)
             {
-                _logger.LogError($"An attempt number: {attempt} to send a {table.Name} table package failed", e.Message);
+                _logger.LogError($"Номер попытки: {attempt} отправить пакет с таблицей {table.Name} завершилась ошибкой: \n{e.Message}");
                 attempt++;
 
                 if (attempt >= maxRetries)

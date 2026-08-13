@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using Terminal.Application.Interfaces.Services;
+﻿using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Application.Services;
 
 /// <inheritdoc/>
 public class StepNotifierService : IStepNotifierService
 {
-    private readonly ILogger<StepNotifierService> _logger;
+    private readonly ILoggingService _logger;
     
     /// <summary>
     /// Порядок шагов продажи.
@@ -35,7 +35,7 @@ public class StepNotifierService : IStepNotifierService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public StepNotifierService(ILogger<StepNotifierService> logger)
+    public StepNotifierService(ILoggingService logger)
     {
         _logger = logger;
     }

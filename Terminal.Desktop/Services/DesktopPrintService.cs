@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Interfaces;
 using Terminal.Services;
@@ -17,7 +16,7 @@ public class DesktopPrintService : IReceiptPrintService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public DesktopPrintService(ILogger<DialogPrintService> logger)
+    public DesktopPrintService(ILoggingService logger)
     {
         _dialogPrintService = new DialogPrintService(logger);
     }

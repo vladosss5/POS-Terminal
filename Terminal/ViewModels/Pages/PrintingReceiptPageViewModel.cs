@@ -9,7 +9,6 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Mappers;
 using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Interfaces;
@@ -85,7 +84,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public PrintingReceiptPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILoggingService logger, 
         IDbContextFactory<DataContext> dbFactory, 
         IReceiptPrintService printService, 
         ISellingMappingService receiptMappingService) 
@@ -165,7 +164,7 @@ public partial class PrintingReceiptPageViewModel : PageViewModelBase
     /// </summary>
     private async Task OnKeywordChangedAsync()
     {
-        _loadingCts?.Cancel();
+        await _loadingCts?.CancelAsync();
         _loadingCts = new CancellationTokenSource();
         var token = _loadingCts.Token;
 

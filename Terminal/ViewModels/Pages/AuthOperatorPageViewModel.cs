@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Interfaces;
 using Terminal.Dtos;
@@ -30,7 +29,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
     /// Токен отмены для таймера бездействия.
     /// </summary>
     private CancellationTokenSource? _inactivityCts;
-    
+
     /// <summary>
     /// Пароль в исходном виде.
     /// </summary>
@@ -39,13 +38,13 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
         get;
         set
         {
-            if (!SetProperty(ref field, value)) 
+            if (!SetProperty(ref field, value))
                 return;
-            
+
             PasswordPreview = new string('*', value.Length);
             PasswordIsEmpty = string.IsNullOrEmpty(field);
         }
-    }
+    } = "";
 
     /// <summary>
     /// Предпросмотр пароля.
@@ -53,7 +52,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
     public string PasswordPreview
     {
         get; private set => SetProperty(ref field, value);
-    }
+    } = "";
 
     /// <summary>
     /// Пароль пустой?
@@ -78,7 +77,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public AuthOperatorPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILoggingService logger, 
         IConfigurationService configurationService,
         IAuthService authService, 
         AuthNavigationParameters navigationParams) 
@@ -164,7 +163,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
     /// </summary>
     private void NavigateOnFailure()
     {
-        if (_navigationParams.GoBackOnCancel && Navigation.CanGoBack)
+        if (_navigationParams.GoBackOnCancel && Navigation!.CanGoBack)
         {
             Navigation.GoBack();
             return;
@@ -180,7 +179,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
         }
         else
         {
-            if (Navigation.CanGoBack)
+            if (Navigation!.CanGoBack)
                 Navigation.GoBack();
         }
     }
@@ -219,7 +218,7 @@ public partial class AuthOperatorPageViewModel : PageViewModelBase
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Ошибка при работе таймера бездействия");
+                Logger.LogError($"Ошибка при работе таймера бездействия:\n{ex.Message}\n{ex.InnerException}");
             }
         }, _inactivityCts.Token);
     }

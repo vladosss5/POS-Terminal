@@ -9,7 +9,6 @@ using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
@@ -27,9 +26,6 @@ namespace Terminal.ViewModels.Pages;
 /// </summary>
 public class MainMenuPageViewModel : PageViewModelBase
 {
-    ///<inheritdoc cref="ILogger"/>
-    private readonly ILogger<MainMenuPageViewModel> _logger;
-    
     ///<inheritdoc cref="IFileExplorer"/>
     private readonly IFileExplorer _fileExplorer;
 
@@ -97,7 +93,7 @@ public class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     public MainMenuPageViewModel(
         IFileExplorer fileExplorer, 
-        ILogger<MainMenuPageViewModel> logger, 
+        ILoggingService logger, 
         IAuthService authService, 
         IShiftService shiftService, 
         IReceiptPrintService receiptPrintService, 
@@ -113,7 +109,6 @@ public class MainMenuPageViewModel : PageViewModelBase
         : base(logger)
     {
         _fileExplorer = fileExplorer;
-        _logger = logger;
         _authService = authService;
         _shiftService = shiftService;
         _receiptPrintService = receiptPrintService;
@@ -204,17 +199,17 @@ public class MainMenuPageViewModel : PageViewModelBase
     {
         try
         {
-            _logger.LogInformation("Checking for updates...");
+            Logger.LogInformation("Checking for updates...");
 
             if (!await _installerService.CheckForUpdates())
                 throw new Exception("Обновлений не найдено");
 
-            _logger.LogInformation("New version found. Downloading...");
+            Logger.LogInformation("New version found. Downloading...");
             UpdateDownloadingStatus(DownloadStatus.InProcess);
             
             await _installerService.DownloadUpdatingFileAsync();
             
-            _logger.LogInformation("Update downloaded successfully");
+            Logger.LogInformation("Update downloaded successfully");
             UpdateDownloadingStatus(DownloadStatus.Completed);
             
             // var confirmedResult = await _messageBoxService // TODO: Сюда диалоговое окно.
@@ -227,7 +222,7 @@ public class MainMenuPageViewModel : PageViewModelBase
         catch (Exception e)
         {
             _popupService.ShowCustomPopup(new Popup($"Ошибка обновления", PopupType.Error, 3000));
-            _logger.LogError("{EMessage} \n{EInnerException}", e.Message, e.InnerException);
+            Logger.LogError($"{e.Message} \n{e.InnerException}");
         }
         
         _ = Task.Run(async () =>
@@ -243,7 +238,7 @@ public class MainMenuPageViewModel : PageViewModelBase
     public override void OnActivated(INavigationService navigationService)
     {
         base.OnActivated(navigationService);
-        _logger.LogInformation("MainMenuPageViewModel activated");
+        Logger.LogInformation("MainMenuPageViewModel activated");
     }
 
     /// <summary>
@@ -251,11 +246,11 @@ public class MainMenuPageViewModel : PageViewModelBase
     /// </summary>
     private async Task CopyDataBaseDirectoryToDownloads()
     {
-        _logger.LogInformation("Вызвано копирование");
+        Logger.LogInformation("Вызвано копирование");
         await _fileExplorer.CopyDataBaseDirectoryToDownloadsAsync();
 
         _popupService.ShowSuccess("Каталог успешно скопирован!");
-        _logger.LogInformation("Каталог успешно скопирован!");
+        Logger.LogInformation("Каталог успешно скопирован!");
     }
     
     /// <summary>
@@ -267,7 +262,7 @@ public class MainMenuPageViewModel : PageViewModelBase
         var shiftNumber = openShift != null ? openShift.ShiftKey : 0;
         
         var confirmPage = new ConfirmationPageViewModel(
-            _logger,
+            Logger,
             "Закрыть смену",
             $"№ {shiftNumber}",
             async void () =>
@@ -288,7 +283,7 @@ public class MainMenuPageViewModel : PageViewModelBase
                 }
                 catch (Exception e)
                 {
-                    _logger.LogInformation(e.Message);
+                    Logger.LogInformation(e.Message);
                     Navigation!.NavigateTo<OpenShiftPageViewModel>();
                 }
             },
@@ -351,7 +346,7 @@ public class MainMenuPageViewModel : PageViewModelBase
         catch (Exception e)
         {
             _popupService.ShowError(e.Message);
-            _logger.LogError(e.Message, e.InnerException);
+            Logger.LogError($"Ошибка печати промежуточного отчёта\n{e.Message}\n{e.InnerException}");
         }
     }
 

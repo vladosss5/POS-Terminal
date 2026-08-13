@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
@@ -140,7 +139,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
     /// Конструктор.
     /// </summary>
     public SellingProcessPageViewModel(
-        ILogger<PageViewModelBase> logger,
+        ILoggingService logger,
         IStepNotifierService stepNotifierService,
         ISalesProcessService salesProcessService,
         IResourceCodeMapper resourceCodeMapper, 
@@ -233,7 +232,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         }
         catch (Exception e)
         {
-            Logger.LogError(e.Message, e.InnerException);
+            Logger.LogError($"Ошибка при указании типа оплаты\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError(e.Message);
             _soundService.PlaySound(SoundType.Error);
         }
@@ -370,7 +369,7 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
         }
         catch (Exception e)
         {
-            Logger.LogError(e.Message, e.InnerException);
+            Logger.LogError($"Ошибка загрузки данных из хранилища:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError($"Данные не загружены из-за ошибки: {e.Message}");
         }
     }

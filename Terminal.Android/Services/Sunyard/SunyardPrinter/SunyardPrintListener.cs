@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Com.Sunyard.Api.Printer;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 
@@ -18,7 +18,7 @@ namespace Terminal.Android.Services.Sunyard.SunyardPrinter;
 public class SunyardPrintListener : IOnPrintListener.Stub
 {
     private readonly TaskCompletionSource<PrintResult> _tcs;
-    private readonly ILogger<SunyardPrintService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Конструктор.
@@ -27,7 +27,7 @@ public class SunyardPrintListener : IOnPrintListener.Stub
     /// <param name="logger">Логгер для записи событий печати.</param>
     public SunyardPrintListener(
         TaskCompletionSource<PrintResult> tcs, 
-        ILogger<SunyardPrintService> logger)
+        ILoggingService logger)
     {
         _tcs = tcs;
         _logger = logger;
@@ -39,7 +39,7 @@ public class SunyardPrintListener : IOnPrintListener.Stub
     /// </summary>
     public override void OnFinish()
     {
-        _logger?.LogInformation("Print finished successfully.");
+        _logger.LogInformation("Print finished successfully.");
         _tcs.TrySetResult(new PrintResult { Success = true });
     }
 
@@ -50,7 +50,7 @@ public class SunyardPrintListener : IOnPrintListener.Stub
     /// <param name="error">Код ошибки из SDK принтера.</param>
     public override void OnError(int error)
     {
-        _logger?.LogError($"Print failed with error code: {error}");
+        _logger.LogError($"Print failed with error code: {error}");
         _tcs.TrySetResult(new PrintResult
         {
             Success = false,

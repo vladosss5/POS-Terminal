@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MainHelpers.Logger;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Entities.Models;
@@ -169,7 +169,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public OpenShiftPageViewModel(
-        ILogger<PageViewModelBase> logger, 
+        ILoggingService logger, 
         IDbContextFactory<DataContext> dbFactory, 
         IAuthService authService, 
         IShiftService shiftService, 
@@ -229,6 +229,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void AddCharInPassword(string element)
     {
+        Logger.LogInformation($"Нажата кнопка {element}");
         _soundService.PlaySound(SoundType.Button);
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();
@@ -408,7 +409,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         {}
         catch (Exception e)
         {
-            Logger.LogError(e, "Ошибка при ожидании ввода");
+            Logger.LogError($"Ошибка при ожидании ввода:\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError("Ошибка при ожидании ввода");
         }
         finally
@@ -448,7 +449,7 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Ошибка при считывании карты");
+            Logger.LogError($"Ошибка при считывании карты\n{ex.Message}\n{ex.InnerException}");
             return CardReadResult.ServiceError(ex.Message);
         }
     }

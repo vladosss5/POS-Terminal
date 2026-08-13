@@ -12,7 +12,7 @@ public class FileExplorer : IFileExplorer
     /// <summary>
     /// Логгер.
     /// </summary>
-    private readonly ILogger<FileExplorer> _logger;
+    private readonly ILoggingService _logger;
     
     /// <inheritdoc cref="IGenericRepository" />
     private readonly IGenericRepository _genericRepository;
@@ -21,7 +21,7 @@ public class FileExplorer : IFileExplorer
     /// Конструктор.
     /// </summary>
     public FileExplorer(
-        ILogger<FileExplorer> logger, 
+        ILoggingService logger, 
         IGenericRepository genericRepository)
     {
         _logger = logger;
@@ -70,7 +70,7 @@ public class FileExplorer : IFileExplorer
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed to copy directory from {sourceDir} to {destDir}", ex);
+            _logger.LogError($"Ошибка копирования данных из каталога {sourceDir} в каталог {destDir}: \n{ex}");
         }
     }
 }

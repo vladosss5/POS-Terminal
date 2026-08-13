@@ -15,7 +15,7 @@ public class AndroidSoundService : ISoundService
     /// <summary>
     /// Сервис логирования.
     /// </summary>
-    private readonly ILogger<AndroidSoundService> _logger;
+    private readonly ILoggingService _logger;
 
     /// <summary>
     /// Путь к аудиофайлу нажатия на кнопку.
@@ -35,7 +35,7 @@ public class AndroidSoundService : ISoundService
     /// <summary>
     /// Конструктор.
     /// </summary>
-    public AndroidSoundService(ILogger<AndroidSoundService> logger)
+    public AndroidSoundService(ILoggingService logger)
     {
         _logger = logger;
     }
@@ -76,7 +76,7 @@ public class AndroidSoundService : ISoundService
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message, e.InnerException);
+            _logger.LogError($"Ошибка воспроизведения звука\n{e.Message}\n{e.InnerException}");
         }
     }
 }

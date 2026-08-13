@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Interfaces;
@@ -82,7 +81,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
     /// Конструктор.
     /// </summary>
     public AdminLoginPageViewModel(
-        ILogger<PageViewModelBase> logger,
+        ILoggingService logger,
         IConfigurationService configurationService, 
         ICryptographyService cryptographyService, 
         IPopupService popupService) 
@@ -192,7 +191,7 @@ public partial class AdminLoginPageViewModel : PageViewModelBase
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Ошибка при работе таймера бездействия");
+                Logger.LogError($"Ошибка при работе таймера бездействия:\n{ex.Message}\n{ex.InnerException}");
             }
         }, _inactivityCts.Token);
     }

@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Extensions.Logging;
+using Terminal.Core.Interfaces;
 
 namespace Terminal.ViewModels.Pages;
 
@@ -36,7 +36,7 @@ public class ConfirmationPageViewModel : PageViewModelBase
     /// <param name="confirm">Событие для подтверждения.</param>
     /// <param name="exit">Событие для отмены.</param>
     public ConfirmationPageViewModel(
-        ILogger<PageViewModelBase> logger,
+        ILoggingService logger,
         string title,
         string confirmationText,
         Action confirm,

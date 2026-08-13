@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.IO;
+using MainHelpers.Logger;
+using Microsoft.Extensions.DependencyInjection;
 using Terminal.Android.Services;
 using Terminal.Android.Services.Sunyard.SunyardCardReader;
 using Terminal.Android.Services.Sunyard.SunyardPrinter;
@@ -37,6 +39,28 @@ public static class AndroidServiceCollectionExtensions
         {
             collection.AddTransient<IReceiptPrintService, SunyardPrintService>();
             collection.AddTransient<ICardReaderService, SunyardCardReaderService>();
+        }
+        
+        /// <summary>
+        /// Регистрация сервиса логирования.
+        /// </summary>
+        public void AddAndroidLogger()
+        {
+            var documentsPath = global::Android.OS.Environment.GetExternalStoragePublicDirectory(
+                global::Android.OS.Environment.DirectoryDocuments)?.AbsolutePath;
+
+            if (string.IsNullOrEmpty(documentsPath))
+                documentsPath = "/storage/emulated/0/Documents";
+
+            var logsPath = Path.Combine(documentsPath, "TerminalLogs");
+    
+            if (!Directory.Exists(logsPath))
+                Directory.CreateDirectory(logsPath);
+            
+            var logger = new LoggerClass("Terminal", LogSaveType.Full, LogType.Txt, logsPath);
+            LoggerClass.StaticFlags = LoggerFlagsType.Console;
+            logger.Open();
+            collection.AddSingleton(logger);
         }
     }
 }

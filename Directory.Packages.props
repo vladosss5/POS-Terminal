@@ -20,19 +20,19 @@
     <PackageVersion Include="MessageBox.Avalonia" Version="12.0.0" />
     <!-- EF Core packages -->
     <PackageVersion Include="MessageBox.Avalonia.Markdown" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11" />
     <!-- Infrustructure packages -->
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.10" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Maui.Essentials" Version="10.0.90" />
     <!-- Testing packages -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
@@ -41,8 +41,9 @@
     <PackageVersion Include="NUnit" Version="4.6.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
     <!-- XZ packages -->
-    <PackageVersion Include="System.IO.Ports" Version="10.0.10" />
-    <PackageVersion Include="System.Windows.Extensions" Version="10.0.10" />
+    <PackageVersion Include="SNC.MainHelpersCore" Version="1.1.2" />
+    <PackageVersion Include="System.IO.Ports" Version="10.0.11" />
+    <PackageVersion Include="System.Windows.Extensions" Version="10.0.11" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.2" />
   </ItemGroup>
 </Project>

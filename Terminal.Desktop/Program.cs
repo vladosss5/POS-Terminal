@@ -15,7 +15,6 @@ internal static class Program
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((_, services) =>
             {
-                services.AddLogger();
                 services.AddDesktopLogger();
                 services.AddCommonServices();
                 services.AddDesktopServices();

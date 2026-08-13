@@ -26,6 +26,9 @@ public static class DesktopServiceCollectionExtensions
         collection.AddSingleton<ISoundService, DesktopSoundService>();
     }
     
+    /// <summary>
+    /// Регистрация SNC логера.
+    /// </summary>
     public static void AddDesktopLogger(this IServiceCollection services)
     {
         var logger = new LoggerClass("Terminal", LogSaveType.Full, LogType.Txt, "logs");

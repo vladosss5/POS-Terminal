@@ -48,6 +48,7 @@ public class App : Avalonia.Application
     public override async void OnFrameworkInitializationCompleted()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Console.OutputEncoding = Encoding.UTF8;
         
         if (Design.IsDesignMode) 
         {

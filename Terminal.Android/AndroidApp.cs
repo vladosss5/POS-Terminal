@@ -24,6 +24,7 @@ public class AndroidApp : AvaloniaAndroidApplication<App>
             .ConfigureServices((_, services) =>
             {
                 services.AddLogger();
+                services.AddAndroidLogger();
                 services.AddCommonServices();
                 services.AddAndroidServices();
                 services.AddDataContext();

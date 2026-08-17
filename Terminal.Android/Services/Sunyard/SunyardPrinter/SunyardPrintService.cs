@@ -130,7 +130,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
             AddKeyValueText("Итого", $"= {salesReceipt.TotalPrice.ToString("F2", CultureForNumber)}");
 
             if (salesReceipt is { BaseType: BasePaymentType.NonCash, DerivedType: DerivedPaymentType.FuelCard })
-                AddLineWidthText("Инфо по кошелькам");
+                AddLineWidthText("Инфо. по кошелькам");
             
             AddLineWidthText();
             AddLeftText($"Оператор {salesReceipt.Operator}");
@@ -546,7 +546,7 @@ public class SunyardPrintService : Java.Lang.Object, IReceiptPrintService
     /// <param name="text">Текст в середине линии.</param>
     private void AddLineWidthText(string text = "")
     {
-        var widthPage = string.IsNullOrWhiteSpace(text) ? 55 : 45;
+        var widthPage = string.IsNullOrWhiteSpace(text) ? 55 : 39;
         var spacer = new string('-', (widthPage - text.Length) / 2);
         var inputText = spacer + text + spacer;
 

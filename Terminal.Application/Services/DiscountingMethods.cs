@@ -68,6 +68,7 @@ public class DiscountingMethods : IDiscountingMethods
     public CardInfoDtoResponseDto GetCardInfo(CardInfoDtoRequestDto dtoRequestDto)
     {
         var inputXml = XmlHelper.SerializeXml(dtoRequestDto);
+        _logger.LogInformation($"Запрошена информация по карте\n{inputXml}");
 
         var resultBuffer = new byte[MaxResultBufferSize];
         uint returnBytes = 0;
@@ -81,9 +82,8 @@ public class DiscountingMethods : IDiscountingMethods
             resultBuffer.Length,
             ref returnBytes);
 
+        _logger.LogInformation($"Получена информация по карте\n{resultString}");
         var response = XmlHelper.DeserializeXml<CardInfoDtoResponseDto>(resultString);
-
-        _logger.LogInformation($"Успешно получена информация о карте. Размер ответа: {returnBytes} байт");
 
         return response;
     }

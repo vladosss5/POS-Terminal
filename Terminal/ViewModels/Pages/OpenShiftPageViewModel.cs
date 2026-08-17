@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AvaloniaEdit.Utils;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MainHelpers.Logger;
 using Microsoft.EntityFrameworkCore;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Entities.DbEntities.MainDb;
@@ -229,7 +228,6 @@ public partial class OpenShiftPageViewModel : PageViewModelBase
     [RelayCommand]
     private void AddCharInPassword(string element)
     {
-        Logger.LogInformation($"Нажата кнопка {element}");
         _soundService.PlaySound(SoundType.Button);
         if (!_inputCancellationTokenSource!.IsCancellationRequested)
             ResetInputTimer();

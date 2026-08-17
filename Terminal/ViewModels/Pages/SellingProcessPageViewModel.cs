@@ -9,6 +9,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Terminal.Application.Interfaces.Services;
 using Terminal.Core.Enums;
+using Terminal.Core.Exceptions;
+using Terminal.Core.Exceptions.ProcessingCenter;
 using Terminal.Core.Interfaces;
 using Terminal.Dtos;
 using Terminal.Services.Mappers.ResourceCodeMapping;
@@ -226,18 +228,41 @@ public partial class SellingProcessPageViewModel : PageViewModelBase, IStepObser
 
             if (value.DerivedType is DerivedPaymentType.BankCard or DerivedPaymentType.FuelCard)
                 await _salesProcessService.ReadCardAsync();
-
-            await _salesProcessService.CompleteProcessAsync();
-            _soundService.PlaySound(SoundType.Success);
         }
         catch (Exception e)
         {
             Logger.LogError($"Ошибка при указании типа оплаты\n{e.Message}\n{e.InnerException}");
             _popupService.ShowError(e.Message);
             _soundService.PlaySound(SoundType.Error);
+            Navigation!.NavigateTo<MainMenuPageViewModel>();
         }
-        finally
+
+        await CompleteProcessAsync();
+    }
+
+    /// <summary>
+    /// Произвести расчёт.
+    /// </summary>
+    private async Task CompleteProcessAsync()
+    {
+        try
         {
+            await _salesProcessService.CompleteProcessAsync();
+            _soundService.PlaySound(SoundType.Success);
+            Navigation!.NavigateTo<MainMenuPageViewModel>();
+        }
+        catch (AmountException)
+        {
+            Logger.LogError($"Недостаточно средств на карте.");
+            _soundService.PlaySound(SoundType.Error);
+            _popupService.ShowInfo("Недостаточно средств на карте. Отрегулируйте кол-во");
+            _stepNotifierService.GoToStep(SaleProcessStep.SettingAmount);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"Ошибка транзакции\n{e.Message}\n{e.InnerException}");
+            _popupService.ShowError($"Ошибка транзакции {e.Message}");
+            _soundService.PlaySound(SoundType.Error);
             Navigation!.NavigateTo<MainMenuPageViewModel>();
         }
     }

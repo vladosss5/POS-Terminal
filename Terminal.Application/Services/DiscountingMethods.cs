@@ -1,9 +1,12 @@
 ﻿using MainHelpers.Logger;
+using Terminal.Application.Dtos;
 using Terminal.Application.Dtos.CardInfoRoot;
 using Terminal.Application.Dtos.DebitRoot;
 using Terminal.Application.Dtos.DiscountRoot;
 using Terminal.Application.Helpers;
 using Terminal.Application.Interfaces.Services;
+using Terminal.Core.Exceptions;
+using Terminal.Core.Exceptions.ProcessingCenter;
 using Terminal.Core.Interfaces;
 
 namespace Terminal.Application.Services;
@@ -111,6 +114,7 @@ public class DiscountingMethods : IDiscountingMethods
         return response;
     }
 
+    /// <inheritdoc/>
     public DebitResponseDto Debit(DebitRequestDto requestDto)
     {
         var inputXml = XmlHelper.SerializeXml(requestDto);
@@ -133,5 +137,40 @@ public class DiscountingMethods : IDiscountingMethods
         _logger.LogInformation($"Завершено дебетование. Output = {resultString}");
 
         return response;
+    }
+
+    /// <inheritdoc/>
+    public void CheckErrorIntoResponse(RequestDto requestDto)
+    {
+        if (string.IsNullOrEmpty(requestDto.ResultMessageExt))
+            return;
+        
+        var resultMessageExtText = requestDto.ResultMessageExt
+            .Replace("&#x0D;", "\r")
+            .Replace("&#x0A;", "\n");
+        
+        var dict = new Dictionary<string, string>();
+        var lines = resultMessageExtText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var separatorIndex = line.IndexOf('=');
+            
+            if (separatorIndex <= 0) 
+                continue;
+            
+            var key = line[..separatorIndex].Trim();
+            var value = line[(separatorIndex + 1)..].Trim();
+            dict[key] = value;
+        }
+
+        if (requestDto.ResultCodeExt == 65552 || dict["Type"] is "3" or "4")
+            throw new RequiredParameterException();
+
+        if (requestDto.ResultCodeExt == 65549 && dict["ViewType"] == "3")
+            throw new RequiredPinCodeException();
+
+        if (dict["ViewHeader"].Contains("Недостаточно средств на карте."))
+            throw new AmountException();
     }
 }

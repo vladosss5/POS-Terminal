@@ -10,6 +10,7 @@ using Terminal.Core.Entities.DbEntities.MainDb;
 using Terminal.Core.Entities.Models;
 using Terminal.Core.Enums;
 using Terminal.Core.Exceptions;
+using Terminal.Core.Exceptions.ProcessingCenter;
 using Terminal.Core.Interfaces;
 using Terminal.Core.IRepositories;
 
@@ -299,9 +300,12 @@ public class SalesProcessService : ISalesProcessService
         
         for (var i = 1; i <= 3; i++)
         {
-            debitResponse = _discountingMethods.Debit(debitRequestDto);
-
-            if (CheckPinRequest(debitResponse.Request))
+            try
+            {
+                debitResponse = _discountingMethods.Debit(debitRequestDto);
+                _discountingMethods.CheckErrorIntoResponse(debitResponse.Request);
+            }
+            catch (RequiredPinCodeException)
             {
                 _stepNotifierService.GoToStep(SaleProcessStep.EnteringPin);
 
@@ -320,32 +324,14 @@ public class SalesProcessService : ISalesProcessService
     }
 
     /// <summary>
-    /// Проверка требования PIN-кода процессинговый центром.
-    /// </summary>
-    /// <param name="requestDto">Модель запроса из ответа из ПЦ.</param>
-    /// <returns>Требуется или не требуется.</returns>
-    private bool CheckPinRequest(RequestDto requestDto)
-    {
-        if (string.IsNullOrEmpty(requestDto.ResultMessageExt))
-            return false;
-        
-        var viewTypeParameter = requestDto.ResultMessageExt
-            .Split("\r\n")
-            .FirstOrDefault(x => x.Contains("ViewType"))?
-            .Split('=')
-            .Last();
-
-        return requestDto.ResultCodeExt == 65549 && viewTypeParameter == "3";
-    }
-
-    /// <summary>
     /// Предварительный расчёт скидок.
     /// </summary>
     private async Task<DiscountResponseDto> CalculateDiscountAsync(CardInfoDtoResponseDto? cardInfoDto)
     {
         var discountRequestDto = await GetDiscountRequestDto(cardInfoDto);
         var result = _discountingMethods.CalculateDiscount(discountRequestDto);
-        
+        _discountingMethods.CheckErrorIntoResponse(result.Request);
+
         return result;
     }
     
@@ -358,23 +344,27 @@ public class SalesProcessService : ISalesProcessService
     {
         if (string.IsNullOrEmpty(cardUid))
             return null;
-        
+
         var cardInfoRequestDto = GetRequestDto(cardUid);
-        var cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
-
-        var typeCode = cardInfoResponseDto.Request.ResultMessageExt?
-            .Split("\r\n")
-            .FirstOrDefault(x => x.Contains("Type"))?
-            .Split('=')
-            .Last();
+        var cardInfoResponseDto = new CardInfoDtoResponseDto();
         
-        if (cardInfoResponseDto.Request.ResultCodeExt != 65552 || typeCode is not ("3" or "4")) // TODO Уточнить природу ошибки.
-            return cardInfoResponseDto;
+        while (true)
+        {
+            try
+            {
+                cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+                _discountingMethods.CheckErrorIntoResponse(cardInfoResponseDto.Request);
+                
+                break;
+            }
+            catch (RequiredParameterException)
+            {
+                cardInfoRequestDto.Parameters.ReadCard = 4;
+                cardInfoRequestDto.CardInfoList = cardInfoResponseDto.CardInfoList;
+                cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
+            }
+        }
         
-        cardInfoRequestDto.Parameters.ReadCard = 4;
-        cardInfoRequestDto.CardInfoList = cardInfoResponseDto.CardInfoList;
-        cardInfoResponseDto = _discountingMethods.GetCardInfo(cardInfoRequestDto);
-
         return cardInfoResponseDto;
     }
     
